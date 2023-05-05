@@ -1,0 +1,57 @@
+name: Release
+
+env:
+  PROJECT_NAME: StarRailTools
+
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: powershell
+
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install poetry
+      run: pipx install poetry
+
+    - name: Set up Python version
+      id: setup-python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.8.10"
+        cache: "poetry"
+
+    - name: Install dependencies
+      run: poetry install --with release --without dev,test
+
+    - name: Package as exe
+      run: poetry run pyinstaller --clean ./main.spec
+
+    - name: Set file name
+      run: |
+        echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
+
+    - name: Move and rename
+      run: |
+        Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        name: ${{ env.PROJECT_NAME }} ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: ${{ env.file-name }}.exe
+        draft: false
+        prerelease: false
+        fail_on_unmatched_files: true

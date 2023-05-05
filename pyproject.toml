@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "star_rail"
+version = "0.1.0"
+description = "崩坏·星穹铁道抽卡工具"
+authors = ["cntvc <cntvc@outlook.com>"]
+license = "GPLv3"
+readme = "README.md"
+repository = "https://github.com/cntvc/star-rail-wish-tools"
+packages = [{include = "star_rail"}]
+exclude = ["tests"]
+
+[[tool.poetry.source]]
+name = "USTC"
+url = "https://pypi.mirrors.ustc.edu.cn/simple"
+default = false
+secondary = true
+
+[tool.poetry.dependencies]
+python = ">=3.8.10, <3.9"
+loguru = "^0.7.0"
+dynaconf = "^3.1.12"
+pywin32 = "^306"
+requests = "^2.28.2"
+xlsxwriter = "^3.1.0"
+pydantic = "^1.10.7"
+prettytable = "^3.7.0"
+
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.12.0"
+black = "^23.3.0"
+flake8 = "^6.0.0"
+pre-commit = "^3.2.2"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.3.1"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.10.0"
+
+
+[tool.poetry.group.release.dependencies]
+pyinstaller = "^5.10.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+line_length = 100
+profile = "black"
+
+[tool.black]
+line-length = 100

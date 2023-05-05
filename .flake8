@@ -1,0 +1,3 @@
+[flake8]
+# https://flake8.pycqa.org/en/latest/user/index.html
+max-line-length = 100
