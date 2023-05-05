@@ -41,11 +41,11 @@ def check_update():
     try:
         tag = get_latest_tag(GITHUB_RELEASE_URL)
     except Timeout:
-        logger.error("检测更新失败, 请检查网络连接状态")
+        logger.warning("检测更新失败, 请检查网络连接状态")
         return False
     except RequestException:
+        logger.error("更新检测出现错误")
         logger.debug(traceback.format_exc())
-        logger.error("更新链接解析出错")
         return False
 
     if not tag:
@@ -57,5 +57,5 @@ def check_update():
         print(GITHUB_RELEASE_URL)
         return True
     else:
-        logger.info("当前已是最新版本\n")
+        logger.success("当前已是最新版本\n")
         return True

@@ -11,7 +11,7 @@ from star_rail.module.gacha import (
 )
 from star_rail.module.menu import Menu, MenuItem
 from star_rail.module.user import choose_user_menu, get_account_status
-from star_rail.utils.functional import get_format_time
+from star_rail.utils.functional import clear_screen, get_format_time, pause
 from star_rail.utils.log import logger
 
 
@@ -46,7 +46,20 @@ def init_menu():
             MenuItem(
                 title="软件设置",
                 options=[
-                    MenuItem(title="软件更新", options=lambda: print("等待开发")),
+                    MenuItem(
+                        title="软件更新检测",
+                        options=[
+                            MenuItem(
+                                title="打开",
+                                options=lambda: update_and_save("FLAG_CHECK_UPDATE", True),
+                            ),
+                            MenuItem(
+                                title="关闭",
+                                options=lambda: update_and_save("FLAG_CHECK_UPDATE", False),
+                            ),
+                        ],
+                        tips=lambda: config_status("FLAG_CHECK_UPDATE"),
+                    ),
                     MenuItem(
                         title="导出到Execl表格",
                         options=[
@@ -99,6 +112,12 @@ def init_dir():
 def run():
     sys_info()
     init_dir()
+    if settings.FLAG_CHECK_UPDATE:
+        from star_rail.module import update
+
+        update.check_update()
+        pause()
+        clear_screen()
 
     menu = init_menu()
     menu.run()
