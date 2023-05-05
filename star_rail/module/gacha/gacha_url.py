@@ -35,12 +35,6 @@ def get_url_from_clipboard():
     return url
 
 
-"""
-/AppData/LocalLow/Cognosphere/Star Rail/
-/AppData/LocalLow/miHoYo/崩坏：星穹铁道/
-"""
-
-
 def get_url_from_webcache(user: User):
     logger.debug("从游戏缓存获取抽卡链接")
 
@@ -78,6 +72,8 @@ def get_url_from_webcache(user: User):
 
 def get_webcache_path(user: User):
     game_log_path = "miHoYo/崩坏：星穹铁道/"
+    if user.location == "global":
+        game_log_path = "Cognosphere/Star Rail/"
     log_path = Path(constant.GAME_RUNTIME_LOG_PATH, game_log_path, "Player.log")
     if not log_path.exists():
         raise NotFoundPathError("未找到游戏日志文件")
@@ -99,8 +95,10 @@ def get_webcache_path(user: User):
 
 def concatenate_url(url: str):
     spliturl = url.split("?")
-    spliturl[0] = "https://api-takumi.mihoyo.com/common/gacha_record/api/getGachaLog"
-    # spliturl[0] = "https://api-os-takumi.mihoyo.com/common/gacha_record/api/getGachaLog"
+    if "webstatic-sea.hoyoverse.com" in spliturl[0] or "api-os-takumi" in spliturl[0]:
+        spliturl[0] = "https://api-os-takumi.mihoyo.com/common/gacha_record/api/getGachaLog"
+    else:
+        spliturl[0] = "https://api-takumi.mihoyo.com/common/gacha_record/api/getGachaLog"
     url = "?".join(spliturl)
     return url
 
