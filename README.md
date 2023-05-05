@@ -5,7 +5,7 @@
 </div>
 
 
-# 使用方式
+## 使用方式
 
 在 Github [下载页面](https://github.com/cntvc/star-rail-wish-tools/releases/latest) 下载exe文件，双击即可使用
 
@@ -27,6 +27,13 @@
 </p>
 
 
-# 鸣谢
+## 参与贡献
+
+非常欢迎您参与项目贡献，详情请参阅 [CONTRIBUTING.md][CONTRIBUTING]
+
+## 鸣谢
 - 项目由 [**Genshin_Impact_Tools**](https://github.com/cntvc/Genshin-Impact-Tools) 修改而来
 - 生成 XLSX 文件代码参考了项目 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export/blob/main/writeXLSX.py)
+
+
+[CONTRIBUTING]: .github/CONTRIBUTING.md
