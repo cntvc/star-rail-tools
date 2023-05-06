@@ -241,8 +241,10 @@ def create_xlsx(user: User, gacha_log):
                 counter,
                 pity_counter,
             ]
+            # 这里转换为int类型，在后面修改单元格样式时使用
+            excel_data[3] = int(excel_data[3])
             worksheet.write_row(counter, 0, excel_data, content_css)
-            if gacha["rank_type"] == "5":
+            if excel_data[3] == 5:
                 pity_counter = 0
 
         first_row = 1  # 不包含表头第一行 (zero indexed)
