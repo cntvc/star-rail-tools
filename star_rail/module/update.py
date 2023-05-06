@@ -10,7 +10,9 @@ from star_rail import constant
 from star_rail.utils.functional import clear_screen, color_str
 from star_rail.utils.log import logger
 
-GITHUB_RELEASE_URL = "https://api.github.com/repos/cntvc/star-rail-tools/releases/latest"
+GITHUB_RELEASE_API = "https://api.github.com/repos/cntvc/star-rail-tools/releases/latest"
+
+GITHUB_RELEASE_URL = "https://github.com/cntvc/star-rail-wish-tools/releases/latest"
 
 
 def get_latest_tag(url: str):
@@ -33,7 +35,7 @@ def check_update():
     """
     print("正在检测软件更新...")
     try:
-        tag = get_latest_tag(GITHUB_RELEASE_URL)
+        tag = get_latest_tag(GITHUB_RELEASE_API)
     except (Timeout, RequestException):
         print(color_str("检测更新失败, 请检查网络连接状态", "red"))
         logger.debug(traceback.format_exc())
