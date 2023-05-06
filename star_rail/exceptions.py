@@ -11,7 +11,7 @@ class UserInfoError(StarRailError):
     pass
 
 
-class NotFoundPathError(StarRailError):
+class PathNotExistError(StarRailError):
     pass
 
 

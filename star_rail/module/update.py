@@ -7,7 +7,7 @@ from requests import RequestException, Timeout
 
 from star_rail import __version__ as version
 from star_rail import constant
-from star_rail.utils.functional import clear_screen
+from star_rail.utils.functional import clear_screen, color_str
 from star_rail.utils.log import logger
 
 GITHUB_RELEASE_URL = "https://api.github.com/repos/cntvc/star-rail-tools/releases/latest"
@@ -19,14 +19,8 @@ def get_latest_tag(url: str):
 
     Returns:
         str: tag_name
-
-    Raise: Timeout, RequestException
     """
-    try:
-        response = requests.get(url, timeout=constant.TIMEOUT).content.decode("utf-8")
-    except (Timeout, RequestException):
-        raise
-
+    response = requests.get(url, timeout=constant.TIMEOUT).content.decode("utf-8")
     data = json.loads(response)
     if "tag_name" not in data:
         return ""
@@ -37,14 +31,11 @@ def check_update():
     """
     check app is need update
     """
-    logger.info("正在检测软件更新...")
+    print("正在检测软件更新...")
     try:
         tag = get_latest_tag(GITHUB_RELEASE_URL)
-    except Timeout:
-        logger.warning("检测更新失败, 请检查网络连接状态")
-        return False
-    except RequestException:
-        logger.error("更新检测出现错误")
+    except (Timeout, RequestException):
+        print(color_str("检测更新失败, 请检查网络连接状态", "red"))
         logger.debug(traceback.format_exc())
         return False
 

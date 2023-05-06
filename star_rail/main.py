@@ -93,13 +93,12 @@ def init_menu():
 def sys_info():
     logger.debug(
         (
-            "\n====================Launch the application====================\n"
+            "\n"
             "Software version:{}\n"
-            "Launch time:{}\n"
+            "System time:{}\n"
             "System version:{}\n"
             "--------------------\n"
-            "Config\n"
-            "{}\n"
+            "Config: {}\n"
             "===================="
         ),
         version,
@@ -115,6 +114,7 @@ def init_dir():
 
 @logger.catch()
 def run():
+    logger.debug(" Launch the application ========================================\n")
     sys_info()
     init_dir()
     if settings.FLAG_CHECK_UPDATE:

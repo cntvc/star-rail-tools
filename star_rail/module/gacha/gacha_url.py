@@ -12,9 +12,10 @@ import win32api
 from win32api import CopyFile
 
 from star_rail import constant
-from star_rail.exceptions import NotFoundPathError
+from star_rail.exceptions import PathNotExistError
 from star_rail.module.clipboard import get_clipboad_text_or_html
 from star_rail.module.user import User
+from star_rail.utils.functional import color_str
 from star_rail.utils.log import logger
 
 
@@ -26,7 +27,12 @@ def get_url_from_user_profile(user: User):
 
 def get_url_from_clipboard():
     logger.debug("从剪切板获取抽卡链接")
-    text = get_clipboad_text_or_html()
+    try:
+        text = get_clipboad_text_or_html()
+    except win32api.error as e:
+        print(color_str(e.winerror, "red"))
+        logger.debug(traceback.format_exc())
+        return None
     logger.debug(f"get_clipboad_text_or_html {text}")
     url = get_url_from_string(text)
     if not url:
@@ -37,7 +43,6 @@ def get_url_from_clipboard():
 
 def get_url_from_webcache(user: User):
     logger.debug("从游戏缓存获取抽卡链接")
-
     cache_file = get_webcache_path(user)
 
     with tempfile.NamedTemporaryFile("w+", delete=False) as tmp_file:
@@ -45,7 +50,7 @@ def get_url_from_webcache(user: User):
     try:
         CopyFile(str(cache_file), str(tmp_file_name))
     except win32api.error:
-        logger.error("游戏缓存读取失败")
+        print(color_str("游戏缓存读取失败", "red"))
         logger.debug(traceback.format_exc())
         return None
 
@@ -76,7 +81,7 @@ def get_webcache_path(user: User):
         game_log_path = "Cognosphere/Star Rail/"
     log_path = Path(constant.GAME_RUNTIME_LOG_PATH, game_log_path, "Player.log")
     if not log_path.exists():
-        raise NotFoundPathError("未找到游戏日志文件")
+        raise PathNotExistError("未找到游戏日志文件")
     try:
         log_text = log_path.read_text(encoding="utf8")
     except UnicodeDecodeError as err:
@@ -86,10 +91,10 @@ def get_webcache_path(user: User):
     res = re.search("([A-Z]:/.+{})".format(data_path), log_text)
     game_path = res.group() if res else None
     if not game_path:
-        raise NotFoundPathError("未找到游戏路径")
+        raise PathNotExistError("未找到游戏路径")
     data_2_path = Path(game_path) / "webCaches/Cache/Cache_Data/data_2"
     if not data_2_path.is_file():
-        raise NotFoundPathError("未找到游戏缓存文件")
+        raise PathNotExistError("未找到游戏缓存文件")
     return data_2_path
 
 

@@ -87,10 +87,9 @@ class Account:
 
 
 def add_by_uid(uid: str):
-    if not User.verify_uid(uid):
-        raise UserInfoError("UID 格式错误, UID : {}", uid)
     user = User(uid)
     user.save_profile()
+    logger.debug("添加账号:{}", uid)
     return user
 
 

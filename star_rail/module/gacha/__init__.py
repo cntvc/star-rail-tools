@@ -1,4 +1,7 @@
+import traceback
+
 from star_rail.config import settings
+from star_rail.exceptions import PathNotExistError
 from star_rail.module.gacha.gacha_log import (
     analyze_gacha_log,
     analyze_result,
@@ -37,7 +40,12 @@ def export_use_webcache():
     if None is user:
         logger.warning("请设置账号后重试")
         return
-    url = get_url_from_webcache(user)
+    try:
+        url = get_url_from_webcache(user)
+    except PathNotExistError as e:
+        print(color_str(e, "red"))
+        logger.debug(traceback.format_exc())
+        return
     if not verify_gacha_url(url):
         return
     uid, gacha_log = query_gacha_log(url)
@@ -72,7 +80,7 @@ def save_gacha_log(user: User, gacha_log):
         create_xlsx(user, gacha_log)
     analyze_data = analyze_gacha_log(user, gacha_log)
     overview, rank5_detail = analyze_result(analyze_data)
-    print("数据导出完成，按任意键查看抽卡报告")
+    print(color_str("数据导出完成，按任意键查看抽卡报告", "green"))
     pause()
     clear_screen()
     print("UID:", color_str("{}".format(analyze_data["uid"]), "green"), end="\n")
