@@ -87,10 +87,14 @@ def show_analytical_results():
     if None is user:
         logger.warning("请设置账号后重试")
         return
-    if not user.gacha_log_analyze_path.exists():
-        logger.warning("未找到{}的分析报告文件", user.uid)
+    if not user.gacha_log_analyze_path.exists() and not user.gacha_log_json_path.exists():
+        logger.warning("未找到账号 {} 相关数据文件", user.uid)
         return
-    analyze_data = load_json(user.gacha_log_analyze_path)
+    if not user.gacha_log_analyze_path.exists():
+        gacha_log = load_json(user.gacha_log_json_path)
+        analyze_data = analyze_gacha_log(user, gacha_log)
+    else:
+        analyze_data = load_json(user.gacha_log_analyze_path)
     overview, rank5_detail = analyze_result(analyze_data)
     clear_screen()
     print("UID:", color_str("{}".format(analyze_data["uid"]), "green"), end="\n")
