@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "star_rail"
-version = "0.1.0"
+version = "0.1.1"
 description = "崩坏·星穹铁道抽卡工具"
 authors = ["cntvc <cntvc@outlook.com>"]
 license = "GPLv3"
