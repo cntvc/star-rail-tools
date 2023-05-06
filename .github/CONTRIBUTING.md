@@ -31,9 +31,7 @@ poetry install
 poetry shell
 ```
 
-### 初始化 git hook
-
-注意这步很重要，这将在提交前自动进行代码格式化检测
+### 初始化 git hook（非常重要）
 
 ```bash
 pre-commit install
