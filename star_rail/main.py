@@ -4,6 +4,7 @@ from star_rail import __version__ as version
 from star_rail import about
 from star_rail.config import config_status, settings, update_and_save
 from star_rail.module.gacha import (
+    export_to_xlsx,
     export_use_clipboard,
     export_use_user_profile,
     export_use_webcache,
@@ -34,6 +35,10 @@ def init_menu():
                     MenuItem(
                         title="使用软件缓存导出",
                         options=export_use_user_profile,
+                    ),
+                    MenuItem(
+                        title="导出到Execl表格文件",
+                        options=export_to_xlsx,
                     ),
                 ],
                 tips=lambda: get_account_status(),

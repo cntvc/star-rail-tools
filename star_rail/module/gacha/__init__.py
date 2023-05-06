@@ -102,3 +102,20 @@ def show_analytical_results():
     print(overview, end="\n")
     print(color_str("注：平均抽数不包括“保底内抽数”", "yellow"), end="\n\n")
     print(rank5_detail)
+
+
+def export_to_xlsx():
+    user = Account().login_user
+    if None is user:
+        logger.warning("请设置账号后重试")
+        return
+    if not user.gacha_log_json_path.exists():
+        logger.warning("未找到账号 {} 原始数据文件", user.uid)
+        return
+    gacha_log = load_json(user.gacha_log_json_path)
+    if settings.FLAG_GENERATE_XLSX:
+        create_xlsx(user, gacha_log)
+    else:
+        logger.warning("请在设置中开启“导出到Execl表格”后重试")
+        return
+    logger.success("导出到Execl成功")
