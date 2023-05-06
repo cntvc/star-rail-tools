@@ -38,8 +38,10 @@ class User:
         return True
 
     def _init_location(self):
-        # TODO UID 和地区对应关系
-        self.location = "cn"
+        if "6" <= self.uid[0] <= "9":
+            self.location = "global"
+        elif "1" <= self.uid[0] <= "5":
+            self.location = "cn"
 
     def to_dict(self):
         user_data = {}

@@ -1,0 +1,41 @@
+name: Bug 反馈 (Bug Report)
+description: 提交 Bug 反馈 (Bug Report)
+labels: ["type: bug"]
+assignees:
+  - cntvc
+body:
+  - type: markdown
+    attributes:
+      value: "## 环境信息 ( Environment)"
+  - type: dropdown
+    validations:
+      required: true
+    attributes:
+      label: 系统版本 (System Version)
+      description: What version of our software are you running?
+      multiple: false
+      options:
+        - Windows10 or Windows11
+        - Windows7
+  - type: input
+    id: app-version
+    validations:
+      required: true
+    attributes:
+      label: 软件版本 (Software version)
+  - type: markdown
+    attributes:
+      value: "## 详细信息 (Details)"
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么？预计会发生什么 (What happened? what did you expect to happen?)
+      description: |
+        可以提供软件截图、视频或者日志文件等 (You can provide screenshots, videos or log files, etc.).
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志输出文本 (Relevant log output)
+      render: Text

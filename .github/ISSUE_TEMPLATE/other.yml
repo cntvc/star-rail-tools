@@ -1,0 +1,14 @@
+name: 其他讨论 (Other Question)
+description: 其他疑问或想法讨论 (Other questions or ideas)
+assignees:
+  - cntvc
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 描述你的疑问或想法 (Describe your question or idea)
+      description: |
+        详细的阐述你的想法，可以提供截图，视频等信息
+        Explain your ideas in detail, you can provide screenshots, videos and other information
+    validations:
+      required: true
