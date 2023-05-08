@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from star_rail import constant
+from star_rail.config import settings, update_and_save
 from star_rail.exceptions import UserInfoError
 from star_rail.utils.functional import (
     clear_screen,
@@ -82,8 +83,29 @@ class User:
 
 @singleton
 class Account:
-    def __init__(self, user: User = None) -> None:
-        self.login_user = user
+    user: User
+
+    def __init__(self) -> None:
+        default_login = settings.LOGIN_ACCOUNT
+        if default_login:
+            self.user = User(default_login)
+            self.user.load_profile()
+        else:
+            self.user = None
+
+    def login(self, user: User):
+        self.user = user
+
+    def get_login(self):
+        return self.user
+
+
+def get_account_status():
+    account = Account()
+    if None is account.get_login():
+        return "当前未设置账号"
+    else:
+        return "当前账号 {}".format(color_str(account.get_login().uid, "green"))
 
 
 def add_by_uid(uid: str):
@@ -161,13 +183,14 @@ def choose_user_menu(create_user=True) -> Optional[User]:
         uid = input_uid()
         if uid is None:
             return ""
-        account.login_user = add_by_uid(uid)
+        account.login(add_by_uid(uid))
     else:
         choose_user = uid_list[choose - 1]
-        account.login_user = User(choose_user)
-        account.login_user.load_profile()
+        account.login(User(choose_user))
+        account.get_login().load_profile()
 
-    logger.success("设置账号 {}".format(account.login_user.uid))
+    update_and_save("LOGIN_ACCOUNT", account.get_login().uid)
+    logger.success("设置账号 {}", account.get_login().uid)
 
 
 def input_uid():
@@ -185,11 +208,3 @@ def input_uid():
             print(color_str("请输入正确格式的UID", "red"))
             continue
         return uid
-
-
-def get_account_status():
-    account = Account()
-    if None is account.login_user:
-        return "当前未设置账号"
-    else:
-        return "当前账号 {}".format(color_str(account.login_user.uid, "green"))

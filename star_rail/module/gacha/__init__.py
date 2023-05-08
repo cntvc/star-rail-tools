@@ -36,7 +36,7 @@ def export_use_clipboard():
 
 
 def export_use_webcache():
-    user = Account().login_user
+    user = Account().get_login()
     if None is user:
         logger.warning("请设置账号后重试")
         return
@@ -58,7 +58,7 @@ def export_use_webcache():
 
 
 def export_use_user_profile():
-    user = Account().login_user
+    user = Account().get_login()
     if None is user:
         logger.warning("请设置账号后重试")
         return
@@ -91,7 +91,7 @@ def save_gacha_log(user: User, gacha_log):
 
 
 def show_analytical_results():
-    user = Account().login_user
+    user = Account().get_login()
     if None is user:
         logger.warning("请设置账号后重试")
         return
@@ -113,7 +113,7 @@ def show_analytical_results():
 
 
 def export_to_xlsx():
-    user = Account().login_user
+    user = Account().get_login()
     if None is user:
         logger.warning("请设置账号后重试")
         return
