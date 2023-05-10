@@ -113,14 +113,15 @@ def init_dir():
 
 
 @logger.catch()
-def run():
+def start():
     logger.debug(" Launch the application ========================================\n")
     sys_info()
     init_dir()
     if settings.FLAG_CHECK_UPDATE:
-        from star_rail.module import update
+        from star_rail.module import updater
 
-        update.check_update()
+        if updater.update():
+            pass
         pause()
         clear_screen()
 
@@ -129,4 +130,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    start()

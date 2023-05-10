@@ -1,4 +1,4 @@
-FLAG_CHECK_UPDATE = false
+FLAG_CHECK_UPDATE = true
 
 FLAG_GENERATE_XLSX = false
 

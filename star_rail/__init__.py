@@ -4,7 +4,7 @@ __version__ = "0.1.1"
 
 from star_rail.utils.functional import clear_screen
 
-APP_NAME = "star rail tools"
+APP_NAME = "StarRailTools"
 
 
 def about():
@@ -25,3 +25,7 @@ def about():
     for item in description:
         print(item)
     print()
+
+
+def get_exe_name():
+    return APP_NAME + "_{}.exe".format(__version__)
