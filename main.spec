@@ -18,7 +18,7 @@ file_list = [
     src_root_dir + "module/__init__.py",
     src_root_dir + "module/clipboard.py",
     src_root_dir + "module/menu.py",
-    src_root_dir + "module/update.py",
+    src_root_dir + "module/updater.py",
     src_root_dir + "module/user.py",
 
     src_root_dir + "module/gacha/__init__.py",

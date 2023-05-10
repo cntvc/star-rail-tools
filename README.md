@@ -35,7 +35,7 @@
 
 ## 使用方式
 
-在 Github [下载页面](https://github.com/cntvc/star-rail-wish-tools/releases/latest) 下载exe文件，双击即可使用
+在 Github [下载页面](https://github.com/cntvc/star-rail-tools/releases/latest) 下载exe文件，双击即可使用
 
 1. 设置账户：选择或输入需要导出的账号 UID
 2. 打开游戏，在**抽卡记录页面**选择历史记录并翻页

@@ -2,9 +2,12 @@
 
 __version__ = "0.1.1"
 
+import os
+import sys
+
 from star_rail.utils.functional import clear_screen
 
-APP_NAME = "star rail tools"
+APP_NAME = "StarRailTools"
 
 
 def about():
@@ -25,3 +28,8 @@ def about():
     for item in description:
         print(item)
     print()
+
+
+def get_exe_name():
+    py_executable = sys.executable
+    return os.path.basename(py_executable)

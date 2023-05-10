@@ -24,6 +24,7 @@ requests = "^2.28.2"
 xlsxwriter = "^3.1.0"
 pydantic = "^1.10.7"
 prettytable = "^3.7.0"
+tqdm = "^4.65.0"
 
 
 [tool.poetry.group.dev.dependencies]
