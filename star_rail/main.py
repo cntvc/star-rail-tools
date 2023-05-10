@@ -113,23 +113,23 @@ def start():
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clean", help="清理遗留文件，文件路径以 `,` 分隔")
-    parser.add_argument("--ignore-update", action="store_true", help="本次运行关闭更新检测")
-    parser.add_argument("--log", action="store_true", help="显示当前版本更新日志")
+    parser.add_argument("--clean", help="清理文件，文件路径以 `,` 分隔")
+    parser.add_argument("--update-info", action="store_true", help="显示更新信息")
 
     args = parser.parse_args()
     logger.debug("args:{}", args)
     if args.clean:
         file_paths = args.clean.split(",")
         clear_files(file_paths)
-    if args.log:
+    if args.update_info:
+        logger.success("软件更新成功\n")
+        print(color_str(version, "green") + " 版本更新日志：")
         print("=" * constant.MAX_MENU_LENGTH)
-        print(color_str(version, "green") + " 版本更新日志：", end="\n\n")
         print(parse_changelog(get_cur_version_info()))
         print("=" * constant.MAX_MENU_LENGTH)
         pause()
 
-    if not args.ignore_update and settings.FLAG_CHECK_UPDATE:
+    if not args.update_info and settings.FLAG_CHECK_UPDATE:
         if not updater.update():
             pause()
             clear_screen()

@@ -92,9 +92,9 @@ def update():
         print(color_str("下载新版本文件失败, 请检查网络连接状态", "red"))
         logger.debug(e)
         return False
+    logger.debug("新版本程序临时文件：{}", temp_file)
     latest_version_exe_path = os.path.join(os.getcwd(), latest_version_exe_name)
     shutil.move(temp_file, latest_version_exe_path)
-    logger.info("版本更新成功\n")
     update_and_restart(latest_version_exe_name, get_exe_name())
 
 
@@ -123,6 +123,4 @@ def parse_changelog(release_data):
 def update_and_restart(new_exe_name, old_exe_name):
     """启动新版本程序，通过传参清理旧版本文件"""
     logger.debug("launch app: {}\told app: {}", new_exe_name, old_exe_name)
-    os.execv(
-        new_exe_name, [new_exe_name, "--clean={}".format(old_exe_name), "--log", "--ignore-update"]
-    )
+    os.execv(new_exe_name, [new_exe_name, "--clean={}".format(old_exe_name), "--update-info"])
