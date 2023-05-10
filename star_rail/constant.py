@@ -13,3 +13,5 @@ TIMEOUT = 5
 OPEN = True
 
 CLOSE = False
+
+MAX_MENU_LENGTH = 40

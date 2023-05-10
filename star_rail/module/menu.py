@@ -3,6 +3,7 @@ from typing import Callable, List, Union
 
 from pydantic import BaseModel
 
+from star_rail import constant
 from star_rail.utils.functional import clear_screen, input_int, pause
 
 
@@ -13,8 +14,6 @@ class MenuItem(BaseModel):
 
 
 class Menu:
-    MAX_MENU_LENGTH = 40
-
     def __init__(self, menu: MenuItem) -> None:
         self.menu = menu
         self.stack: List[MenuItem] = []
@@ -24,9 +23,9 @@ class Menu:
         clear_screen()
         # 让标题打印在中间
         title = self.menu.title
-        space_len = math.floor((Menu.MAX_MENU_LENGTH - len(title)) / 2)
+        space_len = math.floor((constant.MAX_MENU_LENGTH - len(title)) / 2)
         print(" " * space_len + title)
-        print("=" * Menu.MAX_MENU_LENGTH)
+        print("=" * constant.MAX_MENU_LENGTH)
         options: List[MenuItem] = self.menu.options
         for index, option in enumerate(options):
             print("{}.{}".format(index + 1, option.title))
@@ -35,7 +34,7 @@ class Menu:
             print("0.返回上级菜单")
         else:
             print("0.退出")
-        print("=" * Menu.MAX_MENU_LENGTH)
+        print("=" * constant.MAX_MENU_LENGTH)
 
         self._display_tips()
 
@@ -47,7 +46,7 @@ class Menu:
             print(tips())
         elif isinstance(tips, str):
             print(tips)
-        print("=" * Menu.MAX_MENU_LENGTH)
+        print("=" * constant.MAX_MENU_LENGTH)
 
     def run(self):
         while self.stack:

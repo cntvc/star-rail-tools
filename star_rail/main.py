@@ -1,8 +1,10 @@
+import argparse
 import platform
 
 from star_rail import __version__ as version
-from star_rail import about
+from star_rail import about, constant
 from star_rail.config import config_status, settings, update_and_save
+from star_rail.module import updater
 from star_rail.module.gacha import (
     export_to_xlsx,
     export_use_clipboard,
@@ -11,8 +13,9 @@ from star_rail.module.gacha import (
     show_analytical_results,
 )
 from star_rail.module.menu import Menu, MenuItem
+from star_rail.module.updater import get_cur_version_info, parse_changelog
 from star_rail.module.user import choose_user_menu, get_account_status
-from star_rail.utils.functional import clear_screen, get_format_time, pause
+from star_rail.utils.functional import clear_files, clear_screen, color_str, get_format_time, pause
 from star_rail.utils.log import logger
 
 
@@ -90,7 +93,9 @@ def init_menu():
     return Menu(main_menu)
 
 
-def sys_info():
+@logger.catch()
+def start():
+    logger.debug(" Launch the application ========================================\n")
     logger.debug(
         (
             "\n"
@@ -107,23 +112,27 @@ def sys_info():
         settings.as_dict(),
     )
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--clean", help="清理遗留文件，文件路径以 `,` 分隔")
+    parser.add_argument("--ignore-update", action="store_true", help="本次运行关闭更新检测")
+    parser.add_argument("--log", action="store_true", help="显示当前版本更新日志")
 
-def init_dir():
-    pass
-
-
-@logger.catch()
-def start():
-    logger.debug(" Launch the application ========================================\n")
-    sys_info()
-    init_dir()
-    if settings.FLAG_CHECK_UPDATE:
-        from star_rail.module import updater
-
-        if updater.update():
-            pass
+    args = parser.parse_args()
+    logger.debug("args:{}", args)
+    if args.clean:
+        file_paths = args.clean.split(",")
+        clear_files(file_paths)
+    if args.log:
+        print("=" * constant.MAX_MENU_LENGTH)
+        print(color_str(version, "green") + " 版本更新日志：", end="\n\n")
+        print(parse_changelog(get_cur_version_info()))
+        print("=" * constant.MAX_MENU_LENGTH)
         pause()
-        clear_screen()
+
+    if not args.ignore_update and settings.FLAG_CHECK_UPDATE:
+        if not updater.update():
+            pause()
+            clear_screen()
 
     menu = init_menu()
     menu.run()
