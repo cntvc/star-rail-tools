@@ -114,8 +114,3 @@ def get_format_time(std_time: float = None, time_format: str = "%Y-%m-%d %H:%M:%
         return time.strftime(time_format, time.localtime(time.time()))
     else:
         return time.strftime(time_format, time.localtime(std_time))
-
-
-def clear_files(file_paths: list):
-    for file in file_paths:
-        os.unlink(file)

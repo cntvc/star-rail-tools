@@ -1,16 +1,20 @@
 import math
 from typing import Callable, List, Union
 
-from pydantic import BaseModel
-
 from star_rail import constant
 from star_rail.utils.functional import clear_screen, input_int, pause
 
 
-class MenuItem(BaseModel):
-    title: str
-    options: Union[Callable, List["MenuItem"]] = None
-    tips: Union[str, Callable] = None  # Callable -> str
+class MenuItem:
+    def __init__(
+        self,
+        title: str,
+        options: Union[Callable, List["MenuItem"]] = None,
+        tips: Union[str, Callable] = None,
+    ):
+        self.title = title
+        self.options = options
+        self.tips = tips
 
 
 class Menu:
