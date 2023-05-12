@@ -12,6 +12,7 @@ import win32api
 from win32api import CopyFile
 
 from star_rail import constant
+from star_rail.config import app_profile
 from star_rail.exceptions import PathNotExistError
 from star_rail.module.clipboard import get_clipboad_text_or_html
 from star_rail.module.user import User
@@ -76,8 +77,13 @@ def get_url_from_webcache(user: User):
 
 
 def get_webcache_path(user: User):
+    # 从 profile 读取路径，不存在则重新获取路径
+    cache_path = app_profile.game_path_cn if user.area == "cn" else app_profile.game_path_os
+    if os.path.exists(cache_path):
+        return cache_path
+
     game_log_path = "miHoYo/崩坏：星穹铁道/"
-    if user.location == "global":
+    if user.area == "global":
         game_log_path = "Cognosphere/Star Rail/"
     log_path = Path(constant.GAME_RUNTIME_LOG_PATH, game_log_path, "Player.log")
     if not log_path.exists():
@@ -95,6 +101,11 @@ def get_webcache_path(user: User):
     data_2_path = Path(game_path) / "webCaches/Cache/Cache_Data/data_2"
     if not data_2_path.is_file():
         raise PathNotExistError("未找到游戏缓存文件")
+    if user.area == "cn":
+        app_profile.game_path_cn = data_2_path
+    else:
+        app_profile.game_path_os = data_2_path
+    app_profile.save()
     return data_2_path
 
 
