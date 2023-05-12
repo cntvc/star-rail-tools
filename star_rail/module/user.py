@@ -158,19 +158,18 @@ def choose_user_menu(create_user=True) -> Optional[User]:
     Return:
         str: uid
     """
-    DEFAULT_BANNER_LENGTH = 40
     uid_list = get_uid_list()
     length = len(uid_list)
     clear_screen()
     print("              选择账户UID")
-    print("=" * DEFAULT_BANNER_LENGTH)
+    print("=" * constant.MAX_MENU_LENGTH)
     for index in range(length):
         print("{}.{}".format(index + 1, uid_list[index]))
     if create_user:
         print("{}.{}".format(length + 1, "创建新用户"))
     print("")
     print("0.退出选择")
-    print("=" * DEFAULT_BANNER_LENGTH)
+    print("=" * constant.MAX_MENU_LENGTH)
 
     max_choose_range = length + 1 if create_user else length
     choose = input_int(0, max_choose_range)
