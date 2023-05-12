@@ -86,7 +86,7 @@ class Account:
     user: User
 
     def __init__(self) -> None:
-        default_uid = app_profile.default_uid
+        default_uid = app_profile.default_user
         if default_uid:
             self.user = User(default_uid)
             self.user.load_profile()
@@ -188,7 +188,7 @@ def choose_user_menu(create_user=True) -> Optional[User]:
         account.login(User(choose_user))
         account.get_login().load_profile()
 
-    app_profile.default_uid = account.get_login().uid
+    app_profile.default_user = account.get_login().uid
     app_profile.save()
     logger.success("设置账号 {}", account.get_login().uid)
 
