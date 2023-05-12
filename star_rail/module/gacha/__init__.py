@@ -121,9 +121,5 @@ def export_to_xlsx():
         logger.warning("未找到账号 {} 原始数据文件", user.uid)
         return
     gacha_log = load_json(user.gacha_log_json_path)
-    if settings.FLAG_GENERATE_XLSX:
-        create_xlsx(user, gacha_log)
-    else:
-        logger.warning("请在设置中开启“导出到Execl表格”后重试")
-        return
+    create_xlsx(user, gacha_log)
     logger.success("导出到Execl成功")
