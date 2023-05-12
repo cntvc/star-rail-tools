@@ -98,8 +98,8 @@ def get_webcache_path(user: User):
     game_path = res.group() if res else None
     if not game_path:
         raise PathNotExistError("未找到游戏路径")
-    data_2_path = Path(game_path) / "webCaches/Cache/Cache_Data/data_2"
-    if not data_2_path.is_file():
+    data_2_path = os.path.join(game_path, "webCaches/Cache/Cache_Data/data_2")
+    if not os.path.isfile(data_2_path):
         raise PathNotExistError("未找到游戏缓存文件")
     if user.area == "cn":
         app_profile.game_path_cn = data_2_path
