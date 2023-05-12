@@ -12,7 +12,8 @@ from requests import RequestException, Timeout
 from tqdm import tqdm
 
 from star_rail import __version__ as version
-from star_rail import constant, get_exe_name
+from star_rail import constant
+from star_rail.config import app_profile
 from star_rail.utils.functional import color_str
 from star_rail.utils.log import logger
 
@@ -95,7 +96,16 @@ def update():
     logger.debug("新版本程序临时文件：{}", temp_file)
     latest_version_exe_path = os.path.join(os.getcwd(), latest_version_exe_name)
     shutil.move(temp_file, latest_version_exe_path)
-    update_and_restart(latest_version_exe_name, get_exe_name())
+    # 更新并保存｛旧｝版本软件启动路径
+    app_profile.is_updated = True
+    app_profile.save()
+    # launch new version app
+    os.execv(
+        latest_version_exe_name,
+        [
+            latest_version_exe_name,
+        ],
+    )
 
 
 def get_cur_version_info():
@@ -118,9 +128,3 @@ def parse_changelog(release_data):
     link_pattern = r"\[[^\]]+\]\([^)]+\)|https://[^ \n]+|\*\*Full Changelog[^ \n]+"
     change_log = re.sub(link_pattern, "", changelog_raw)
     return change_log.strip()
-
-
-def update_and_restart(new_exe_name, old_exe_name):
-    """启动新版本程序，通过传参清理旧版本文件"""
-    logger.debug("launch app: {}\told app: {}", new_exe_name, old_exe_name)
-    os.execv(new_exe_name, [new_exe_name, "--clean={}".format(old_exe_name), "--update-info"])

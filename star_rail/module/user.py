@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from star_rail import constant
-from star_rail.config import settings, update_and_save
+from star_rail.config import app_profile
 from star_rail.exceptions import UserInfoError
 from star_rail.utils.functional import (
     clear_screen,
@@ -86,9 +86,9 @@ class Account:
     user: User
 
     def __init__(self) -> None:
-        default_login = settings.LOGIN_ACCOUNT
-        if default_login:
-            self.user = User(default_login)
+        default_uid = app_profile.default_uid
+        if default_uid:
+            self.user = User(default_uid)
             self.user.load_profile()
         else:
             self.user = None
@@ -189,7 +189,8 @@ def choose_user_menu(create_user=True) -> Optional[User]:
         account.login(User(choose_user))
         account.get_login().load_profile()
 
-    update_and_save("LOGIN_ACCOUNT", account.get_login().uid)
+    app_profile.default_uid = account.get_login().uid
+    app_profile.save()
     logger.success("设置账号 {}", account.get_login().uid)
 
 
