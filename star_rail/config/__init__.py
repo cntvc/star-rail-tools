@@ -3,12 +3,13 @@ Configuration center.
 Use https://www.dynaconf.com/
 """ ""
 import os
+import sys
 from pathlib import Path
 
 from dynaconf import Dynaconf, loaders
 
 from star_rail import constant
-from star_rail.utils.functional import color_str
+from star_rail.utils.functional import color_str, load_json, save_json
 from star_rail.utils.log import logger
 
 # Load default settings.
@@ -70,3 +71,46 @@ def config_status(key):
     return "当前状态: {}".format(
         color_str("打开", "green") if settings.get(key) else color_str("关闭", "red")
     )
+
+
+class Profile:
+    game_path_os: str
+    game_path_cn: str
+    default_user: str
+    is_updated: bool
+    exe_path: str
+
+    def __init__(self):
+        self.profile_path = Path(constant.APP_CONFIG_PATH, "profile.json")
+        self._init_default_value()
+        if not os.path.exists(self.profile_path):
+            return
+        try:
+            data = load_json(self.profile_path)
+        except Exception:
+            return
+        self.__dict__.update(data)
+        self.exe_path = data.get("exe_path", sys.executable)
+
+    def _init_default_value(self):
+        self.game_path_os = ""
+        self.game_path_cn = ""
+        self.default_user = ""
+        self.is_updated = False
+        self.exe_path = sys.executable
+
+    def to_dict(self):
+        return {
+            "game_path_os": self.game_path_os,
+            "game_path_cn": self.game_path_cn,
+            "default_user": self.default_user,
+            "is_updated": self.is_updated,
+            "exe_path": self.exe_path,
+        }
+
+    def save(self):
+        self.exe_path = sys.executable
+        save_json(self.profile_path, self.to_dict())
+
+
+app_profile = Profile()

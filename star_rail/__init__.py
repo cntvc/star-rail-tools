@@ -1,4 +1,4 @@
-"""Genshin-Impact-Tools"""
+"""Star Rail Tools"""
 
 __version__ = "0.1.2"
 

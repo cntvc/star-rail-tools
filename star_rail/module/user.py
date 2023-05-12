@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from star_rail import constant
-from star_rail.config import settings, update_and_save
+from star_rail.config import app_profile
 from star_rail.exceptions import UserInfoError
 from star_rail.utils.functional import (
     clear_screen,
@@ -20,15 +20,17 @@ from star_rail.utils.log import logger
 class User:
     UID_RE = re.compile("^[1-9][0-9]{8}$")
 
-    def __init__(self, uid: str, location: str = "", gacha_url: str = "") -> None:
+    def __init__(self, uid: str, area: str = "", gacha_url: str = "") -> None:
         self.uid = uid
-        self.location = location
+        self.area = area
         self.gacha_url = gacha_url
         self.profile_path = Path(constant.DATA_PATH, self.uid, f"UserProfile_{self.uid}.json")
         self.gacha_log_json_path = Path(constant.DATA_PATH, self.uid, f"GachaLog_{self.uid}.json")
         self.gacha_log_xlsx_path = Path(constant.DATA_PATH, self.uid, f"GachaLog_{self.uid}.xlsx")
-        self.gacha_log_analyze_path = Path(constant.DATA_PATH, self.uid, f"Analyze_{self.uid}.json")
-        self._init_location()
+        self.gacha_log_analyze_path = Path(
+            constant.DATA_PATH, self.uid, f"GachaAnalyze_{self.uid}.json"
+        )
+        self._init_area()
 
     @staticmethod
     def verify_uid(uid: str) -> bool:
@@ -38,17 +40,17 @@ class User:
             return False
         return True
 
-    def _init_location(self):
+    def _init_area(self):
         if "6" <= self.uid[0] <= "9":
-            self.location = "global"
+            self.area = "global"
         elif "1" <= self.uid[0] <= "5":
-            self.location = "cn"
+            self.area = "cn"
 
     def to_dict(self):
         user_data = {}
         user_data["uid"] = self.uid
         user_data["gacha_url"] = self.gacha_url
-        user_data["location"] = self.location
+        user_data["area"] = self.area
         return user_data
 
     def __str__(self):
@@ -65,20 +67,8 @@ class User:
             local_user_info = load_json(self.profile_path)
         except Exception:
             raise UserInfoError("加载账号信息失败")
-        if not User.verify_user_profile(local_user_info) or self.uid != local_user_info["uid"]:
-            raise UserInfoError("加载账号信息出现数据错误")
-        self.gacha_url = local_user_info["gacha_url"]
-        self.location = local_user_info["location"]
-
-    @staticmethod
-    def verify_user_profile(user_profile: dict):
-        if (
-            "uid" not in user_profile
-            or "gacha_url" not in user_profile
-            or "location" not in user_profile
-        ):
-            return False
-        return True
+        self.gacha_url = local_user_info.get("gacha_url", "")
+        self._init_area()
 
 
 @singleton
@@ -86,9 +76,9 @@ class Account:
     user: User
 
     def __init__(self) -> None:
-        default_login = settings.LOGIN_ACCOUNT
-        if default_login:
-            self.user = User(default_login)
+        default_uid = app_profile.default_user
+        if default_uid:
+            self.user = User(default_uid)
             self.user.load_profile()
         else:
             self.user = None
@@ -158,19 +148,18 @@ def choose_user_menu(create_user=True) -> Optional[User]:
     Return:
         str: uid
     """
-    DEFAULT_BANNER_LENGTH = 40
     uid_list = get_uid_list()
     length = len(uid_list)
     clear_screen()
     print("              选择账户UID")
-    print("=" * DEFAULT_BANNER_LENGTH)
+    print("=" * constant.MAX_MENU_LENGTH)
     for index in range(length):
         print("{}.{}".format(index + 1, uid_list[index]))
     if create_user:
         print("{}.{}".format(length + 1, "创建新用户"))
     print("")
     print("0.退出选择")
-    print("=" * DEFAULT_BANNER_LENGTH)
+    print("=" * constant.MAX_MENU_LENGTH)
 
     max_choose_range = length + 1 if create_user else length
     choose = input_int(0, max_choose_range)
@@ -189,7 +178,8 @@ def choose_user_menu(create_user=True) -> Optional[User]:
         account.login(User(choose_user))
         account.get_login().load_profile()
 
-    update_and_save("LOGIN_ACCOUNT", account.get_login().uid)
+    app_profile.default_user = account.get_login().uid
+    app_profile.save()
     logger.success("设置账号 {}", account.get_login().uid)
 
 
