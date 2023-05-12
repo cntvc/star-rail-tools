@@ -88,7 +88,7 @@ def query_by_type_id(url: str, gacha_type_id: str):
         for i in gacha:
             gacha_list.append(i)
         end_id = res_json["data"]["list"][-1]["id"]
-        time.sleep(0.5 + random())
+        time.sleep(0.2 + random())
     completed_tips = "\033[K查询 {} 结束, 共 {} 条数据".format(type_name, len(gacha_list))
     print(completed_tips)
     logger.debug(completed_tips)
