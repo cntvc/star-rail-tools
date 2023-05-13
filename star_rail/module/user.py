@@ -20,9 +20,9 @@ from star_rail.utils.log import logger
 class User:
     UID_RE = re.compile("^[1-9][0-9]{8}$")
 
-    def __init__(self, uid: str, area: str = "", gacha_url: str = "") -> None:
+    def __init__(self, uid: str, region: str = "", gacha_url: str = "") -> None:
         self.uid = uid
-        self.area = area
+        self.region = region
         self.gacha_url = gacha_url
         self.profile_path = Path(constant.DATA_PATH, self.uid, f"UserProfile_{self.uid}.json")
         self.gacha_log_json_path = Path(constant.DATA_PATH, self.uid, f"GachaLog_{self.uid}.json")
@@ -30,7 +30,7 @@ class User:
         self.gacha_log_analyze_path = Path(
             constant.DATA_PATH, self.uid, f"GachaAnalyze_{self.uid}.json"
         )
-        self._init_area()
+        self._init_region()
 
     @staticmethod
     def verify_uid(uid: str) -> bool:
@@ -40,17 +40,17 @@ class User:
             return False
         return True
 
-    def _init_area(self):
+    def _init_region(self):
         if "6" <= self.uid[0] <= "9":
-            self.area = "global"
+            self.region = "global"
         elif "1" <= self.uid[0] <= "5":
-            self.area = "cn"
+            self.region = "cn"
 
     def to_dict(self):
         user_data = {}
         user_data["uid"] = self.uid
         user_data["gacha_url"] = self.gacha_url
-        user_data["area"] = self.area
+        user_data["region"] = self.region
         return user_data
 
     def __str__(self):
@@ -68,7 +68,7 @@ class User:
         except Exception:
             raise UserInfoError("加载账号信息失败")
         self.gacha_url = local_user_info.get("gacha_url", "")
-        self._init_area()
+        self._init_region()
 
 
 @singleton
