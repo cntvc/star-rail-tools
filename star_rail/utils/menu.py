@@ -73,7 +73,7 @@ class Menu:
             if next_menu.gen_menu:
                 # 如果菜单表需要动态生成，进入下一级再生成
                 self.stack.append(next_menu)
-                self.run()
+                continue
 
             next_menu_options = next_menu.options
             if isinstance(next_menu_options, list):
