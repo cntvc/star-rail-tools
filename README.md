@@ -1,18 +1,29 @@
 # 崩坏：星穹铁道小工具
 
+[![Linter](https://github.com/cntvc/star-rail-tools/actions/workflows/linter.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/linter.yml) 
+[![commit](https://img.shields.io/github/last-commit/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/commits/master) 
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cntvc/star-rail-tools)][latest_release]
+[![license](https://img.shields.io/github/license/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/blob/main/LICENSE)
+
+
+崩坏：星穹铁道小工具，可导出跃迁记录，目前仅支持 Windows 系统。
+
 <p>
-  <img src="docs/image/analyze_result.png" alt="analyze_result" height = 70% width = 70% align="middle">
+  <img src="docs/image/analyze_result.png" alt="analyze_result" height = 80% width = 80% align="middle">
 </p>
 
 
-## 简介
+## 基本用法
 
-软件为崩坏：星穹铁道小工具，可导出跃迁记录，以单文件应用方式发布，目前仅支持 Windows 系统。
+在 Github [下载页面][latest_release] 下载exe文件，双击即可使用
 
-软件导出抽卡数据的方式有以下几种
-- 使用游戏网页缓存导出 （**推荐**
-- 从剪切板读取链接导出
-- 从软件缓存的链接导出
+### 导出跃迁记录
+
+1. 设置账户：输入或选择星穹铁道账号 UID
+2. 打开游戏，在**抽卡记录页面**选择历史记录并翻页
+3. 切换到软件，依次选择菜单 **导出抽卡数据** -> **使用游戏缓存导出**
+4. 完成导出后，根据提示查看抽卡报告
+
 
 <details>
   <summary>点击查看 <b>数据目录结构</b></summary>
@@ -38,16 +49,6 @@
 </details>
 
 
-## 使用方式
-
-在 Github [下载页面](https://github.com/cntvc/star-rail-tools/releases/latest) 下载exe文件，双击即可使用
-
-1. 设置账户：第一次输入需要导出的星穹铁道账号 UID
-2. 打开游戏，在**抽卡记录页面**选择历史记录并翻页
-3. 切换到软件，依次选择菜单 **导出抽卡数据** -> **使用游戏缓存导出**
-4. 完成导出后，根据提示查看抽卡报告
-
-
 ## 参与贡献
 
 非常欢迎您参与项目贡献
@@ -56,7 +57,10 @@
 
 更多详情请参阅 [CONTRIBUTING](.github/CONTRIBUTING.md)
 
+
 ## 鸣谢
 
 - 导出 Execl 代码参考 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
 - 适配国际服的代码参考 [**star-rail-warp-export**](https://github.com/biuuu/star-rail-warp-export)
+
+[latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
