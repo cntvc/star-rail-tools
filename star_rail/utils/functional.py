@@ -3,6 +3,8 @@ import os
 import time
 from pathlib import Path
 
+from star_rail.i18n import i18n
+
 __all__ = [
     "save_json",
     "load_json",
@@ -74,12 +76,12 @@ def input_int(left: int, right: int):
     while True:
         index = input()
         if not index.isdigit():
-            print(color_str("{} 为非法输入，请重试".format(index), "yellow"))
+            print(color_str(i18n.utils.functional.invalid_input.format(index), "yellow"))
             continue
 
         index = int(index)
         if index > right or index < left:
-            print(color_str("{} 为非法输入，请重试".format(index), "yellow"))
+            print(color_str(i18n.utils.functional.invalid_input.format(index), "yellow"))
             continue
 
         return index

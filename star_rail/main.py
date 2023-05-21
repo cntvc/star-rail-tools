@@ -2,6 +2,7 @@ import platform
 
 from star_rail import __version__ as version
 from star_rail.config import get_config_status_msg, settings
+from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module.account import account_manager, gen_account_manu
 from star_rail.module.gacha import (
     export_by_clipboard,
@@ -19,77 +20,96 @@ from star_rail.utils.menu import Menu, MenuItem
 
 def init_menu():
     main_menu = MenuItem(
-        title="主菜单",
+        title=i18n.main.menu.main_menu,
         options=[
             MenuItem(
-                title="账号设置",
+                title=i18n.main.menu.account_setting,
                 gen_menu=lambda: gen_account_manu(create_option=True),
                 tips=lambda: account_manager.get_status_msg(),
             ),
             MenuItem(
-                title="导出抽卡数据",
+                title=i18n.main.menu.gacha_log.export,
                 options=[
                     MenuItem(
-                        title="使用游戏缓存导出",
+                        title=i18n.main.menu.gacha_log.by_webcache,
                         options=export_by_webcache,
                     ),
-                    MenuItem(title="使用剪切板导出", options=export_by_clipboard),
                     MenuItem(
-                        title="使用软件缓存导出",
+                        title=i18n.main.menu.gacha_log.by_clipboard, options=export_by_clipboard
+                    ),
+                    MenuItem(
+                        title=i18n.main.menu.gacha_log.by_appcache,
                         options=export_by_user_profile,
                     ),
                     MenuItem(
-                        title="导出到 Execl 表格文件",
+                        title=i18n.main.menu.gacha_log.to_xlsx,
                         options=export_to_xlsx,
                     ),
                     MenuItem(
-                        title="导出到 SRGF 通用格式",
-                        options=lambda: print("等待开发"),
+                        title=i18n.main.menu.gacha_log.to_srgf,
+                        options=lambda: print(i18n.main.menu.todo),
                     ),
                 ],
                 tips=lambda: account_manager.get_status_msg(),
             ),
-            MenuItem(title="合并抽卡数据", options=lambda: print("等待开发")),
             MenuItem(
-                title="查看抽卡分析报告",
+                title=i18n.main.menu.merge_gacha_log, options=lambda: print(i18n.main.menu.todo)
+            ),
+            MenuItem(
+                title=i18n.main.menu.show_analyze_result,
                 options=lambda: show_analytical_result(),
             ),
             MenuItem(
-                title="软件设置",
+                title=i18n.main.menu.settings.home,
                 options=[
                     MenuItem(
-                        title="软件更新检测",
+                        title=i18n.main.menu.settings.check_update,
                         options=[
                             MenuItem(
-                                title="打开",
-                                options=lambda: settings.set("FLAG_CHECK_UPDATE", True),
+                                title=i18n.common.open,
+                                options=lambda: settings.set_and_save("FLAG_CHECK_UPDATE", True),
                             ),
                             MenuItem(
-                                title="关闭",
-                                options=lambda: settings.set("FLAG_CHECK_UPDATE", False),
+                                title=i18n.common.close,
+                                options=lambda: settings.set_and_save("FLAG_CHECK_UPDATE", False),
                             ),
                         ],
                         tips=lambda: get_config_status_msg("FLAG_CHECK_UPDATE"),
                     ),
                     MenuItem(
-                        title="自动导出到 Execl 表格",
+                        title=i18n.main.menu.settings.export.to_xlsx,
                         options=[
                             MenuItem(
-                                title="打开",
-                                options=lambda: settings.set("FLAG_GENERATE_XLSX", True),
+                                title=i18n.common.open,
+                                options=lambda: settings.set_and_save("FLAG_GENERATE_XLSX", True),
                             ),
                             MenuItem(
-                                title="关闭",
-                                options=lambda: settings.set("FLAG_GENERATE_XLSX", False),
+                                title=i18n.common.close,
+                                options=lambda: settings.set_and_save("FLAG_GENERATE_XLSX", False),
                             ),
                         ],
                         tips=lambda: get_config_status_msg("FLAG_GENERATE_XLSX"),
                     ),
-                    MenuItem(title="自动导出到 SRGF 通用格式", options=lambda: print("等待开发")),
-                    MenuItem(title="切换语言", options=lambda: print("等待开发")),
+                    MenuItem(
+                        title=i18n.main.menu.settings.export.srgf,
+                        options=lambda: print(i18n.main.menu.todo),
+                    ),
+                    MenuItem(
+                        title=i18n.main.menu.settings.language,
+                        options=[
+                            MenuItem(
+                                title="简体中文",
+                                options=lambda: set_locales(LanguageType.ZH_CN),
+                            ),
+                            MenuItem(
+                                title="English",
+                                options=lambda: print(i18n.main.menu.todo),
+                            ),
+                        ],
+                    ),
                 ],
             ),
-            MenuItem(title="关于...", options=show_about),
+            MenuItem(title=i18n.main.menu.about, options=show_about),
         ],
         tips=lambda: account_manager.get_status_msg(),
     )

@@ -10,6 +10,7 @@ import xlsxwriter
 from prettytable import PrettyTable
 
 from star_rail import constants
+from star_rail.i18n import i18n
 from star_rail.module.account import Account
 from star_rail.module.gacha.model import GachaInfo, GachaType
 from star_rail.utils.functional import dedupe, get_format_time, load_json, save_json
@@ -17,19 +18,18 @@ from star_rail.utils.log import logger
 
 
 def verify_gacha_log_url(url):
-    logger.debug("verify url: " + url)
+    logger.debug("验证链接有效性: " + url)
 
     res = requests.get(url, timeout=constants.REQUEST_TIMEOUT)
     res_json = json.loads(res.content.decode("utf-8"))
 
-    logger.debug(res_json)
     if not res_json["data"]:
         if res_json["message"] == "authkey timeout":
-            logger.warning("链接过期")
+            logger.warning(i18n.gacha_log.link_expires)
         elif res_json["message"] == "authkey error":
-            logger.warning("链接错误")
+            logger.warning(i18n.gacha_log.link_error)
         else:
-            logger.warning("数据为空，错误代码：" + res_json["message"])
+            logger.warning(i18n.gacha_log.error_code + res_json["message"])
         return False
     logger.debug("链接可用")
     return True
@@ -57,7 +57,7 @@ class GachaLogFetcher:
         self.lang = None
 
     def query(self):
-        logger.info("开始查询抽卡记录")
+        logger.info(i18n.gacha_log.start_query)
         gacha_log = {}
         for gacha_type_id in GachaType.list():
             gacha_type_log = self._query_by_type_id(gacha_type_id)
@@ -78,7 +78,7 @@ class GachaLogFetcher:
         end_id = "0"
         type_name = GachaType.dict()[gacha_type_id]
         for page in range(1, 9999):
-            msg = "\033[K正在获取 {} 卡池数据 {}".format(type_name, ".." * ((page - 1) % 3 + 1))
+            msg = i18n.gacha_log.fetch_status.format(type_name, ".." * ((page - 1) % 3 + 1))
             print(msg, end="\r")
             self._add_page_param(gacha_type_id, max_size, page, end_id)
             url = parse.urlunparse(self.parsed_url)
@@ -97,7 +97,7 @@ class GachaLogFetcher:
             end_id = res_json["data"]["list"][-1]["id"]
             time.sleep(0.2 + random())
 
-        completed_tips = "查询 {} 结束, 共 {} 条数据".format(type_name, len(gacha_list))
+        completed_tips = i18n.gacha_log.fetch_finish.format(type_name, len(gacha_list))
         print("\033[K" + completed_tips)
         logger.debug(completed_tips)
         return gacha_list
@@ -196,7 +196,7 @@ class GachaDataProcessor:
 
     def create_xlsx(self):
         if "gacha_log" not in self.gacha_data:
-            raise ValueError("无效的抽卡数据")
+            raise ValueError(i18n.gacha_log.invaild_gacha_data)
         logger.debug("创建工作簿: " + self.user.gacha_log_xlsx_path.as_posix())
         workbook = xlsxwriter.Workbook(self.user.gacha_log_xlsx_path.as_posix())
 
@@ -228,7 +228,15 @@ class GachaDataProcessor:
             gacha_type_name = GachaType.dict()[gahca_type]
             logger.debug("写入 {}，共 {} 条数据", gacha_type_name, len(gacha_data))
             worksheet = workbook.add_worksheet(gacha_type_name)
-            excel_header = ["时间", "名称", "类别", "星级", "跃迁类型", "总次数", "保底内"]
+            excel_header = [
+                i18n.execl.header.time,
+                i18n.execl.header.name,
+                i18n.execl.header.type,
+                i18n.execl.header.level,
+                i18n.execl.header.gacha_type,
+                i18n.execl.header.total_count,
+                i18n.execl.header.pity_counter,
+            ]
             worksheet.set_column("A:A", 22)
             worksheet.set_column("B:B", 14)
             worksheet.set_column("E:E", 14)
@@ -290,8 +298,16 @@ def convert_to_table(analyze_result):
     # 结果总览
     overview_table = PrettyTable()
     overview_table.align = "l"
-    overview_table.title = "统计结果"
-    overview_table.add_column("项目", ["抽卡总数", "5星总次数", "5星平均抽数", "保底内抽数"])
+    overview_table.title = i18n.table.total.title
+    overview_table.add_column(
+        i18n.table.total.project,
+        [
+            i18n.table.total.total_cnt,
+            i18n.table.total.star5_cnt,
+            i18n.table.total.star5_avg_cnt,
+            i18n.table.total.pity_cnt,
+        ],
+    )
     for gacha_type, gacha_name in GachaType.dict().items():
         data = analyze_result[gacha_type]
         total_count = data["total_count"]
@@ -307,11 +323,11 @@ def convert_to_table(analyze_result):
 
     # 5 星详情
     rank5_detail_table = PrettyTable()
-    rank5_detail_table.title = "5星详情"
+    rank5_detail_table.title = i18n.table.star_5.title
     rank5_detail_table.align = "l"
     for gacha_type, gacha_name in GachaType.dict().items():
         rank5_data: list = analyze_result[gacha_type]["rank5"]
-        rank5_detail = [item["name"] + " : " + item["number"] + "抽" for item in rank5_data]
+        rank5_detail = [item["name"] + " : " + item["number"] for item in rank5_data]
         rank5_detail += [""] * (max_rank5_count - len(rank5_detail))
         rank5_detail_table.add_column(gacha_name, rank5_detail)
     return overview_table, rank5_detail_table

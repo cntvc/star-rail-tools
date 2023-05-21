@@ -5,6 +5,7 @@ import win32api
 import win32clipboard
 import win32con
 
+from star_rail.i18n import i18n
 from star_rail.utils.log import logger
 
 __all__ = ["get_text_or_html"]
@@ -42,7 +43,7 @@ def get_text_or_html() -> Optional[str]:
 
         return data
     except win32api.error:
-        logger.error("剪切板读取出现错误")
+        logger.error(i18n.utils.clipboard.read_data_error)
         return None
     finally:
         win32clipboard.CloseClipboard()

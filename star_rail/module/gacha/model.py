@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from star_rail import __version__ as version
 from star_rail import constants
+from star_rail.i18n import i18n
 from star_rail.utils import functional
 
 
@@ -17,10 +18,10 @@ class GachaType(str, enum.Enum):
     @staticmethod
     def dict():
         return {
-            GachaType.REGULAR_WARP.value: "常驻跃迁",
-            GachaType.STARTER_WARP.value: "新手跃迁",
-            GachaType.CHARACTER_EVENT_WARP.value: "角色活动跃迁",
-            GachaType.LIGHT_CONE_EVENT_WARP.value: "光锥活动跃迁",
+            GachaType.REGULAR_WARP.value: i18n.regular_warp,
+            GachaType.STARTER_WARP.value: i18n.starter_warp,
+            GachaType.CHARACTER_EVENT_WARP.value: i18n.character_event_warp,
+            GachaType.LIGHT_CONE_EVENT_WARP.value: i18n.light_cone_event_warp,
         }
 
     @staticmethod

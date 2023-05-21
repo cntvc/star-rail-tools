@@ -4,6 +4,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from star_rail import constants
+from star_rail.i18n import i18n
 from star_rail.utils.functional import color_str, load_json, save_json
 
 __all__ = ["settings", "get_config_status_msg"]
@@ -23,6 +24,8 @@ class Settings(BaseModel):
 
     DEFAULT_UID = ""
 
+    LANGUAGE = "zh_cn"
+
     class Config:
         extra = "forbid"
 
@@ -31,7 +34,7 @@ class Settings(BaseModel):
             return
         from star_rail.utils.log import logger
 
-        logger.debug("update config: {} : {} -> {}", k, getattr(self, k), v)
+        logger.debug("更新设置: {} -> {}", k, v)
         return super().__setattr__(k, v)
 
     def __init__(self, **data):
@@ -58,9 +61,13 @@ class Settings(BaseModel):
     def get(self, key: str):
         return getattr(self, key)
 
+    def set_and_save(self, k, v):
+        """set and save"""
+        self.set(k, v)
+        self.save()
+
     def set(self, k, v):
         setattr(self, k, v)
-        self.save()
 
 
 settings = Settings()
@@ -68,6 +75,9 @@ settings = Settings()
 
 def get_config_status_msg(key):
     assert hasattr(settings, key)
-    return "当前状态: {}".format(
-        color_str("打开", "green") if settings.get(key) else color_str("关闭", "red")
+    return "{}: {}".format(
+        i18n.config.settings.current_status,
+        color_str(i18n.common.open, "green")
+        if settings.get(key)
+        else color_str(i18n.common.close, "red"),
     )

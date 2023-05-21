@@ -1,14 +1,15 @@
 from star_rail import __version__ as version
 from star_rail.constants import APP_NAME
+from star_rail.i18n import i18n
 from star_rail.utils.functional import clear_screen
 
 
 def show_about():
-    _APP_NAME = "软件名: " + APP_NAME
-    _HOME_PAGE = "项目主页: https://github.com/cntvc/star-rail-tools"
-    _AUTHOR = "作者: cntvc"
-    _EMAIL = "邮箱: cntvc@outlook.com"
-    _VERSION = "软件版本: {}".format(version)
+    _APP_NAME = i18n.info.app_name + APP_NAME
+    _HOME_PAGE = i18n.info.project_home + "https://github.com/cntvc/star-rail-tools"
+    _AUTHOR = i18n.info.author + "cntvc"
+    _EMAIL = i18n.info.email + "cntvc@outlook.com"
+    _VERSION = i18n.info.app_version.format(version)
 
     description = [
         _APP_NAME,

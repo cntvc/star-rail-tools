@@ -7,6 +7,7 @@ from typing import Callable, Dict, Optional
 
 import win32api
 
+from star_rail.i18n import i18n
 from star_rail.module.account import Account, GameBizType
 from star_rail.module.game_client import GameClient
 from star_rail.module.routes import GACHA_LOG_URL
@@ -29,7 +30,7 @@ class UserCacheProvider(GachaUrlProvider):
     def get_url(self):
         logger.debug("从用户缓存获取抽卡链接")
         if not self.user.gacha_url:
-            logger.warning("从用户数据未读取到抽卡链接")
+            logger.warning(i18n.gacha_url.unfind_link)
             return None
         return self.user.gacha_url
 
@@ -63,7 +64,7 @@ class GameWebCacheProvider(GachaUrlProvider):
                 break
 
         if not url:
-            logger.warning("从游戏缓存文件中未找到抽卡链接，请到游戏内查看抽卡记录后重试")
+            logger.warning(i18n.gacha_url.unfind_link)
             return None
         url = replace_gacha_log_url_host_path(url)
         return url
@@ -78,7 +79,7 @@ class ClipboardProvider(GachaUrlProvider):
         text = html.unescape(text)
         url = match_gacha_log_api(text)
         if not url:
-            logger.warning("从剪切板未读取到抽卡链接")
+            logger.warning(i18n.gacha_url.unfind_link)
             return None
         url = replace_gacha_log_url_host_path(url)
         return url

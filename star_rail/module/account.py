@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, validator
 
 from star_rail import constants
 from star_rail.config import settings
+from star_rail.i18n import i18n
 from star_rail.utils.functional import color_str, load_json, save_json
 from star_rail.utils.log import logger
 
@@ -168,8 +169,8 @@ class AccountManager:
 
     def get_status_msg(self):
         if self.get_status():
-            return "当前账号 {}".format(color_str(self._account.uid, color="green"))
-        return "当前未设置账号"
+            return i18n.account.account_uid.format(color_str(self._account.uid, color="green"))
+        return i18n.account.without_account
 
 
 def get_uids():
@@ -216,7 +217,9 @@ def gen_account_manu(create_option: bool = False):
         for uid in uid_list
     ]
     if create_option:
-        user_menu_list.append(MenuItem(title="创建新用户", options=lambda: create_account_by_input()))
+        user_menu_list.append(
+            MenuItem(title=i18n.account.menu.creat_user, options=lambda: create_account_by_input())
+        )
     return user_menu_list
 
 
@@ -228,11 +231,11 @@ def input_uid():
         str: uid
     """
     while True:
-        uid = input("请输入用户UID, 输入 0 取消新建用户\n")
+        uid = input(i18n.account.menu.input_uid)
         if uid == "0":
             return None
         if not Account.verify_uid(uid):
-            print(color_str("请输入正确格式的UID", color="yellow"))
+            print(color_str(i18n.account.menu.invaild_uid_format, color="yellow"))
             continue
         return uid
 

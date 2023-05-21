@@ -4,6 +4,7 @@ from typing import Callable, List, Union
 from pydantic import BaseModel
 
 from star_rail import constants
+from star_rail.i18n import i18n
 from star_rail.utils.functional import clear_screen, input_int, pause
 
 
@@ -35,9 +36,9 @@ class Menu:
             print("{}.{}".format(index + 1, option.title))
         print("")
         if len(self.stack) > 1:
-            print("0.返回上级菜单")
+            print(i18n.utils.menu.return_parent_menu)
         else:
-            print("0.退出")
+            print(i18n.utils.menu.exit)
         print("=" * constants.MENU_BANNER_LENGTH)
 
         self._display_tips()
@@ -62,7 +63,7 @@ class Menu:
 
             self.display()
             cur_options: List[MenuItem] = self.menu.options
-            print("请输入数字选择菜单项:")
+            print(i18n.utils.menu.input_number)
             menu_index = input_int(0, len(cur_options))
 
             if menu_index == 0:
