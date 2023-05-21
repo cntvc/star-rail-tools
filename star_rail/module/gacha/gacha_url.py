@@ -28,7 +28,7 @@ class UserCacheProvider(GachaUrlProvider):
 
     def get_url(self):
         logger.debug("从用户缓存获取抽卡链接")
-        if not self.user or self.user.gacha_url:
+        if not self.user.gacha_url:
             logger.warning("从用户数据未读取到抽卡链接")
             return None
         return self.user.gacha_url
