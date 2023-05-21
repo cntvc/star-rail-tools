@@ -30,6 +30,7 @@ class Settings(BaseModel):
         if k not in self.__fields__:
             return
         from star_rail.utils.log import logger
+
         logger.debug("update config: {} : {} -> {}", k, getattr(self, k), v)
         return super().__setattr__(k, v)
 
@@ -59,6 +60,8 @@ class Settings(BaseModel):
 
     def set(self, k, v):
         setattr(self, k, v)
+        self.save()
+
 
 settings = Settings()
 

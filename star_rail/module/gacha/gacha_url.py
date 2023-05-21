@@ -3,7 +3,6 @@ import enum
 import os
 import re
 import tempfile
-import traceback
 from typing import Callable, Dict, Optional
 
 import win32api
