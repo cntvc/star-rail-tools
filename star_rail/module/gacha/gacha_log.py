@@ -16,6 +16,8 @@ from star_rail.module.gacha.model import GachaInfo, GachaType
 from star_rail.utils.functional import dedupe, get_format_time, load_json, save_json
 from star_rail.utils.log import logger
 
+_lang = i18n.gacha_log
+
 
 def verify_gacha_log_url(url):
     logger.debug("验证链接有效性: " + url)
@@ -25,11 +27,11 @@ def verify_gacha_log_url(url):
 
     if not res_json["data"]:
         if res_json["message"] == "authkey timeout":
-            logger.warning(i18n.gacha_log.link_expires)
+            logger.warning(_lang.link_expires)
         elif res_json["message"] == "authkey error":
-            logger.warning(i18n.gacha_log.link_error)
+            logger.warning(_lang.link_error)
         else:
-            logger.warning(i18n.gacha_log.error_code + res_json["message"])
+            logger.warning(_lang.error_code + res_json["message"])
         return False
     logger.debug("链接可用")
     return True
@@ -57,7 +59,7 @@ class GachaLogFetcher:
         self.lang = None
 
     def query(self):
-        logger.info(i18n.gacha_log.start_query)
+        logger.info(_lang.start_fetch)
         gacha_log = {}
         for gacha_type_id in GachaType.list():
             gacha_type_log = self._query_by_type_id(gacha_type_id)
@@ -78,7 +80,7 @@ class GachaLogFetcher:
         end_id = "0"
         type_name = GachaType.dict()[gacha_type_id]
         for page in range(1, 9999):
-            msg = i18n.gacha_log.fetch_status.format(type_name, ".." * ((page - 1) % 3 + 1))
+            msg = _lang.fetch_status.format(type_name, ".." * ((page - 1) % 3 + 1))
             print(msg, end="\r")
             self._add_page_param(gacha_type_id, max_size, page, end_id)
             url = parse.urlunparse(self.parsed_url)
@@ -97,7 +99,7 @@ class GachaLogFetcher:
             end_id = res_json["data"]["list"][-1]["id"]
             time.sleep(0.2 + random())
 
-        completed_tips = i18n.gacha_log.fetch_finish.format(type_name, len(gacha_list))
+        completed_tips = _lang.fetch_finish.format(type_name, len(gacha_list))
         print("\033[K" + completed_tips)
         logger.debug(completed_tips)
         return gacha_list
@@ -196,7 +198,7 @@ class GachaDataProcessor:
 
     def create_xlsx(self):
         if "gacha_log" not in self.gacha_data:
-            raise ValueError(i18n.gacha_log.invaild_gacha_data)
+            raise ValueError(_lang.invalid_gacha_data)
         logger.debug("创建工作簿: " + self.user.gacha_log_xlsx_path.as_posix())
         workbook = xlsxwriter.Workbook(self.user.gacha_log_xlsx_path.as_posix())
 
@@ -323,7 +325,7 @@ def convert_to_table(analyze_result):
 
     # 5 星详情
     rank5_detail_table = PrettyTable()
-    rank5_detail_table.title = i18n.table.star_5.title
+    rank5_detail_table.title = i18n.table.star5.title
     rank5_detail_table.align = "l"
     for gacha_type, gacha_name in GachaType.dict().items():
         rank5_data: list = analyze_result[gacha_type]["rank5"]

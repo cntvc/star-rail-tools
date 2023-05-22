@@ -14,6 +14,8 @@ from star_rail.utils.log import logger
 
 UID_RE = re.compile("^[1-9][0-9]{8}$")
 
+_lang = i18n.account
+
 
 class GameBizType(str, enum.Enum):
     GLOBAL = "hkrpg_global"
@@ -169,8 +171,8 @@ class AccountManager:
 
     def get_status_msg(self):
         if self.get_status():
-            return i18n.account.account_uid.format(color_str(self._account.uid, color="green"))
-        return i18n.account.without_account
+            return _lang.account_uid.format(color_str(self._account.uid, color="green"))
+        return _lang.without_account
 
 
 def get_uids():
@@ -218,7 +220,7 @@ def gen_account_manu(create_option: bool = False):
     ]
     if create_option:
         user_menu_list.append(
-            MenuItem(title=i18n.account.menu.creat_user, options=lambda: create_account_by_input())
+            MenuItem(title=_lang.menu.creat_user, options=lambda: create_account_by_input())
         )
     return user_menu_list
 
@@ -231,11 +233,11 @@ def input_uid():
         str: uid
     """
     while True:
-        uid = input(i18n.account.menu.input_uid)
+        uid = input(_lang.menu.input_uid)
         if uid == "0":
             return None
         if not Account.verify_uid(uid):
-            print(color_str(i18n.account.menu.invaild_uid_format, color="yellow"))
+            print(color_str(_lang.menu.invalid_uid_format, color="yellow"))
             continue
         return uid
 

@@ -1,6 +1,10 @@
+# flake8: noqa
 zh_cn_lang_pack = {
     # config
     "config.settings.current_status": "当前状态",
+    # i18n
+    "i18n.update_lang.tips": "重启后使语言更改生效，是否继续？ y/N",
+    "i18n.update_lang.invalid_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
     # module/gacha
     "gacha.retry": "请设置账号后重试",
     "gacha.true_user": "游戏已登陆账号与软件设置账号不一致，将导出账号 {} 的数据",
@@ -16,18 +20,16 @@ zh_cn_lang_pack = {
     "gacha_log.start_fetch": "开始查询抽卡记录",
     "gacha_log.fetch_status": "\033[K正在获取 {} 卡池数据 {}",
     "gacha_log.fetch_finish": "查询 {} 结束, 共 {} 条数据",
-    "gacha_log.invaild_gacha_data": "无效的抽卡数据",
+    "gacha_log.invalid_gacha_data": "无效的抽卡数据",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "未获取到抽卡链接",
     # module/account
     "account.account_uid": "当前账号 {}",
     "account.without_account": "当前未设置账号",
-    # module/accont-menu
+    # module/account-menu
     "account.menu.creat_user": "创建新用户",
     "account.menu.input_uid": "请输入用户UID, 输入 0 取消新建用户\n",
-    "account.menu.invaild_uid_format": "请输入正确格式的UID",
-    "account.menu.creat": "创建新用户",
-    "account.menu.creat": "创建新用户",
+    "account.menu.invalid_uid_format": "请输入正确格式的UID",
     # module/game_client
     "game_client.game_log_not_found": "未找到游戏日志文件",
     "game_client.game_path_not_found": "未找到游戏路径",
@@ -39,12 +41,12 @@ zh_cn_lang_pack = {
     "info.email": "邮箱: ",
     "info.app_version": "软件版本: {}",
     # module/updater
-    "updater.invaild_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
+    "updater.invalid_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
     "updater.download_failed": "下载新版本文件失败, 请检查网络连接状态",
     "updater.download_success": "新版本下载完成：{}",
     "updater.check_update": "正在检测软件更新...",
     "updater.check_update_net_error": "检测更新失败, 请检查网络连接状态",
-    "updater.check_update_has_no_info": "检测更新失败，未获取到版本信息",
+    "updater.check_update_has_no_ctx": "检测更新失败，未获取到版本信息",
     "updater.is_latest_version": "当前已是最新版本",
     "updater.upgrade_success": "软件更新成功，当前版本: {}\n",
     "updater.delete_file_failed": "删除旧版本文件失败，请手动操作以删除文件: {}",
@@ -53,12 +55,11 @@ zh_cn_lang_pack = {
     "updater.get_changelog_failed": "更新日志获取失败",
     # utils/clipboard
     "utils.clipboard.read_data_error": "剪切板读取出现错误",
-    # utils/functional
-    "utils.functional.invalid_input": "{} 为无效输入，请重试",
     # utils/menu
-    "utils.menu.return_parent_menu": "0.返回上级菜单",
+    "utils.menu.return_to_pre_menu": "0.返回上级菜单",
     "utils.menu.exit": "0.退出",
     "utils.menu.input_number": "请输入数字选择菜单项:",
+    "utils.menu.invalid_input": "无效输入，请重试",
     # main-menu
     "main.menu.todo": "等待开发",
     "main.menu.main_menu": "主菜单",
@@ -88,7 +89,7 @@ zh_cn_lang_pack = {
     "table.total.star5_avg_cnt": "5星平均抽数",
     "table.total.pity_cnt": "保底内抽数",
     # 5 星详情表
-    "table.star_5.title": "5星详情",
+    "table.star5.title": "5星详情",
     # Execl
     "execl.header.time": "时间",
     "execl.header.name": "名称",

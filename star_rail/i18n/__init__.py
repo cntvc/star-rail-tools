@@ -12,8 +12,11 @@ error eg:
 }
 """
 
+from star_rail.config import settings
 from star_rail.i18n.en_us import en_us_lang_pack
 from star_rail.i18n.zh_cn import zh_cn_lang_pack
+from star_rail.utils.functional import input_yes_or_no, restart
+from star_rail.utils.log import logger
 
 _default_language = zh_cn_lang_pack
 
@@ -22,6 +25,8 @@ class LazyLanguagePack:
     _language_pack_cache = {}
 
     def __init__(self, raw_lang_pack: dict):
+        if settings.LANGUAGE:
+            raw_lang_pack = LanguageType.get_pack_by_name(settings.LANGUAGE, raw_lang_pack)
         self.raw_lang_pack = parse_lang_pack(raw_lang_pack)
         """原始语言包字典，多层级"""
         self._lang_pack = None
@@ -33,9 +38,6 @@ class LazyLanguagePack:
             language_pack = dict_to_namedtuple("LanguagePack", self.raw_lang_pack)
             self._language_pack_cache[id(self.raw_lang_pack)] = language_pack
         self._lang_pack = language_pack
-
-    def set_language_pack(self, language_pack):
-        self.raw_lang_pack = language_pack
 
     def __getattr__(self, name):
         self._load_language_pack()
@@ -61,15 +63,29 @@ class LazyLanguagePack:
         return cur_obj
 
 
-class LanguageType(str, enum.Enum):
-    ZH_CN = "zh_cn"
-    EN_US = "en_us"
+class LanguageType(enum.Enum):
+    ZH_CN = "zh_cn", zh_cn_lang_pack
+    EN_US = "en_us", en_us_lang_pack
 
+    @staticmethod
+    def get_pack(lang_type: "LanguageType"):
+        return lang_type.lang_pack()
 
-_lang_pack_dict: Dict[LanguageType, Dict] = {
-    LanguageType.ZH_CN: zh_cn_lang_pack,
-    LanguageType.EN_US: en_us_lang_pack,
-}
+    @staticmethod
+    def get_pack_by_name(name: str, default: dict = {}):
+        for lang in LanguageType:
+            if name == lang.lang_name:
+                return lang.lang_pack
+        logger.debug("未受支持的语言包 {}", name)
+        return default
+
+    @property
+    def lang_pack(self):
+        return self.value[1]
+
+    @property
+    def lang_name(self):
+        return self.value[0]
 
 
 def dict_to_namedtuple(name, dictionary):
@@ -112,8 +128,12 @@ i18n = LazyLanguagePack(_default_language)
 
 
 def set_locales(lang_type: LanguageType):
-    from star_rail.config import settings
-
-    settings.set_and_save("LANGUAGE", lang_type.value)
-    lang_pack = parse_lang_pack(_lang_pack_dict[lang_type])
-    i18n.set_language_pack(lang_pack)
+    user_input = input_yes_or_no(
+        prompt=i18n.i18n.update_lang.tips,
+        default="y",
+        error_msg=i18n.i18n.update_lang.invalid_input,
+    )
+    if user_input == "n":
+        return
+    settings.set_and_save("LANGUAGE", lang_type.lang_name)
+    restart()

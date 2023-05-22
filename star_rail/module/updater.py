@@ -17,22 +17,12 @@ from star_rail import __version__ as version
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
-from star_rail.utils.functional import pause
+from star_rail.utils.functional import input_yes_or_no, pause
 from star_rail.utils.log import logger
 
 __all__ = ["upgrade", "select_updater_source"]
 
-
-def input_yes_or_no(prompt: str = "", default="y"):
-    """输入 y/N 并校验"""
-    while True:
-        user_input = input(prompt).strip().lower()
-        if not user_input:
-            return default
-        elif user_input == "y" or user_input == "n":
-            return user_input
-        else:
-            print(i18n.updater.invaild_input)
+_lang = i18n.updater
 
 
 class UpdateContext(BaseModel):
@@ -61,12 +51,12 @@ class BaseUpdater(abc.ABC):
         try:
             temp_file = self._download(update_context)
         except requests.RequestException as e:
-            logger.warning(i18n.updater.download_failed)
+            logger.warning(_lang.download_failed)
             logger.debug(e)
             return
 
         shutil.move(temp_file, update_context.name)
-        logger.info(i18n.updater.download_success, update_context.name)
+        logger.info(_lang.download_success, update_context.name)
 
         # 保存当前版本文件名
         settings.OLD_EXE_NAME = os.path.basename(sys.argv[0])
@@ -105,21 +95,21 @@ class GithubUpdater(BaseUpdater):
                 True: 需要更新
                 False: 更新检测失败或无需更新
         """
-        logger.info(i18n.updater.check_update)
+        logger.info(_lang.check_update)
         try:
             response = requests.get(self._url, timeout=constants.REQUEST_TIMEOUT)
             data = json.loads(response.content.decode())
         except requests.RequestException as e:
-            logger.warning(i18n.updater.check_update_net_error)
+            logger.warning(_lang.check_update_net_error)
             logger.debug(e)
             return False, UpdateContext()
         if "tag_name" not in data:
-            logger.warning(i18n.updater.check_update_has_no_info)
+            logger.warning(_lang.check_update_has_no_ctx)
             return False, UpdateContext()
 
         latest_version = data["tag_name"]
         if latest_version <= version:
-            logger.success(i18n.updater.is_latest_version)
+            logger.success(_lang.is_latest_version)
             return False, UpdateContext(version=version)
 
         download_url = data["assets"][0]["browser_download_url"]
@@ -143,19 +133,19 @@ def select_updater_source(source: str):
 def upgrade():
     """根据软件保存的状态，显示更新日志或检测更新"""
     if settings.FLAG_UPATED_COMPLETE is True:
-        logger.success(i18n.updater.upgrade_success, version)
+        logger.success(_lang.upgrade_success, version)
         old_exe_path = os.path.join(os.path.dirname(sys.argv[0]), settings.OLD_EXE_NAME)
         try:
             os.remove(old_exe_path)
         except IOError as e:
-            logger.warning(i18n.updater.delete_file_failed, old_exe_path)
+            logger.warning(_lang.delete_file_failed, old_exe_path)
             logger.debug(e)
         settings.OLD_EXE_NAME = ""
         settings.FLAG_UPATED_COMPLETE = False
         settings.save()
         changelog = get_changelog()
         if changelog:
-            print(i18n.updater.changelog)
+            print(_lang.changelog)
             print("=" * constants.MENU_BANNER_LENGTH)
             print(changelog)
             print("=" * constants.MENU_BANNER_LENGTH)
@@ -166,7 +156,9 @@ def upgrade():
     if not check_update_status:
         time.sleep(1)
         return
-    user_input = input_yes_or_no(i18n.updater.update_option.format(version))
+    user_input = input_yes_or_no(
+        prompt=_lang.update_option.format(version), default="y", error_msg=_lang.invalid_input
+    )
     if user_input == "n":
         return
     _updater.upgrade(update_context)
@@ -188,7 +180,7 @@ def get_changelog():
             "utf-8"
         )
     except requests.exceptions as e:
-        logger.info(i18n.updater.get_changelog_failed)
+        logger.info(_lang.get_changelog_failed)
         logger.debug(e)
         return ""
     data = json.loads(response)

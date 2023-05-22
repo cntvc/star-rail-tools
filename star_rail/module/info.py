@@ -3,13 +3,15 @@ from star_rail.constants import APP_NAME
 from star_rail.i18n import i18n
 from star_rail.utils.functional import clear_screen
 
+_lang = i18n.info
+
 
 def show_about():
-    _APP_NAME = i18n.info.app_name + APP_NAME
-    _HOME_PAGE = i18n.info.project_home + "https://github.com/cntvc/star-rail-tools"
-    _AUTHOR = i18n.info.author + "cntvc"
-    _EMAIL = i18n.info.email + "cntvc@outlook.com"
-    _VERSION = i18n.info.app_version.format(version)
+    _APP_NAME = _lang.app_name + APP_NAME
+    _HOME_PAGE = _lang.project_home + "https://github.com/cntvc/star-rail-tools"
+    _AUTHOR = _lang.author + "cntvc"
+    _EMAIL = _lang.email + "cntvc@outlook.com"
+    _VERSION = _lang.app_version.format(version)
 
     description = [
         _APP_NAME,

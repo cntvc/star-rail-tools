@@ -17,53 +17,51 @@ from star_rail.utils.functional import get_format_time
 from star_rail.utils.log import logger
 from star_rail.utils.menu import Menu, MenuItem
 
+_lang = i18n.main.menu
+
 
 def init_menu():
     main_menu = MenuItem(
-        title=i18n.main.menu.main_menu,
+        title=_lang.main_menu,
         options=[
             MenuItem(
-                title=i18n.main.menu.account_setting,
+                title=_lang.account_setting,
                 gen_menu=lambda: gen_account_manu(create_option=True),
                 tips=lambda: account_manager.get_status_msg(),
             ),
             MenuItem(
-                title=i18n.main.menu.gacha_log.export,
+                title=_lang.gacha_log.export,
                 options=[
                     MenuItem(
-                        title=i18n.main.menu.gacha_log.by_webcache,
+                        title=_lang.gacha_log.by_webcache,
                         options=export_by_webcache,
                     ),
+                    MenuItem(title=_lang.gacha_log.by_clipboard, options=export_by_clipboard),
                     MenuItem(
-                        title=i18n.main.menu.gacha_log.by_clipboard, options=export_by_clipboard
-                    ),
-                    MenuItem(
-                        title=i18n.main.menu.gacha_log.by_appcache,
+                        title=_lang.gacha_log.by_appcache,
                         options=export_by_user_profile,
                     ),
                     MenuItem(
-                        title=i18n.main.menu.gacha_log.to_xlsx,
+                        title=_lang.gacha_log.to_xlsx,
                         options=export_to_xlsx,
                     ),
                     MenuItem(
-                        title=i18n.main.menu.gacha_log.to_srgf,
-                        options=lambda: print(i18n.main.menu.todo),
+                        title=_lang.gacha_log.to_srgf,
+                        options=lambda: print(_lang.todo),
                     ),
                 ],
                 tips=lambda: account_manager.get_status_msg(),
             ),
+            MenuItem(title=_lang.merge_gacha_log, options=lambda: print(_lang.todo)),
             MenuItem(
-                title=i18n.main.menu.merge_gacha_log, options=lambda: print(i18n.main.menu.todo)
-            ),
-            MenuItem(
-                title=i18n.main.menu.show_analyze_result,
+                title=_lang.show_analyze_result,
                 options=lambda: show_analytical_result(),
             ),
             MenuItem(
-                title=i18n.main.menu.settings.home,
+                title=_lang.settings.home,
                 options=[
                     MenuItem(
-                        title=i18n.main.menu.settings.check_update,
+                        title=_lang.settings.check_update,
                         options=[
                             MenuItem(
                                 title=i18n.common.open,
@@ -77,7 +75,7 @@ def init_menu():
                         tips=lambda: get_config_status_msg("FLAG_CHECK_UPDATE"),
                     ),
                     MenuItem(
-                        title=i18n.main.menu.settings.export.to_xlsx,
+                        title=_lang.settings.export.to_xlsx,
                         options=[
                             MenuItem(
                                 title=i18n.common.open,
@@ -91,11 +89,11 @@ def init_menu():
                         tips=lambda: get_config_status_msg("FLAG_GENERATE_XLSX"),
                     ),
                     MenuItem(
-                        title=i18n.main.menu.settings.export.srgf,
-                        options=lambda: print(i18n.main.menu.todo),
+                        title=_lang.settings.export.srgf,
+                        options=lambda: print(_lang.todo),
                     ),
                     MenuItem(
-                        title=i18n.main.menu.settings.language,
+                        title=_lang.settings.language,
                         options=[
                             MenuItem(
                                 title="简体中文",
@@ -103,13 +101,13 @@ def init_menu():
                             ),
                             MenuItem(
                                 title="English",
-                                options=lambda: print(i18n.main.menu.todo),
+                                options=lambda: set_locales(LanguageType.EN_US),
                             ),
                         ],
                     ),
                 ],
             ),
-            MenuItem(title=i18n.main.menu.about, options=show_about),
+            MenuItem(title=_lang.about, options=show_about),
         ],
         tips=lambda: account_manager.get_status_msg(),
     )

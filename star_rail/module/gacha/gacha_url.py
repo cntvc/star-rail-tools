@@ -16,6 +16,8 @@ from star_rail.utils.log import logger
 
 __all__ = ["ProviderType", "get_provider"]
 
+_lang = i18n.gacha_url
+
 
 class GachaUrlProvider(abc.ABC):
     @abc.abstractmethod
@@ -30,7 +32,7 @@ class UserCacheProvider(GachaUrlProvider):
     def get_url(self):
         logger.debug("从用户缓存获取抽卡链接")
         if not self.user.gacha_url:
-            logger.warning(i18n.gacha_url.unfind_link)
+            logger.warning(_lang.unfind_link)
             return None
         return self.user.gacha_url
 
@@ -64,7 +66,7 @@ class GameWebCacheProvider(GachaUrlProvider):
                 break
 
         if not url:
-            logger.warning(i18n.gacha_url.unfind_link)
+            logger.warning(_lang.unfind_link)
             return None
         url = replace_gacha_log_url_host_path(url)
         return url
@@ -79,7 +81,7 @@ class ClipboardProvider(GachaUrlProvider):
         text = html.unescape(text)
         url = match_gacha_log_api(text)
         if not url:
-            logger.warning(i18n.gacha_url.unfind_link)
+            logger.warning(_lang.unfind_link)
             return None
         url = replace_gacha_log_url_host_path(url)
         return url

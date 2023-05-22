@@ -7,6 +7,8 @@ from star_rail import constants
 from star_rail.i18n import i18n
 from star_rail.utils.functional import clear_screen, input_int, pause
 
+_lang = i18n.utils.menu
+
 
 class MenuItem(BaseModel):
     title: str
@@ -36,9 +38,9 @@ class Menu:
             print("{}.{}".format(index + 1, option.title))
         print("")
         if len(self.stack) > 1:
-            print(i18n.utils.menu.return_parent_menu)
+            print(_lang.return_to_pre_menu)
         else:
-            print(i18n.utils.menu.exit)
+            print(_lang.exit)
         print("=" * constants.MENU_BANNER_LENGTH)
 
         self._display_tips()
@@ -63,8 +65,8 @@ class Menu:
 
             self.display()
             cur_options: List[MenuItem] = self.menu.options
-            print(i18n.utils.menu.input_number)
-            menu_index = input_int(0, len(cur_options))
+            print(_lang.input_number)
+            menu_index = input_int(0, len(cur_options), _lang.invalid_input)
 
             if menu_index == 0:
                 self.stack.pop()

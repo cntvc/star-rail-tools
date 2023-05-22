@@ -1,9 +1,9 @@
 import json
 import os
+import subprocess
+import sys
 import time
 from pathlib import Path
-
-from star_rail.i18n import i18n
 
 __all__ = [
     "save_json",
@@ -12,8 +12,10 @@ __all__ = [
     "pause",
     "color_str",
     "input_int",
+    "input_yes_or_no",
     "dedupe",
     "get_format_time",
+    "restart",
 ]
 
 
@@ -69,22 +71,34 @@ def color_str(string: str, color: str = "none"):
         return string
 
 
-def input_int(left: int, right: int):
+def input_int(left: int, right: int, error_msg: str):
     """
     input a integer, and the range of integers is in the interval [left, right]
     """
     while True:
         index = input()
         if not index.isdigit():
-            print(color_str(i18n.utils.functional.invalid_input.format(index), "yellow"))
+            print(color_str(error_msg, "yellow"))
             continue
 
         index = int(index)
         if index > right or index < left:
-            print(color_str(i18n.utils.functional.invalid_input.format(index), "yellow"))
+            print(color_str(error_msg, "yellow"))
             continue
 
         return index
+
+
+def input_yes_or_no(prompt: str = "", default="y", error_msg: str = ""):
+    """输入 y/N 并校验"""
+    while True:
+        user_input = input(prompt).strip().lower()
+        if not user_input:
+            return default
+        elif user_input == "y" or user_input == "n":
+            return user_input
+        else:
+            print(error_msg)
 
 
 def dedupe(items, key=None):
@@ -110,3 +124,10 @@ def get_format_time(std_time: float = None, time_format: str = "%Y-%m-%d %H:%M:%
         return time.strftime(time_format, time.localtime(time.time()))
     else:
         return time.strftime(time_format, time.localtime(std_time))
+
+
+def restart():
+    """重启应用"""
+    app_name = os.path.basename(sys.argv[0])
+    subprocess.Popen(app_name, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    sys.exit()

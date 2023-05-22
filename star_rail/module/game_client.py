@@ -7,6 +7,8 @@ from star_rail.i18n import i18n
 from star_rail.module.account import Account, GameBizType
 from star_rail.utils.log import logger
 
+_lang = i18n.game_client
+
 MHY_LOG_ROOT_PATH = os.path.join(os.getenv("USERPROFILE"), "AppData", "LocalLow")
 
 
@@ -32,7 +34,7 @@ class GameClient:
     def get_game_path(self):
         log_path = GameLogPath.get_by_user(self.user)
         if not log_path.exists():
-            logger.error(i18n.game_client.game_log_not_found)
+            logger.error(_lang.game_log_not_found)
             return None
         try:
             log_text = log_path.read_text(encoding="utf8")
@@ -47,10 +49,10 @@ class GameClient:
     def get_webcache_path(self):
         game_path = self.get_game_path()
         if not game_path:
-            logger.error(i18n.game_client.game_path_not_found)
+            logger.error(_lang.game_path_not_found)
             return None
         data_2_path = os.path.join(game_path, GameClient._WEB_CACHE_PATH)
         if not os.path.isfile(data_2_path):
-            logger.error(i18n.game_client.game_webcache_file_not_found)
+            logger.error(_lang.game_webcache_file_not_found)
             return None
         return data_2_path
