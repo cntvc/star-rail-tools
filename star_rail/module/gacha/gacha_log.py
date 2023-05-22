@@ -237,7 +237,7 @@ class GachaDataProcessor:
                 i18n.execl.header.level,
                 i18n.execl.header.gacha_type,
                 i18n.execl.header.total_count,
-                i18n.execl.header.pity_counter,
+                i18n.execl.header.pity_count,
             ]
             worksheet.set_column("A:A", 22)
             worksheet.set_column("B:B", 14)
@@ -329,7 +329,10 @@ def convert_to_table(analyze_result):
     rank5_detail_table.align = "l"
     for gacha_type, gacha_name in GachaType.dict().items():
         rank5_data: list = analyze_result[gacha_type]["rank5"]
-        rank5_detail = [item["name"] + " : " + item["number"] for item in rank5_data]
+        rank5_detail = [
+            item["name"] + " : " + item["number"] + i18n.table.star5.pull_count
+            for item in rank5_data
+        ]
         rank5_detail += [""] * (max_rank5_count - len(rank5_detail))
         rank5_detail_table.add_column(gacha_name, rank5_detail)
     return overview_table, rank5_detail_table

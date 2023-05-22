@@ -10,7 +10,7 @@ en_us_lang_pack = {
     "gacha.true_user": "The game is currently logged in with a different account. Exporting data for account {}.",
     "gacha.export_finish": "Data export completed. Press any key to view the gacha report.",
     "gacha.analyze_time": "Analysis Time:",
-    "gacha.tips": 'Note: The average count does not include "pulls within pity count."',
+    "gacha.tips": 'Note: The average count does not include "Pity Count."',
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
     # module/gacha/gacha_log
@@ -30,7 +30,6 @@ en_us_lang_pack = {
     "account.menu.creat_user": "Create a new user",
     "account.menu.input_uid": "Please enter the user UID. Enter 0 to cancel creating a new user.\n",
     "account.menu.invalid_uid_format": "Please enter a valid UID format.",
-    "account.menu.creat": "Create a new user",
     # module/game_client
     "game_client.game_log_not_found": "Game log file not found.",
     "game_client.game_path_not_found": "Game path not found.",
@@ -91,6 +90,7 @@ en_us_lang_pack = {
     "table.total.pity_cnt": "Pity Count",
     # 5 星详情表
     "table.star5.title": "5-Star Details",
+    "table.star5.pull_count": "th Pull",
     # Execl
     "execl.header.time": "Time",
     "execl.header.name": "Name",
@@ -98,7 +98,7 @@ en_us_lang_pack = {
     "execl.header.level": "Rarity",
     "execl.header.gacha_type": "Gacha Type",
     "execl.header.total_count": "Total Count",
-    "execl.header.pity_counter": "Pity Counter",
+    "execl.header.pity_count": "Pity Count",
     # common
     "common.open": "Open",
     "common.close": "Close",

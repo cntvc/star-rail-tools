@@ -10,7 +10,7 @@ zh_cn_lang_pack = {
     "gacha.true_user": "游戏已登陆账号与软件设置账号不一致，将导出账号 {} 的数据",
     "gacha.export_finish": "数据导出完成，按任意键查看抽卡报告",
     "gacha.analyze_time": "统计时间:",
-    "gacha.tips": "注：平均抽数不包括“保底内抽数”",
+    "gacha.tips": "注：平均抽数不包括“保底计数”",
     "gacha.file_not_found": "未找到账号 {} 相关数据文件",
     "gacha.export_xlsx_success": "导出到 Execl 成功",
     # module/gacha/gacha_log
@@ -87,9 +87,10 @@ zh_cn_lang_pack = {
     "table.total.total_cnt": "抽卡总数",
     "table.total.star5_cnt": "5星总次数",
     "table.total.star5_avg_cnt": "5星平均抽数",
-    "table.total.pity_cnt": "保底内抽数",
+    "table.total.pity_cnt": "保底计数",
     # 5 星详情表
     "table.star5.title": "5星详情",
+    "table.star5.pull_count": "抽",
     # Execl
     "execl.header.time": "时间",
     "execl.header.name": "名称",
@@ -97,7 +98,7 @@ zh_cn_lang_pack = {
     "execl.header.level": "星级",
     "execl.header.gacha_type": "跃迁类型",
     "execl.header.total_count": "总次数",
-    "execl.header.pity_counter": "保底内",
+    "execl.header.pity_count": "保底计数",
     # common
     "common.open": "打开",
     "common.close": "关闭",
