@@ -133,9 +133,9 @@ class GachaDataProcessor:
             analyze_result[gahca_type] = {}
 
             # 抽卡时间范围
-            start_time, end_time = ("~", "~") if not gacha_data else gacha_data[0][
-                "time"
-            ], gacha_data[-1]["time"]
+            start_time, end_time = (
+                ("~", "~") if not gacha_data else (gacha_data[0]["time"], gacha_data[-1]["time"])
+            )
             analyze_result[gahca_type]["start_time"] = start_time
             analyze_result[gahca_type]["end_time"] = end_time
 
