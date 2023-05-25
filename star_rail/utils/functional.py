@@ -131,3 +131,19 @@ def restart():
     app_name = os.path.basename(sys.argv[0])
     subprocess.Popen(app_name, creationflags=subprocess.CREATE_NEW_CONSOLE)
     sys.exit()
+
+
+def desensitize_url(url: str, param_name: str, desensitized_value: str = "******"):
+    """脱敏 URL 中指定参数的值"""
+    assert param_name
+    start_index = url.find(f"{param_name}=")
+    if start_index != -1:
+        # 截取参数的值
+        start_index += len(f"{param_name}=")
+        end_index = url.find("&", start_index)
+        if end_index == -1:
+            end_index = len(url)
+        # param_value = url[start_index:end_index]
+        desensitized_url = url[:start_index] + desensitized_value + url[end_index:]
+        return desensitized_url
+    return url

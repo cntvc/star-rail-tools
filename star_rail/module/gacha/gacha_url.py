@@ -74,11 +74,8 @@ class GameWebCacheProvider(GachaUrlProvider):
 
 class ClipboardProvider(GachaUrlProvider):
     def get_url(self):
-        import html
-
         logger.debug("从剪切板获取抽卡链接")
         text = clipboard.get_text_or_html()
-        text = html.unescape(text)
         url = match_gacha_log_api(text)
         if not url:
             logger.warning(_lang.unfind_link)

@@ -13,14 +13,14 @@ from star_rail import constants
 from star_rail.i18n import i18n
 from star_rail.module.account import Account
 from star_rail.module.gacha.model import GachaInfo, GachaType
-from star_rail.utils.functional import dedupe, get_format_time, load_json, save_json
+from star_rail.utils import functional
 from star_rail.utils.log import logger
 
 _lang = i18n.gacha_log
 
 
 def verify_gacha_log_url(url):
-    logger.debug("验证链接有效性: " + url)
+    logger.debug("验证链接有效性: " + functional.desensitize_url(url, "authkey"))
 
     res = requests.get(url, timeout=constants.REQUEST_TIMEOUT)
     res_json = json.loads(res.content.decode("utf-8"))
@@ -128,7 +128,7 @@ class GachaDataProcessor:
         # 每个卡池统计信息：总抽数，时间范围，5星的具体抽数，当前未保底次数，平均抽数（不计算未保底）
         analyze_result = {}
         analyze_result["uid"] = self.user.uid
-        analyze_result["time"] = get_format_time()
+        analyze_result["time"] = functional.get_format_time()
         for gahca_type, gacha_data in self.gacha_data["gacha_log"].items():
             analyze_result[gahca_type] = {}
 
@@ -162,7 +162,7 @@ class GachaDataProcessor:
             analyze_result[gahca_type]["pity_count"] = pity_count
             analyze_result[gahca_type]["total_count"] = len(gacha_data)
 
-        save_json(self.user.gacha_log_analyze_path, analyze_result)
+        functional.save_json(self.user.gacha_log_analyze_path, analyze_result)
         return analyze_result
 
     @staticmethod
@@ -175,7 +175,9 @@ class GachaDataProcessor:
             for gacha_type in GachaType.list():
                 gacha_log[gacha_type].extend(data["gacha_log"][gacha_type])
         for gacha_type in GachaType.list():
-            gacha_log[gacha_type] = list(dedupe(gacha_log[gacha_type], lambda x: x["id"]))
+            gacha_log[gacha_type] = list(
+                functional.dedupe(gacha_log[gacha_type], lambda x: x["id"])
+            )
             gacha_log[gacha_type] = sorted(gacha_log[gacha_type], key=itemgetter("id"))
 
         gacha_data = {}
@@ -189,7 +191,7 @@ class GachaDataProcessor:
         logger.debug("合并历史抽卡数据")
         if not self.user.gacha_log_json_path.exists():
             return
-        history_gacha_log = load_json(self.user.gacha_log_json_path)
+        history_gacha_log = functional.load_json(self.user.gacha_log_json_path)
         if history_gacha_log:
             self.gacha_data = GachaDataProcessor.merge_data([self.gacha_data, history_gacha_log])
             logger.debug("合并完成")
