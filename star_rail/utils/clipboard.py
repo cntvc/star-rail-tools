@@ -1,4 +1,5 @@
 """clipboard tools"""
+import html
 from typing import Optional
 
 import win32api
@@ -6,13 +7,13 @@ import win32clipboard
 import win32con
 
 from star_rail.i18n import i18n
+from star_rail.utils.functional import desensitize_url
 from star_rail.utils.log import logger
 
 __all__ = ["get_text_or_html"]
 
 
 def get_text_or_html() -> Optional[str]:
-    """get str from clipboad"""
     try:
         formats = []
         win32clipboard.OpenClipboard(0)
@@ -35,12 +36,12 @@ def get_text_or_html() -> Optional[str]:
         else:
             return None
 
-        logger.debug(f"GetClipboardData={data}")
         if isinstance(data, bytes):
             data = data.decode(errors="ignore")
         if not isinstance(data, str):
             return None
-
+        data = html.unescape(data)
+        logger.debug("读取剪切板数据：{}".format(desensitize_url(data, "authkey")))
         return data
     except win32api.error:
         logger.error(i18n.utils.clipboard.read_data_error)

@@ -53,6 +53,8 @@ en_us_lang_pack = {
     "updater.changelog": "Changelog:",
     "updater.update_option": "New version {} detected. Do you want to update? y/N ",
     "updater.get_changelog_failed": "Failed to retrieve the changelog.",
+    "updater.select_update_source": "Update source has been changed to {}",
+    "updater.update_source_status": "Current update source is",
     # utils/clipboard
     "utils.clipboard.read_data_error": "An error occurred while reading from the clipboard.",
     # utils/menu
@@ -76,7 +78,10 @@ en_us_lang_pack = {
     "main.menu.show_analyze_result": "View Gacha Analysis Report",
     # main-menu-setting
     "main.menu.settings.home": "Software Settings",
-    "main.menu.settings.check_update": "Check for Software Updates",
+    "main.menu.settings.check_update": "Auto Update",
+    "main.menu.settings.update_source": "Set Update Source",
+    "main.menu.settings.update_source_coding": "Coding (Recommended for China)",
+    "main.menu.settings.update_source_github": "Github",
     "main.menu.settings.export.to_xlsx": "Automatically export to Excel spreadsheet",
     "main.menu.settings.export.srgf": "Automatically export to SRGF universal format",
     "main.menu.settings.language": "Switch Language",

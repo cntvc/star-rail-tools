@@ -7,7 +7,7 @@ CONFIG_PATH = os.path.join(ROOT_PATH, "config")
 
 LOG_PATH = os.path.join(ROOT_PATH, "log")
 
-REQUEST_TIMEOUT = 5
+REQUEST_TIMEOUT = 3
 
 MENU_BANNER_LENGTH = 40
 
