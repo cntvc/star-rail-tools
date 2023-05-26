@@ -1,7 +1,7 @@
 # 崩坏：星穹铁道小工具
 
-[![Linter](https://github.com/cntvc/star-rail-tools/actions/workflows/linter.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/linter.yml) 
-[![commit](https://img.shields.io/github/last-commit/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/commits/master) 
+[![Linter](https://github.com/cntvc/star-rail-tools/actions/workflows/linter.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/linter.yml)
+[![commit](https://img.shields.io/github/last-commit/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/commits/master)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cntvc/star-rail-tools)][latest_release]
 [![license](https://img.shields.io/github/license/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/blob/main/LICENSE)
 
@@ -15,7 +15,9 @@
 
 ## 基本用法
 
-在 Github [下载页面][latest_release] 下载exe文件，双击即可使用
+下载源：
+- [Github][latest_release]
+- [制品库（国内推荐）][coding_latest]
 
 ### 导出跃迁记录
 
@@ -64,3 +66,4 @@
 - 适配国际服的代码参考 [**star-rail-warp-export**](https://github.com/biuuu/star-rail-warp-export)
 
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
+[coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
