@@ -15,6 +15,9 @@ _config_path = Path(constants.CONFIG_PATH, "settings.json")
 class Settings(BaseModel):
     FLAG_CHECK_UPDATE: bool = True
 
+    FLAG_UPDATE_SOURCE: str = "Coding"
+    """更新源 : ["Github", "Coding"] """
+
     FLAG_GENERATE_XLSX: bool = False
 
     FLAG_UPATED_COMPLETE: bool = False

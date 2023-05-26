@@ -12,7 +12,12 @@ from star_rail.module.gacha import (
     show_analytical_result,
 )
 from star_rail.module.info import show_about
-from star_rail.module.updater import upgrade
+from star_rail.module.updater import (
+    UpdateSource,
+    get_update_source_status,
+    select_updater_source,
+    upgrade,
+)
 from star_rail.utils.functional import get_format_time
 from star_rail.utils.log import logger
 from star_rail.utils.menu import Menu, MenuItem
@@ -73,6 +78,20 @@ def init_menu():
                             ),
                         ],
                         tips=lambda: get_config_status_msg("FLAG_CHECK_UPDATE"),
+                    ),
+                    MenuItem(
+                        title=_lang.settings.update_source,
+                        options=[
+                            MenuItem(
+                                title=_lang.settings.update_source_coding,
+                                options=lambda: select_updater_source(UpdateSource.CODING),
+                            ),
+                            MenuItem(
+                                title=_lang.settings.update_source_github,
+                                options=lambda: select_updater_source(UpdateSource.GITHUB),
+                            ),
+                        ],
+                        tips=lambda: get_update_source_status(),
                     ),
                     MenuItem(
                         title=_lang.settings.export.to_xlsx,

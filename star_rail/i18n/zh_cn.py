@@ -53,6 +53,8 @@ zh_cn_lang_pack = {
     "updater.changelog": "更新日志：",
     "updater.update_option": "检测到新版本 {}, 是否更新 y/N ? ",
     "updater.get_changelog_failed": "更新日志获取失败",
+    "updater.select_update_source": "更新源已变更为 {}",
+    "updater.update_source_status": "当前更新源为",
     # utils/clipboard
     "utils.clipboard.read_data_error": "剪切板读取出现错误",
     # utils/menu
@@ -76,7 +78,10 @@ zh_cn_lang_pack = {
     "main.menu.show_analyze_result": "查看抽卡分析报告",
     # main-menu-setting
     "main.menu.settings.home": "软件设置",
-    "main.menu.settings.check_update": "软件更新检测",
+    "main.menu.settings.check_update": "自动更新",
+    "main.menu.settings.update_source": "设置更新源",
+    "main.menu.settings.update_source_coding": "Coding （国内推荐",
+    "main.menu.settings.update_source_github": "Github",
     "main.menu.settings.export.to_xlsx": "自动导出到 Execl 表格",
     "main.menu.settings.export.srgf": "自动导出到 SRGF 通用格式",
     "main.menu.settings.language": "切换语言",

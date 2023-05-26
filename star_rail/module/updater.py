@@ -1,4 +1,5 @@
 import abc
+import enum
 import json
 import os
 import re
@@ -7,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from typing import Tuple
+from typing import Dict, Tuple
 
 import requests
 from pydantic import BaseModel
@@ -17,7 +18,7 @@ from star_rail import __version__ as version
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
-from star_rail.utils.functional import input_yes_or_no, pause
+from star_rail.utils.functional import color_str, input_yes_or_no, pause
 from star_rail.utils.log import logger
 
 __all__ = ["upgrade", "select_updater_source"]
@@ -84,6 +85,8 @@ class BaseUpdater(abc.ABC):
 
 
 class GithubUpdater(BaseUpdater):
+    """Github 更新源"""
+
     def __init__(self) -> None:
         self._url = "https://api.github.com/repos/cntvc/star-rail-tools/releases/latest"
         self._name = "Github"
@@ -91,7 +94,7 @@ class GithubUpdater(BaseUpdater):
     def check_update(self):
         """
         Returns:
-            Tuple[bool, _UpdateContext]:
+            Tuple[bool, UpdateContext]:
                 True: 需要更新
                 False: 更新检测失败或无需更新
         """
@@ -102,32 +105,87 @@ class GithubUpdater(BaseUpdater):
         except requests.RequestException as e:
             logger.warning(_lang.check_update_net_error)
             logger.debug(e)
-            return False, UpdateContext()
+            return False, None
         if "tag_name" not in data:
             logger.warning(_lang.check_update_has_no_ctx)
-            return False, UpdateContext()
+            return False, None
 
         latest_version = data["tag_name"]
         if latest_version <= version:
             logger.success(_lang.is_latest_version)
-            return False, UpdateContext(version=version)
+            return False, None
 
         download_url = data["assets"][0]["browser_download_url"]
         name = data["assets"][0]["name"]
         return True, UpdateContext(name=name, version=latest_version, download_url=download_url)
 
 
-_update_source = {
-    "Github": GithubUpdater(),
+class CodingUpdater(BaseUpdater):
+    """
+    国内更新源
+    https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
+    """
+
+    def __init__(self) -> None:
+        self._url = "https://cntvc.coding.net/api/team/cntvc/anonymity/artifacts/?pageSize=10"
+        self._name = "Coding"
+
+    def check_update(self) -> Tuple[bool, UpdateContext]:
+        logger.info(_lang.check_update)
+        try:
+            response = requests.get(self._url, timeout=constants.REQUEST_TIMEOUT)
+            data = json.loads(response.content.decode())
+        except requests.RequestException as e:
+            logger.warning(_lang.check_update_net_error)
+            logger.debug(e)
+            return False, None
+        artifact = data["data"]["list"][0]
+        latest_version = artifact["latestVersionName"]
+
+        if latest_version <= version:
+            logger.success(_lang.is_latest_version)
+            return False, None
+
+        name: str = artifact["name"]
+        latest_version_name = "{}_{}.exe".format(name.split(".")[0], latest_version)
+        registry_url = artifact["registryUrl"]
+        project_name = artifact["projectName"]
+        repo_name = artifact["repoName"]
+        download_url = "{}/{}/{}/{}?version={}".format(
+            registry_url, project_name, repo_name, name, latest_version
+        )
+        return True, UpdateContext(
+            name=latest_version_name, version=latest_version, download_url=download_url
+        )
+
+
+class UpdateSource(enum.Enum):
+    GITHUB = "Github", GithubUpdater()
+    CODING = "Coding", CodingUpdater()
+
+    @property
+    def name(self) -> str:
+        return self.value[0]
+
+    @property
+    def updater(self) -> BaseUpdater:
+        return self.value[1]
+
+
+_update_source: Dict[str, BaseUpdater] = {
+    "Github": UpdateSource.GITHUB.updater,
+    "Coding": UpdateSource.CODING.updater,
 }
 
-_updater = _update_source["Github"]
+_updater = _update_source[settings.FLAG_UPDATE_SOURCE]
 
 
-def select_updater_source(source: str):
-    assert source in _update_source
+def select_updater_source(source: UpdateSource):
     global _updater
-    _updater = _update_source[source]
+    _updater = _update_source[source.name]
+    settings.FLAG_UPDATE_SOURCE = source.name
+    settings.save()
+    logger.info(_lang.select_update_source.format(source.name))
 
 
 def upgrade():
@@ -154,7 +212,7 @@ def upgrade():
 
     check_update_status, update_context = _updater.check_update()
     if not check_update_status:
-        time.sleep(1)
+        time.sleep(2)
         return
     user_input = input_yes_or_no(
         prompt=_lang.update_option.format(version), default="y", error_msg=_lang.invalid_input
@@ -185,3 +243,9 @@ def get_changelog():
         return ""
     data = json.loads(response)
     return parse_changelog(data)
+
+
+def get_update_source_status():
+    """获取当前更新源状态"""
+    global _updater
+    return "{}: {}".format(_lang.update_source_status, color_str(_updater.name, "green"))
