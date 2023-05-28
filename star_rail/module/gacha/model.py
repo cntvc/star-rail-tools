@@ -29,7 +29,7 @@ class GachaType(str, enum.Enum):
         return [member.value for member in GachaType]
 
 
-SRGF_VERSION = "1.0.0"
+SRGF_VERSION = "v1.0"
 
 
 class GachaInfo(BaseModel):
