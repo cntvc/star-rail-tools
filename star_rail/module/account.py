@@ -86,6 +86,7 @@ class Account(BaseModel):
     gacha_log_json_path: Path = Field(default="", exclude=True)
     gacha_log_xlsx_path: Path = Field(default="", exclude=True)
     gacha_log_analyze_path: Path = Field(default="", exclude=True)
+    srgf_path: Path = Field(default="", exclude=True)
 
     @validator("uid")
     def _uid_format(cls, v):
@@ -109,6 +110,7 @@ class Account(BaseModel):
         self.gacha_log_analyze_path = Path(
             constants.ROOT_PATH, self.uid, f"GachaAnalyze_{self.uid}.json"
         )
+        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_srgf_{self.uid}.json")
 
     def _init_region(self):
         self.region = RegionType.get_by_uid(self.uid).value

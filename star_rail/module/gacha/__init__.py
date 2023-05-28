@@ -4,6 +4,7 @@ from star_rail.module.account import Account, account_manager
 from star_rail.module.gacha.gacha_log import (
     GachaDataProcessor,
     GachaLogFetcher,
+    convert_to_srgf,
     convert_to_table,
     verify_gacha_log_url,
 )
@@ -130,3 +131,16 @@ def export_to_xlsx():
     gacha_log = functional.load_json(user.gacha_log_json_path)
     GachaDataProcessor(gacha_log).create_xlsx()
     logger.success(_lang.export_xlsx_success)
+
+
+def export_to_srgf():
+    user = account_manager.account
+    if None is user:
+        print(functional.color_str(_lang.retry, "yellow"))
+        return
+    if not user.gacha_log_json_path.exists():
+        logger.warning(_lang.file_not_found, user.uid)
+        return
+    gacha_log = functional.load_json(user.gacha_log_json_path)
+    functional.save_json(user.srgf_path, convert_to_srgf(gacha_log))
+    logger.success(_lang.export_srgf_success)

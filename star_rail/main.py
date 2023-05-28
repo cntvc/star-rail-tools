@@ -9,6 +9,7 @@ from star_rail.module.gacha import (
     export_by_clipboard,
     export_by_user_profile,
     export_by_webcache,
+    export_to_srgf,
     export_to_xlsx,
     show_analytical_result,
 )
@@ -53,7 +54,7 @@ def init_menu():
                     ),
                     MenuItem(
                         title=_lang.gacha_log.to_srgf,
-                        options=lambda: print(_lang.todo),
+                        options=export_to_srgf,
                     ),
                 ],
                 tips=lambda: account_manager.get_status_msg(),

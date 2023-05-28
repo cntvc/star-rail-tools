@@ -12,7 +12,7 @@ from prettytable import PrettyTable
 from star_rail import constants
 from star_rail.i18n import i18n
 from star_rail.module.account import Account
-from star_rail.module.gacha.model import GachaInfo, GachaType
+from star_rail.module.gacha.model import GachaInfo, GachaType, SrgfInfo
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 
@@ -296,6 +296,19 @@ class GachaDataProcessor:
 
         workbook.close()
         logger.debug("工作簿写入完成")
+
+
+def convert_to_srgf(gacha_data):
+    srgf_data = {}
+    srgf_data["info"] = SrgfInfo(
+        gacha_data["info"]["uid"],
+        gacha_data["info"]["lang"],
+        gacha_data["info"]["region_time_zone"],
+    ).dict()
+    srgf_data["list"] = []
+    for gacha_type in GachaType.list():
+        srgf_data["list"].extend(gacha_data["gacha_log"][gacha_type])
+    return srgf_data
 
 
 def convert_to_table(analyze_result):

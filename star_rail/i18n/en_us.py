@@ -13,6 +13,7 @@ en_us_lang_pack = {
     "gacha.tips": 'Note: The average count does not include "Pity Count."',
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
+    "gacha.export_srgf_success": "Export to SRGF format successful.",
     # module/gacha/gacha_log
     "gacha_log.link_expires": "Link expired.",
     "gacha_log.link_error": "Link error.",

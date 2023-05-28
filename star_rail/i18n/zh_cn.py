@@ -13,6 +13,7 @@ zh_cn_lang_pack = {
     "gacha.tips": "注：平均抽数不包括“保底计数”",
     "gacha.file_not_found": "未找到账号 {} 相关数据文件",
     "gacha.export_xlsx_success": "导出到 Execl 成功",
+    "gacha.export_srgf_success": "导出为 SRGF 格式成功",
     # module/gacha/gacha_log
     "gacha_log.link_expires": "链接过期",
     "gacha_log.link_error": "链接错误",
