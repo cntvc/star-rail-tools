@@ -110,7 +110,7 @@ class Account(BaseModel):
         self.gacha_log_analyze_path = Path(
             constants.ROOT_PATH, self.uid, f"GachaAnalyze_{self.uid}.json"
         )
-        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_srgf_{self.uid}.json")
+        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_SRGF_{self.uid}.json")
 
     def _init_region(self):
         self.region = RegionType.get_by_uid(self.uid).value
