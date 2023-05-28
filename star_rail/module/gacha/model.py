@@ -35,26 +35,31 @@ SRGF_VERSION = "1.0.0"
 class GachaInfo(BaseModel):
     uid: str
     lang: str
+    region_time_zone: int
     export_timestamp: int
     export_time: str
     export_app: str
     export_app_version: str
 
-    @staticmethod
-    def gen(uid: str, lang: str):
-        std_time = time.time()
-        format_time = functional.get_format_time(std_time)
-        return GachaInfo(
+    def __init__(self, uid: str, lang: str, region_time_zone: int = None):
+        local_std_time = time.localtime(time.time())
+        if region_time_zone is None:
+            # 用于兼容 1.0.1 及以下版本数据
+            region_time_zone = functional.get_timezone(local_std_time)
+        origin_time = functional.convert_time_to_timezone(local_std_time, region_time_zone)
+
+        export_app = constants.APP_NAME
+        export_app_version = version
+        super().__init__(
             uid=uid,
             lang=lang,
-            export_timestamp=int(std_time),
-            export_time=format_time,
-            export_app=constants.APP_NAME,
-            export_app_version=version,
+            region_time_zone=region_time_zone,
+            export_timestamp=int(time.mktime(origin_time)),
+            export_time=functional.get_format_time(time.mktime(origin_time)),
+            export_app=export_app,
+            export_app_version=export_app_version,
         )
 
-    @staticmethod
-    def gen_to_srgf(uid: str, lang: str):
-        info = GachaInfo.gen(uid, lang)
-        info["srgf_version"] = SRGF_VERSION
-        return info
+
+class SrgfInfo(GachaInfo):
+    srgf_version: str = SRGF_VERSION

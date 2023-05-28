@@ -69,7 +69,7 @@ class GachaLogFetcher:
 
         self.uid, self.lang = get_uid_and_lang(gacha_log)
         gacha_data = {}
-        gacha_data["info"] = GachaInfo.gen(self.uid, self.lang).dict()
+        gacha_data["info"] = GachaInfo(self.uid, self.lang, self.region_time_zone).dict()
         gacha_data["gacha_log"] = gacha_log
         gacha_data["gacha_type"] = GachaType.dict()
         self.gacha_data = gacha_data
@@ -128,7 +128,7 @@ class GachaDataProcessor:
         # 每个卡池统计信息：总抽数，时间范围，5星的具体抽数，当前未保底次数，平均抽数（不计算未保底）
         analyze_result = {}
         analyze_result["uid"] = self.user.uid
-        analyze_result["time"] = functional.get_format_time()
+        analyze_result["time"] = functional.get_format_time(time.time())
         for gahca_type, gacha_data in self.gacha_data["gacha_log"].items():
             analyze_result[gahca_type] = {}
 
@@ -170,10 +170,12 @@ class GachaDataProcessor:
         gacha_log = {}
         for gacha_type in GachaType.list():
             gacha_log[gacha_type] = []
-
+        region_time_zone = None
         for data in gacha_data_list:
             for gacha_type in GachaType.list():
                 gacha_log[gacha_type].extend(data["gacha_log"][gacha_type])
+                if region_time_zone is None:
+                    region_time_zone = data["info"].get("region_time_zone", None)
         for gacha_type in GachaType.list():
             gacha_log[gacha_type] = list(
                 functional.dedupe(gacha_log[gacha_type], lambda x: x["id"])
@@ -182,7 +184,7 @@ class GachaDataProcessor:
 
         gacha_data = {}
         uid, lang = get_uid_and_lang(gacha_log)
-        gacha_data["info"] = GachaInfo.gen(uid, lang).dict()
+        gacha_data["info"] = GachaInfo(uid, lang, region_time_zone).dict()
         gacha_data["gacha_log"] = gacha_log
         gacha_data["gacha_type"] = GachaType.dict()
         return gacha_data

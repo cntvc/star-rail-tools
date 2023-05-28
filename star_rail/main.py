@@ -1,4 +1,5 @@
 import platform
+import time
 
 from star_rail import __version__ as version
 from star_rail.config import get_config_status_msg, settings
@@ -145,7 +146,7 @@ def run():
             "--------------------\n"
             "Config: {}\n"
             "===================="
-        ).format(version, get_format_time(), platform.platform(), settings.dict())
+        ).format(version, get_format_time(time.time()), platform.platform(), settings.dict())
     )
     if settings.FLAG_CHECK_UPDATE:
         upgrade()
