@@ -45,6 +45,8 @@
   |       GachaLog_101793414.xlsx # 导出的XLSX文件
   |       UserProfile_101793414.json # 账号信息
   |
+  +---merge # 用于读取需要导入或合并的数据文件
+  |
   +---config
   |       settings.json # 软件设置（如果没有进行过设置则不存在
   |
