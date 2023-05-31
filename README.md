@@ -19,13 +19,18 @@
 - [Github][latest_release]
 - [制品库（国内推荐）][coding_latest]
 
-### 导出跃迁记录
+### 1.导出跃迁记录
 
 1. 设置账户：输入或选择星穹铁道账号 UID
 2. 打开游戏，在**抽卡记录页面**选择历史记录并翻页
 3. 切换到软件，依次选择菜单 **导出抽卡数据** -> **使用游戏缓存导出**
 4. 完成导出后，根据提示查看抽卡报告
 
+### 2.导入或合并抽卡数据
+
+1. 设置账户：输入或选择星穹铁道账号 UID
+2. 将需要导入或合并的数据放入 `merge` 文件夹内，可一次放入多个文件。支持 [SRGF][^1] 格式以及软件自带格式的 json 文件
+3. 切换到软件，选择菜单 **导入或合并数据**
 
 <details>
   <summary>点击查看 <b>数据目录结构</b></summary>
@@ -67,3 +72,4 @@
 
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
+[^1]: https://uigf.org/zh/standards/SRGF.html
