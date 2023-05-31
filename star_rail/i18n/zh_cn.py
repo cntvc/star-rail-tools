@@ -14,6 +14,8 @@ zh_cn_lang_pack = {
     "gacha.file_not_found": "未找到账号 {} 相关数据文件",
     "gacha.export_xlsx_success": "导出到 Execl 成功",
     "gacha.export_srgf_success": "导出为 SRGF 格式成功",
+    # module/gacha_data
+    "gacha_data.invalid_gacha_data": "无效的抽卡数据",
     # module/gacha/gacha_log
     "gacha_log.link_expires": "链接过期",
     "gacha_log.link_error": "链接错误",
@@ -21,7 +23,6 @@ zh_cn_lang_pack = {
     "gacha_log.start_fetch": "开始查询抽卡记录",
     "gacha_log.fetch_status": "\033[K正在获取 {} 卡池数据 {}",
     "gacha_log.fetch_finish": "查询 {} 结束, 共 {} 条数据",
-    "gacha_log.invalid_gacha_data": "无效的抽卡数据",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "未获取到抽卡链接",
     # module/account
@@ -75,7 +76,7 @@ zh_cn_lang_pack = {
     "main.menu.gacha_log.by_appcache": "使用软件缓存导出",
     "main.menu.gacha_log.to_xlsx": "导出到 Execl 表格文件",
     "main.menu.gacha_log.to_srgf": "导出到 SRGF 通用格式",
-    "main.menu.merge_gacha_log": "合并抽卡数据",
+    "main.menu.merge_gacha_log": "导入或合并数据",
     "main.menu.show_analyze_result": "查看抽卡分析报告",
     # main-menu-setting
     "main.menu.settings.home": "软件设置",

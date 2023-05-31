@@ -14,6 +14,8 @@ en_us_lang_pack = {
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
     "gacha.export_srgf_success": "Export to SRGF format successful.",
+    # module/gacha_data
+    "gacha_data.invalid_gacha_data": "Invalid gacha data.",
     # module/gacha/gacha_log
     "gacha_log.link_expires": "Link expired.",
     "gacha_log.link_error": "Link error.",
@@ -21,7 +23,6 @@ en_us_lang_pack = {
     "gacha_log.start_fetch": "Start fetching gacha records.",
     "gacha_log.fetch_status": "\033[KFetching {} gacha data {}",
     "gacha_log.fetch_finish": "Finished querying {}. Total data: {}",
-    "gacha_log.invalid_gacha_data": "Invalid gacha data.",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "Failed to get gacha link.",
     # module/account
@@ -75,7 +76,7 @@ en_us_lang_pack = {
     "main.menu.gacha_log.by_appcache": "Export using software cache",
     "main.menu.gacha_log.to_xlsx": "Export to Excel spreadsheet",
     "main.menu.gacha_log.to_srgf": "Export to SRGF universal format",
-    "main.menu.merge_gacha_log": "Merge Gacha Data",
+    "main.menu.merge_gacha_log": "Import or merge Data",
     "main.menu.show_analyze_result": "View Gacha Analysis Report",
     # main-menu-setting
     "main.menu.settings.home": "Software Settings",

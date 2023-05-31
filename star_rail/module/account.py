@@ -71,6 +71,12 @@ def verify_region(region):
     raise ValueError(f"Invalid region value: {region}")
 
 
+def verify_uid_format(v):
+    if Account.verify_uid(v):
+        return v
+    raise ValueError(f"Invalid uid format: {v}")
+
+
 class Account(BaseModel):
     """米游社账户
     TODO 支持 cookie
@@ -88,12 +94,7 @@ class Account(BaseModel):
     gacha_log_analyze_path: Path = Field(default="", exclude=True)
     srgf_path: Path = Field(default="", exclude=True)
 
-    @validator("uid")
-    def _uid_format(cls, v):
-        if Account.verify_uid(v):
-            return v
-        raise ValueError(f"Invalid uid format: {v}")
-
+    _verify_uid_format = validator("uid", always=True)(verify_uid_format)
     _verify_game_biz = validator("game_biz", always=True)(verify_game_biz)
     _verify_region = validator("region", always=True)(verify_region)
 

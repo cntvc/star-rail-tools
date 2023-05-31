@@ -6,11 +6,13 @@ from star_rail.config import get_config_status_msg, settings
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module.account import account_manager, gen_account_manu
 from star_rail.module.gacha import (
+    create_merge_dir,
     export_by_clipboard,
     export_by_user_profile,
     export_by_webcache,
     export_to_srgf,
     export_to_xlsx,
+    import_and_merge_data,
     show_analytical_result,
 )
 from star_rail.module.info import show_about
@@ -20,9 +22,9 @@ from star_rail.module.updater import (
     select_updater_source,
     upgrade,
 )
-from star_rail.utils.functional import get_format_time
 from star_rail.utils.log import logger
 from star_rail.utils.menu import Menu, MenuItem
+from star_rail.utils.time import get_format_time
 
 _lang = i18n.main.menu
 
@@ -59,7 +61,7 @@ def init_menu():
                 ],
                 tips=lambda: account_manager.get_status_msg(),
             ),
-            MenuItem(title=_lang.merge_gacha_log, options=lambda: print(_lang.todo)),
+            MenuItem(title=_lang.merge_gacha_log, options=import_and_merge_data),
             MenuItem(
                 title=_lang.show_analyze_result,
                 options=lambda: show_analytical_result(),
@@ -149,6 +151,7 @@ def run():
             "===================="
         ).format(version, get_format_time(time.time()), platform.platform(), settings.dict())
     )
+    create_merge_dir()
     if settings.FLAG_CHECK_UPDATE:
         upgrade()
     menu = init_menu()

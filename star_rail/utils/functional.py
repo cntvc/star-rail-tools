@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 __all__ = [
@@ -14,7 +13,6 @@ __all__ = [
     "input_int",
     "input_yes_or_no",
     "dedupe",
-    "get_format_time",
     "restart",
 ]
 
@@ -117,23 +115,6 @@ def dedupe(items, key=None):
         if val not in seen:
             yield item
             seen.add(val)
-
-
-def get_format_time(std_time: float = None, time_format: str = "%Y-%m-%d %H:%M:%S"):
-    return time.strftime(time_format, time.localtime(std_time))
-
-
-def get_timezone(local_time: time.struct_time):
-    utc_offset_seconds = local_time.tm_gmtoff
-    utc_offset_hours = abs(utc_offset_seconds) // 3600
-    timezone = utc_offset_hours if utc_offset_seconds >= 0 else -utc_offset_hours
-    return timezone
-
-
-def convert_time_to_timezone(local_time: time.struct_time, timezone):
-    local_timezone = get_timezone(local_time)
-    converted_time = time.mktime(local_time) + (timezone - local_timezone) * 3600
-    return time.localtime(converted_time)
 
 
 def restart():

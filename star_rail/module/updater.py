@@ -20,6 +20,7 @@ from star_rail.config import settings
 from star_rail.i18n import i18n
 from star_rail.utils.functional import color_str, input_yes_or_no, pause
 from star_rail.utils.log import logger
+from star_rail.utils.version import compare_versions
 
 __all__ = ["upgrade", "select_updater_source"]
 
@@ -111,7 +112,7 @@ class GithubUpdater(BaseUpdater):
             return False, None
 
         latest_version = data["tag_name"]
-        if latest_version <= version:
+        if compare_versions(latest_version, version) != 1:
             logger.success(_lang.is_latest_version)
             return False, None
 
@@ -141,8 +142,7 @@ class CodingUpdater(BaseUpdater):
             return False, None
         artifact = data["data"]["list"][0]
         latest_version = artifact["latestVersionName"]
-
-        if latest_version <= version:
+        if compare_versions(latest_version, version) != 1:
             logger.success(_lang.is_latest_version)
             return False, None
 
