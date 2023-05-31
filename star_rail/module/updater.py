@@ -212,7 +212,7 @@ def upgrade():
 
     check_update_status, update_context = _updater.check_update()
     if not check_update_status:
-        time.sleep(2)
+        time.sleep(1)
         return
     user_input = input_yes_or_no(
         prompt=_lang.update_option.format(update_context.version),
