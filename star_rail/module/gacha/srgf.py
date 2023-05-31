@@ -13,9 +13,7 @@ from star_rail.utils.version import get_version
 SRGF_VERSION = (1, 0)
 
 
-def get_srgf_version(srgf_version=None):
-    if srgf_version is None:
-        srgf_version = SRGF_VERSION
+def get_srgf_version(srgf_version):
     return "v" + get_version(srgf_version)
 
 
@@ -94,4 +92,9 @@ def convert_to_app(srgf_data: dict):
 
 
 def is_srgf_data(data):
-    return "info" in data and "srgf_version" in data["info"] and "list" in data
+    return (
+        "info" in data
+        and "srgf_version" in data["info"]
+        and "uid" in data["info"]
+        and "list" in data
+    )

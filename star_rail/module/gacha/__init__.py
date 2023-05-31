@@ -1,5 +1,6 @@
 import os
 import time
+from typing import List
 
 from pydantic import ValidationError
 
@@ -13,8 +14,14 @@ from star_rail.module.gacha.gacha_data import (
     create_xlsx,
     is_app_gacha_data,
     merge,
+    version_adapter,
 )
-from star_rail.module.gacha.gacha_log import GachaData, GachaLogFetcher, verify_gacha_log_url
+from star_rail.module.gacha.gacha_log import (
+    GachaData,
+    GachaInfo,
+    GachaLogFetcher,
+    verify_gacha_log_url,
+)
 from star_rail.module.gacha.gacha_url import *
 from star_rail.module.gacha.srgf import SrgfData, convert_to_app, convert_to_srgf, is_srgf_data
 from star_rail.utils import functional
@@ -111,7 +118,12 @@ def _merge_history(user: Account, gacha_data):
         return
     history_gacha_log = local_gacha_data.dict()
     if history_gacha_log:
-        gacha_data = merge([gacha_data, history_gacha_log])
+        info = GachaInfo.gen(
+            gacha_data["info"]["uid"],
+            gacha_data["info"]["lang"],
+            gacha_data["info"]["region_time_zone"],
+        )
+        gacha_data = merge(info, [gacha_data, history_gacha_log])
         logger.debug("合并完成")
     else:
         logger.debug("无需合并")
@@ -177,10 +189,7 @@ def export_to_srgf():
         logger.warning(_lang.file_not_found, user.uid)
         return
     gacha_data = functional.load_json(user.gacha_log_json_path)
-    if compare_versions(gacha_data["info"]["export_app_version"], "1.1.0") == -1:
-        # 1.1.0 版本以下 gacha_log 不包含 region_time_zone 字段，设置为本地时区
-        local_time = time.localtime(time.time())
-        gacha_data["info"]["region_time_zone"] = get_timezone(local_time)
+    gacha_data = version_adapter(gacha_data)
     functional.save_json(user.srgf_path, convert_to_srgf(gacha_data).dict())
     logger.success(_lang.export_srgf_success)
 
@@ -196,18 +205,22 @@ def import_and_merge_data():
         for name in os.listdir(merge_path)
         if os.path.isfile(os.path.join(merge_path, name)) and name.endswith(".json")
     ]
+    if not file_list:
+        logger.info("未检测到可合并数据文件，请将文件放入 `merge` 目录后重试")
+        return
     gacha_datas = []
     for file_name in file_list:
         file_path = os.path.join(merge_path, file_name)
         data = functional.load_json(file_path)
-        if is_srgf_data(data):
+        if is_srgf_data(data) and user.uid == data["info"]["uid"]:
             try:
-                SrgfData(data["info"], data["list"])
+                SrgfData(info=data["info"], list=data["list"])
             except ValidationError:
                 logger.warning(_lang.validation_error.srgf, file_name)
                 continue
             data = convert_to_app(data)
-        elif is_app_gacha_data(data):
+        elif is_app_gacha_data(data) and user.uid == data["info"]["uid"]:
+            data = version_adapter(data)
             try:
                 GachaData(**data)
             except ValidationError:
@@ -216,18 +229,40 @@ def import_and_merge_data():
         else:
             continue
         gacha_datas.append(data)
+
     if user.gacha_log_json_path.exists():
         try:
             history_gacha_data = GachaData.parse_file(user.gacha_log_json_path)
         except ValidationError:
             logger.error(_lang.validation_error.history)
             return
-        history_data = history_gacha_data.dict()
-        gacha_datas.append(history_data)
-    merge_result = merge(gacha_datas)
+        gacha_datas.append(history_gacha_data.dict())
+
+    res, info = _parse_gacha_info(user, gacha_datas)
+    if res is False:
+        logger.warning("{} 信息不一致，无法合并", info)
+        return
+    merge_result = merge(info, gacha_datas)
     functional.save_json(user.gacha_log_json_path, merge_result)
     logger.success(_lang.import_data.success)
-    _save_and_show_result(merge_result)
+    _save_and_show_result(user, merge_result)
+
+
+def _parse_gacha_info(user: Account, gacha_datas: List[dict]):
+    """验证并生成一个 GachaInfo"""
+    lang = ""
+    region_time_zone = None
+    for gacha_data in gacha_datas:
+        info = gacha_data["info"]
+        if not lang:
+            lang = info["lang"]
+        elif lang != info["lang"]:
+            return False, "lang"
+        if region_time_zone is None:
+            region_time_zone = info["region_time_zone"]
+        elif region_time_zone != info["region_time_zone"]:
+            return False, "region_time_zone"
+    return True, GachaInfo.gen(user.uid, lang, region_time_zone)
 
 
 def create_merge_dir():

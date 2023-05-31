@@ -7,10 +7,11 @@ from prettytable import PrettyTable
 from star_rail import constants
 from star_rail.i18n import i18n
 from star_rail.module.account import Account
-from star_rail.module.gacha.gacha_log import GachaInfo, GachaType, get_uid_and_lang
+from star_rail.module.gacha.gacha_log import GachaInfo, GachaType
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 from star_rail.utils.time import get_format_time, get_timezone
+from star_rail.utils.version import compare_versions
 
 _lang = i18n.gacha_data
 
@@ -59,26 +60,20 @@ def analyze(user: Account, gacha_data):
     return analyze_result
 
 
-def merge(gacha_data_list: List[dict]):
+def merge(info: GachaInfo, gacha_data_list: List[dict]):
     gacha_log = {}
     for gacha_type in GachaType.list():
         gacha_log[gacha_type] = []
-    region_time_zone = None
     for data in gacha_data_list:
         for gacha_type in GachaType.list():
             gacha_log[gacha_type].extend(data["gacha_log"][gacha_type])
-            if region_time_zone is None:
-                region_time_zone = data["info"].get("region_time_zone", None)  # TODO 需测试
-    if region_time_zone is None:
-        # 用于兼容 1.1.0 及以下版本数据
-        region_time_zone = get_timezone(time.localtime(time.time()))
+
     for gacha_type in GachaType.list():
         gacha_log[gacha_type] = list(functional.dedupe(gacha_log[gacha_type], lambda x: x["id"]))
         gacha_log[gacha_type] = sorted(gacha_log[gacha_type], key=lambda item: item["id"])
 
     gacha_data = {}
-    uid, lang = get_uid_and_lang(gacha_log)
-    gacha_data["info"] = GachaInfo.gen(uid, lang, region_time_zone).dict()
+    gacha_data["info"] = info.dict()
     gacha_data["gacha_log"] = gacha_log
     gacha_data["gacha_type"] = GachaType.dict()
     return gacha_data
@@ -228,5 +223,17 @@ def convert_analyze_to_table(analyze_result):
 
 def is_app_gacha_data(data):
     return (
-        "info" in data and "gacha_log" in data and data["info"]["export_app"] == constants.APP_NAME
+        "info" in data
+        and "gacha_log" in data
+        and data["info"]["export_app"] == constants.APP_NAME
+        and "uid" in data["info"]
     )
+
+
+def version_adapter(gacha_data: dict):
+    """低版本 gacha_data 转换为最新的版本"""
+    if compare_versions(gacha_data["info"]["export_app_version"], "1.1.0") == -1:
+        # 1.1.0 版本以下 gacha_log 不包含 region_time_zone 字段，设置默认值为本地时区
+        local_time = time.localtime(time.time())
+        gacha_data["info"]["region_time_zone"] = get_timezone(local_time)
+    return gacha_data
