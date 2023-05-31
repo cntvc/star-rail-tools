@@ -14,6 +14,10 @@ zh_cn_lang_pack = {
     "gacha.file_not_found": "未找到账号 {} 相关数据文件",
     "gacha.export_xlsx_success": "导出到 Execl 成功",
     "gacha.export_srgf_success": "导出为 SRGF 格式成功",
+    "gacha.validation_error.history": "历史数据校验失败，无法合并数据",
+    "gacha.validation_error.srgf": "'{}' 文件 SRGF 格式校验失败，已忽略该文件",
+    "gacha.validation_error.gacha_data": "'{}' 文件抽卡数据校验失败，已忽略该文件",
+    "gacha.import_data.success": "导入抽卡数据成功",
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "无效的抽卡数据",
     # module/gacha/gacha_log

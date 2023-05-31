@@ -107,7 +107,7 @@ def _merge_history(user: Account, gacha_data):
     try:
         local_gacha_data = GachaData.parse_file(user.gacha_log_json_path)
     except ValidationError:
-        logger.error("历史数据校验失败，无法合并数据")
+        logger.error(_lang.validation_error.history)
         return
     history_gacha_log = local_gacha_data.dict()
     if history_gacha_log:
@@ -204,14 +204,14 @@ def import_and_merge_data():
             try:
                 SrgfData(data["info"], data["list"])
             except ValidationError:
-                logger.warning("{} 文件 SRGF 格式校验失败，已忽略该文件", file_name)
+                logger.warning(_lang.validation_error.srgf, file_name)
                 continue
             data = convert_to_app(data)
         elif is_app_gacha_data(data):
             try:
                 GachaData(**data)
             except ValidationError:
-                logger.warning("{} 文件抽卡数据校验失败，已忽略该文件", file_name)
+                logger.warning(_lang.validation_error.gacha_data, file_name)
                 continue
         else:
             continue
@@ -220,13 +220,13 @@ def import_and_merge_data():
         try:
             history_gacha_data = GachaData.parse_file(user.gacha_log_json_path)
         except ValidationError:
-            logger.error("历史数据校验失败，无法合并数据")
+            logger.error(_lang.validation_error.history)
             return
         history_data = history_gacha_data.dict()
         gacha_datas.append(history_data)
     merge_result = merge(gacha_datas)
     functional.save_json(user.gacha_log_json_path, merge_result)
-    logger.success("导入抽卡数据成功")
+    logger.success(_lang.import_data.success)
     _save_and_show_result(merge_result)
 
 

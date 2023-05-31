@@ -14,6 +14,10 @@ en_us_lang_pack = {
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
     "gacha.export_srgf_success": "Export to SRGF format successful.",
+    "gacha.validation_error.history": "Failed to validate historical data, unable to merge data",
+    "gacha.validation_error.srgf": "Failed to validate SRGF format for file '{}', the file has been ignored",
+    "gacha.validation_error.gacha_data": "Failed to validate gacha data for file '{}', the file has been ignored",
+    "gacha.import_data.success": "Successfully imported gacha data",
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "Invalid gacha data.",
     # module/gacha/gacha_log
