@@ -14,7 +14,11 @@ file_list = [
 
     src_root_dir + "config/__init__.py",
     src_root_dir + "config/settings.py",
-    
+
+    src_root_dir + "i18n/__init__.py",
+    src_root_dir + "i18n/en_us.py",
+    src_root_dir + "i18n/zh_cn.py",
+
     src_root_dir + "module/__init__.py",
     src_root_dir + "module/account.py",
     src_root_dir + "module/game_client.py",
@@ -23,15 +27,18 @@ file_list = [
     src_root_dir + "module/updater.py",
 
     src_root_dir + "module/gacha/__init__.py",
+    src_root_dir + "module/gacha/gacha_data.py",
     src_root_dir + "module/gacha/gacha_log.py",
     src_root_dir + "module/gacha/gacha_url.py",
-    src_root_dir + "module/gacha/model.py",
+    src_root_dir + "module/gacha/srgf.py",
 
     src_root_dir + "utils/__init__.py",
     src_root_dir + "utils/clipboard.py",
     src_root_dir + "utils/functional.py",
     src_root_dir + "utils/log.py",
     src_root_dir + "utils/menu.py",
+    src_root_dir + "utils/time.py",
+    src_root_dir + "utils/version.py",
 ]
 
 

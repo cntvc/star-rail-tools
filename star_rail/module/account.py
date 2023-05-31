@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, ValidationError, validator
 
 from star_rail import constants
 from star_rail.config import settings
@@ -59,7 +59,7 @@ def verify_game_biz(game_biz: str):
         return game_biz
     if any(game_biz == member.value for member in GameBizType):
         return game_biz
-    raise ValueError(f"Invalid game_biz value: {game_biz}")
+    raise ValidationError(f"Invalid game_biz value: {game_biz}")
 
 
 def verify_region(region):
@@ -68,7 +68,13 @@ def verify_region(region):
         return region
     if any(region == member.value for member in RegionType):
         return region
-    raise ValueError(f"Invalid region value: {region}")
+    raise ValidationError(f"Invalid region value: {region}")
+
+
+def verify_uid_format(v):
+    if Account.verify_uid(v):
+        return v
+    raise ValidationError(f"Invalid uid format: {v}")
 
 
 class Account(BaseModel):
@@ -86,13 +92,9 @@ class Account(BaseModel):
     gacha_log_json_path: Path = Field(default="", exclude=True)
     gacha_log_xlsx_path: Path = Field(default="", exclude=True)
     gacha_log_analyze_path: Path = Field(default="", exclude=True)
+    srgf_path: Path = Field(default="", exclude=True)
 
-    @validator("uid")
-    def _uid_format(cls, v):
-        if Account.verify_uid(v):
-            return v
-        raise ValueError(f"Invalid uid format: {v}")
-
+    _verify_uid_format = validator("uid", always=True)(verify_uid_format)
     _verify_game_biz = validator("game_biz", always=True)(verify_game_biz)
     _verify_region = validator("region", always=True)(verify_region)
 
@@ -109,6 +111,7 @@ class Account(BaseModel):
         self.gacha_log_analyze_path = Path(
             constants.ROOT_PATH, self.uid, f"GachaAnalyze_{self.uid}.json"
         )
+        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_SRGF_{self.uid}.json")
 
     def _init_region(self):
         self.region = RegionType.get_by_uid(self.uid).value

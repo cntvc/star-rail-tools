@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 __all__ = [
@@ -14,7 +13,6 @@ __all__ = [
     "input_int",
     "input_yes_or_no",
     "dedupe",
-    "get_format_time",
     "restart",
 ]
 
@@ -117,13 +115,6 @@ def dedupe(items, key=None):
         if val not in seen:
             yield item
             seen.add(val)
-
-
-def get_format_time(std_time: float = None, time_format: str = "%Y-%m-%d %H:%M:%S"):
-    if std_time is None:
-        return time.strftime(time_format, time.localtime(time.time()))
-    else:
-        return time.strftime(time_format, time.localtime(std_time))
 
 
 def restart():

@@ -1,14 +1,18 @@
 import platform
+import time
 
 from star_rail import __version__ as version
 from star_rail.config import get_config_status_msg, settings
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module.account import account_manager, gen_account_manu
 from star_rail.module.gacha import (
+    create_merge_dir,
     export_by_clipboard,
     export_by_user_profile,
     export_by_webcache,
+    export_to_srgf,
     export_to_xlsx,
+    merge_or_import_data,
     show_analytical_result,
 )
 from star_rail.module.info import show_about
@@ -18,9 +22,9 @@ from star_rail.module.updater import (
     select_updater_source,
     upgrade,
 )
-from star_rail.utils.functional import get_format_time
 from star_rail.utils.log import logger
 from star_rail.utils.menu import Menu, MenuItem
+from star_rail.utils.time import get_format_time
 
 _lang = i18n.main.menu
 
@@ -52,12 +56,12 @@ def init_menu():
                     ),
                     MenuItem(
                         title=_lang.gacha_log.to_srgf,
-                        options=lambda: print(_lang.todo),
+                        options=export_to_srgf,
                     ),
                 ],
                 tips=lambda: account_manager.get_status_msg(),
             ),
-            MenuItem(title=_lang.merge_gacha_log, options=lambda: print(_lang.todo)),
+            MenuItem(title=_lang.merge_gacha_log, options=merge_or_import_data),
             MenuItem(
                 title=_lang.show_analyze_result,
                 options=lambda: show_analytical_result(),
@@ -109,7 +113,17 @@ def init_menu():
                     ),
                     MenuItem(
                         title=_lang.settings.export.srgf,
-                        options=lambda: print(_lang.todo),
+                        options=[
+                            MenuItem(
+                                title=i18n.common.open,
+                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", True),
+                            ),
+                            MenuItem(
+                                title=i18n.common.close,
+                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", False),
+                            ),
+                        ],
+                        tips=lambda: get_config_status_msg("FLAG_GENERATE_SRGF"),
                     ),
                     MenuItem(
                         title=_lang.settings.language,
@@ -145,8 +159,9 @@ def run():
             "--------------------\n"
             "Config: {}\n"
             "===================="
-        ).format(version, get_format_time(), platform.platform(), settings.dict())
+        ).format(version, get_format_time(time.time()), platform.platform(), settings.dict())
     )
+    create_merge_dir()
     if settings.FLAG_CHECK_UPDATE:
         upgrade()
     menu = init_menu()
