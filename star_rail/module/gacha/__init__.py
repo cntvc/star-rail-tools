@@ -109,7 +109,8 @@ def _merge_history(user: Account, gacha_data):
     if not user.gacha_log_json_path.exists():
         return
     try:
-        local_gacha_data = GachaData.parse_file(user.gacha_log_json_path)
+        local_gacha_data = functional.load_json(user.gacha_log_json_path)
+        local_gacha_data = GachaData(**version_adapter(local_gacha_data))
     except ValidationError:
         logger.error(_lang.validation_error.history)
         return
@@ -127,7 +128,8 @@ def _merge_history(user: Account, gacha_data):
 
 
 def _save_and_show_result(user: Account, gacha_data):
-    _merge_history(user, gacha_data)
+    if not _merge_history(user, gacha_data):
+        return
     functional.save_json(user.gacha_log_json_path, gacha_data)
     if settings.FLAG_GENERATE_XLSX:
         create_xlsx(user, gacha_data)
@@ -232,7 +234,8 @@ def merge_or_import_data():
 
     if user.gacha_log_json_path.exists():
         try:
-            history_gacha_data = GachaData.parse_file(user.gacha_log_json_path)
+            local_gacha_data = functional.load_json(user.gacha_log_json_path)
+            history_gacha_data = GachaData(**version_adapter(local_gacha_data))
         except ValidationError:
             logger.error(_lang.validation_error.history)
             return

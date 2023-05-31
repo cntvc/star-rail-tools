@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, ValidationError, validator
 
 from star_rail import constants
 from star_rail.config import settings
@@ -59,7 +59,7 @@ def verify_game_biz(game_biz: str):
         return game_biz
     if any(game_biz == member.value for member in GameBizType):
         return game_biz
-    raise ValueError(f"Invalid game_biz value: {game_biz}")
+    raise ValidationError(f"Invalid game_biz value: {game_biz}")
 
 
 def verify_region(region):
@@ -68,13 +68,13 @@ def verify_region(region):
         return region
     if any(region == member.value for member in RegionType):
         return region
-    raise ValueError(f"Invalid region value: {region}")
+    raise ValidationError(f"Invalid region value: {region}")
 
 
 def verify_uid_format(v):
     if Account.verify_uid(v):
         return v
-    raise ValueError(f"Invalid uid format: {v}")
+    raise ValidationError(f"Invalid uid format: {v}")
 
 
 class Account(BaseModel):
