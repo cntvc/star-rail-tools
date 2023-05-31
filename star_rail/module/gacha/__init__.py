@@ -107,13 +107,13 @@ def _query_gacha_log(url: str, user: Account):
 def _merge_history(user: Account, gacha_data):
     logger.debug("合并历史抽卡数据")
     if not user.gacha_log_json_path.exists():
-        return
+        return True, gacha_data
     try:
         local_gacha_data = functional.load_json(user.gacha_log_json_path)
         local_gacha_data = GachaData(**version_adapter(local_gacha_data))
     except ValidationError:
         logger.error(_lang.validation_error.history)
-        return
+        return False, None
     history_gacha_log = local_gacha_data.dict()
     if history_gacha_log:
         info = GachaInfo.gen(
@@ -125,10 +125,12 @@ def _merge_history(user: Account, gacha_data):
         logger.debug("合并完成")
     else:
         logger.debug("无需合并")
+    return True, gacha_data
 
 
 def _save_and_show_result(user: Account, gacha_data):
-    if not _merge_history(user, gacha_data):
+    res, gacha_data = _merge_history(user, gacha_data)
+    if res is False:
         return
     functional.save_json(user.gacha_log_json_path, gacha_data)
     if settings.FLAG_GENERATE_XLSX:
