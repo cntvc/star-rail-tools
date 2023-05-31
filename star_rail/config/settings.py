@@ -20,6 +20,9 @@ class Settings(BaseModel):
 
     FLAG_GENERATE_XLSX: bool = False
 
+    FLAG_GENERATE_SRGF: bool = False
+    """自动生成 SRGF 格式文件"""
+
     FLAG_UPATED_COMPLETE: bool = False
 
     # 旧版本文件名，在更新版本后删除该文件

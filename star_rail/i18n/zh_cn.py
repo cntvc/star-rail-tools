@@ -18,6 +18,8 @@ zh_cn_lang_pack = {
     "gacha.validation_error.srgf": "'{}' 文件 SRGF 格式校验失败，已忽略该文件",
     "gacha.validation_error.gacha_data": "'{}' 文件抽卡数据校验失败，已忽略该文件",
     "gacha.import_data.success": "导入抽卡数据成功",
+    "gacha.import_data.unfind_file": "未检测到可合并数据文件，请将文件放入 `merge` 目录后重试",
+    "gacha.import_data.info_inconsistent": "{} 信息不一致，无法合并",
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "无效的抽卡数据",
     # module/gacha/gacha_log

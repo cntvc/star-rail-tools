@@ -12,7 +12,7 @@ from star_rail.module.gacha import (
     export_by_webcache,
     export_to_srgf,
     export_to_xlsx,
-    import_and_merge_data,
+    merge_or_import_data,
     show_analytical_result,
 )
 from star_rail.module.info import show_about
@@ -61,7 +61,7 @@ def init_menu():
                 ],
                 tips=lambda: account_manager.get_status_msg(),
             ),
-            MenuItem(title=_lang.merge_gacha_log, options=import_and_merge_data),
+            MenuItem(title=_lang.merge_gacha_log, options=merge_or_import_data),
             MenuItem(
                 title=_lang.show_analyze_result,
                 options=lambda: show_analytical_result(),
@@ -113,7 +113,17 @@ def init_menu():
                     ),
                     MenuItem(
                         title=_lang.settings.export.srgf,
-                        options=lambda: print(_lang.todo),
+                        options=[
+                            MenuItem(
+                                title=i18n.common.open,
+                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", True),
+                            ),
+                            MenuItem(
+                                title=i18n.common.close,
+                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", False),
+                            ),
+                        ],
+                        tips=lambda: get_config_status_msg("FLAG_GENERATE_SRGF"),
                     ),
                     MenuItem(
                         title=_lang.settings.language,

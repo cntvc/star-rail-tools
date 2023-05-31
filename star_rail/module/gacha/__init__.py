@@ -1,5 +1,4 @@
 import os
-import time
 from typing import List
 
 from pydantic import ValidationError
@@ -22,12 +21,10 @@ from star_rail.module.gacha.gacha_log import (
     GachaLogFetcher,
     verify_gacha_log_url,
 )
-from star_rail.module.gacha.gacha_url import *
+from star_rail.module.gacha.gacha_url import *  # noqa
 from star_rail.module.gacha.srgf import SrgfData, convert_to_app, convert_to_srgf, is_srgf_data
 from star_rail.utils import functional
 from star_rail.utils.log import logger
-from star_rail.utils.time import get_timezone
-from star_rail.utils.version import compare_versions
 
 __all__ = [
     "export_by_clipboard",
@@ -35,7 +32,7 @@ __all__ = [
     "export_by_user_profile",
     "export_to_xlsx",
     "export_to_srgf",
-    "import_and_merge_data",
+    "merge_or_import_data",
     "create_merge_dir",
 ]
 
@@ -134,6 +131,9 @@ def _save_and_show_result(user: Account, gacha_data):
     functional.save_json(user.gacha_log_json_path, gacha_data)
     if settings.FLAG_GENERATE_XLSX:
         create_xlsx(user, gacha_data)
+    if settings.FLAG_GENERATE_SRGF:
+        srgf_data = convert_to_srgf(gacha_data)
+        functional.save_json(user.srgf_path, srgf_data.dict())
 
     analyze_data = analyze(user, gacha_data)
     print(functional.color_str(_lang.export_finish, "green"))
@@ -194,7 +194,7 @@ def export_to_srgf():
     logger.success(_lang.export_srgf_success)
 
 
-def import_and_merge_data():
+def merge_or_import_data():
     user = account_manager.account
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
@@ -206,7 +206,7 @@ def import_and_merge_data():
         if os.path.isfile(os.path.join(merge_path, name)) and name.endswith(".json")
     ]
     if not file_list:
-        logger.info("未检测到可合并数据文件，请将文件放入 `merge` 目录后重试")
+        logger.info(_lang.import_data.unfind_file)
         return
     gacha_datas = []
     for file_name in file_list:
@@ -240,7 +240,7 @@ def import_and_merge_data():
 
     res, info = _parse_gacha_info(user, gacha_datas)
     if res is False:
-        logger.warning("{} 信息不一致，无法合并", info)
+        logger.warning(_lang.import_data.info_inconsistent, info)
         return
     merge_result = merge(info, gacha_datas)
     functional.save_json(user.gacha_log_json_path, merge_result)

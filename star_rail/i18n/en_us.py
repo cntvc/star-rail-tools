@@ -18,6 +18,8 @@ en_us_lang_pack = {
     "gacha.validation_error.srgf": "Failed to validate SRGF format for file '{}', the file has been ignored",
     "gacha.validation_error.gacha_data": "Failed to validate gacha data for file '{}', the file has been ignored",
     "gacha.import_data.success": "Successfully imported gacha data",
+    "gacha.import_data.unfind_file": "No mergeable data file found, please place the file in the merge directory and try again",
+    "gacha.import_data.info_inconsistent": "Inconsistent information for {}, unable to merge",
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "Invalid gacha data.",
     # module/gacha/gacha_log
