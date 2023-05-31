@@ -215,7 +215,9 @@ def upgrade():
         time.sleep(2)
         return
     user_input = input_yes_or_no(
-        prompt=_lang.update_option.format(version), default="y", error_msg=_lang.invalid_input
+        prompt=_lang.update_option.format(update_context.version),
+        default="y",
+        error_msg=_lang.invalid_input,
     )
     if user_input == "n":
         return
