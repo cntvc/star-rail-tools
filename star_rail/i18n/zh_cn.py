@@ -51,7 +51,7 @@ zh_cn_lang_pack = {
     # module/updater
     "updater.invalid_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
     "updater.download_failed": "下载新版本文件失败, 请检查网络连接状态",
-    "updater.download_success": "新版本下载完成：{}",
+    "updater.download_success": "新版本下载完成：{}，即将自动重启软件",
     "updater.check_update": "正在检测软件更新...",
     "updater.check_update_net_error": "检测更新失败, 请检查网络连接状态",
     "updater.check_update_has_no_ctx": "检测更新失败，未获取到版本信息",

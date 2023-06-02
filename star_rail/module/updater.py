@@ -59,7 +59,7 @@ class BaseUpdater(abc.ABC):
 
         shutil.move(temp_file, update_context.name)
         logger.info(_lang.download_success, update_context.name)
-
+        time.sleep(1)
         # 保存当前版本文件名
         settings.OLD_EXE_NAME = os.path.basename(sys.argv[0])
         settings.FLAG_UPATED_COMPLETE = True
