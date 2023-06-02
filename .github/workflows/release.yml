@@ -31,7 +31,7 @@ jobs:
         cache: "poetry"
 
     - name: Install dependencies
-      run: poetry install --with release --without dev
+      run: poetry install --with release --without test,dev
 
     - name: Package as exe
       run: poetry run pyinstaller --clean ./main.spec
