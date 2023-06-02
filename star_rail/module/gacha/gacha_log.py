@@ -110,6 +110,15 @@ class GachaData(BaseModel):
                 raise ValidationError
         return _value
 
+    @staticmethod
+    def is_gacha_data(data: dict):
+        return (
+            "info" in data
+            and "gacha_log" in data
+            and data["info"]["export_app"] == constants.APP_NAME
+            and "uid" in data["info"]
+        )
+
 
 def verify_gacha_log_url(url):
     logger.debug("验证链接有效性: " + functional.desensitize_url(url, "authkey"))
