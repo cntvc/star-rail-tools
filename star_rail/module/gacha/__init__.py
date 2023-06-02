@@ -11,9 +11,9 @@ from star_rail.module.gacha.gacha_data import (
     analyze,
     convert_analyze_to_table,
     create_xlsx,
+    gacha_data_adapter,
     is_app_gacha_data,
     merge,
-    version_adapter,
 )
 from star_rail.module.gacha.gacha_log import (
     GachaData,
@@ -110,7 +110,7 @@ def _merge_history(user: Account, gacha_data):
         return True, gacha_data
     try:
         local_gacha_data = functional.load_json(user.gacha_log_json_path)
-        local_gacha_data = GachaData(**version_adapter(local_gacha_data))
+        local_gacha_data = GachaData(**gacha_data_adapter(local_gacha_data))
     except ValidationError:
         logger.error(_lang.validation_error.history)
         return False, None
@@ -193,7 +193,7 @@ def export_to_srgf():
         logger.warning(_lang.file_not_found, user.uid)
         return
     gacha_data = functional.load_json(user.gacha_log_json_path)
-    gacha_data = version_adapter(gacha_data)
+    gacha_data = gacha_data_adapter(gacha_data)
     functional.save_json(user.srgf_path, convert_to_srgf(gacha_data).dict())
     logger.success(_lang.export_srgf_success)
 
@@ -224,7 +224,7 @@ def merge_or_import_data():
                 continue
             data = convert_to_app(data)
         elif is_app_gacha_data(data) and user.uid == data["info"]["uid"]:
-            data = version_adapter(data)
+            data = gacha_data_adapter(data)
             try:
                 GachaData(**data)
             except ValidationError:
@@ -237,7 +237,7 @@ def merge_or_import_data():
     if user.gacha_log_json_path.exists():
         try:
             local_gacha_data = functional.load_json(user.gacha_log_json_path)
-            history_gacha_data = GachaData(**version_adapter(local_gacha_data))
+            history_gacha_data = GachaData(**gacha_data_adapter(local_gacha_data))
         except ValidationError:
             logger.error(_lang.validation_error.history)
             return

@@ -230,7 +230,7 @@ def is_app_gacha_data(data):
     )
 
 
-def version_adapter(gacha_data: dict):
+def gacha_data_adapter(gacha_data: dict):
     """低版本 gacha_data 转换为最新的版本"""
     if compare_versions(gacha_data["info"]["export_app_version"], "1.1.0") == -1:
         # 1.1.0 版本以下 gacha_log 不包含 region_time_zone 字段，设置默认值为本地时区
