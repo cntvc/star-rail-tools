@@ -45,7 +45,7 @@ file_list = [
 icon_path = "resource/hsr.ico"
 
 data_list = [
-    (icon_path, icon_path),
+    (icon_path, "resource"),
 ]
 
 a = Analysis(
