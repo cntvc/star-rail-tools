@@ -38,10 +38,6 @@ flake8 = "^6.0.0"
 pre-commit = "^3.3.1"
 
 
-[tool.poetry.group.test.dependencies]
-pytest = "^7.3.1"
-
-
 [tool.poetry.group.release.dependencies]
 pyinstaller = "^5.11.0"
 
