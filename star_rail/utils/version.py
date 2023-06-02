@@ -1,3 +1,4 @@
+from itertools import zip_longest
 from typing import Tuple
 
 
@@ -16,9 +17,7 @@ def compare_versions(v1: str, v2: str):
     """
     v1_parts = get_version_tuple(v1)
     v2_parts = get_version_tuple(v2)
-    for i in range(max(len(v1_parts), len(v2_parts))):
-        part1 = v1_parts[i] if i < len(v1_parts) else 0
-        part2 = v2_parts[i] if i < len(v2_parts) else 0
+    for part1, part2 in zip_longest(v1_parts, v2_parts, fillvalue=0):
         if part1 < part2:
             return -1
         elif part1 > part2:
