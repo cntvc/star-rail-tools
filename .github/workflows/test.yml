@@ -1,7 +1,8 @@
-name: Linter
+name: Test
 
 env:
   SRC_CODE: star_rail
+  TEST_CODE: tests
 
 on:
   push:
@@ -9,9 +10,11 @@ on:
       - main
     paths:
       - 'star_rail/**'
+      - 'tests/**'
   pull_request:
     paths:
       - 'star_rail/**'
+      - 'tests/**'
 
 permissions:
   contents: read
@@ -36,7 +39,7 @@ jobs:
         uses: liskin/gh-problem-matcher-wrap@v2
         with:
           linters: isort
-          run: isort --check --diff ${{ env.SRC_CODE }}
+          run: isort --check --diff ${{ env.SRC_CODE }} ${{ env.TEST_CODE }}
 
   flake8:
     name: flake8
@@ -54,7 +57,7 @@ jobs:
         uses: liskin/gh-problem-matcher-wrap@v2
         with:
           linters: flake8
-          run: flake8 ${{ env.SRC_CODE }}
+          run: flake8 ${{ env.SRC_CODE }} ${{ env.TEST_CODE }}
 
   black:
     name: black
@@ -65,4 +68,22 @@ jobs:
       - name: black
         uses: psf/black@stable
         with:
-          options: "${{ env.SRC_CODE }}"
+          options: "${{ env.SRC_CODE }} ${{ env.TEST_CODE }}"
+
+  pytest:
+    needs: [isort, flake8, black]
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      run: pipx install poetry
+    - name: Set up Python version
+      id: setup-python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.8"
+        cache: 'poetry'
+    - name: Install dependencies
+      run: poetry install --with test --without dev,release
+    - name: Run pytest
+      run: poetry run pytest ${{ env.TEST_CODE }}
