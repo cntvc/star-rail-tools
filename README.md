@@ -29,7 +29,7 @@
 ### 2.导入或合并抽卡数据
 
 1. 设置账户：输入或选择星穹铁道账号 UID
-2. 将需要导入或合并的数据放入 `merge` 文件夹内，可一次放入多个文件。支持 SRGF[^1] 格式以及软件自带格式的 json 文件
+2. 将需要导入或合并的数据放入 `merge` 文件夹内，可一次放入多个文件。支持 [SRGF][SRGF] 格式以及软件自带格式的 json 文件
 3. 切换到软件，选择菜单 **导入或合并数据**
 
 <details>
@@ -71,8 +71,6 @@
 
 - 导出 Execl 代码参考 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
 - 适配国际服的代码参考 [**star-rail-warp-export**](https://github.com/biuuu/star-rail-warp-export)
-
-[^1]: SRGF: 星穹铁道抽卡记录标准格式，可用于在不同软件间迁移数据，详情请见 [SRGF 官网][SRGF]
 
 
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
