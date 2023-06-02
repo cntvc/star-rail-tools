@@ -9,8 +9,6 @@ en_us_lang_pack = {
     "gacha.retry": "Please set up the account and retry.",
     "gacha.true_user": "The game is currently logged in with a different account. Exporting data for account {}.",
     "gacha.export_finish": "Data export completed. Press any key to view the gacha report.",
-    "gacha.analyze_time": "Analysis Time:",
-    "gacha.tips": 'Note: The average count does not include "Pity Count."',
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
     "gacha.export_srgf_success": "Export to SRGF format successful.",
@@ -22,6 +20,8 @@ en_us_lang_pack = {
     "gacha.import_data.info_inconsistent": "Inconsistent information for {}, unable to merge",
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "Invalid gacha data.",
+    "gacha_data.analyze_time": "Analysis Time:",
+    "gacha_data.tips": 'Note: The average count does not include "Pity Count."',
     # module/gacha/gacha_log
     "gacha_log.link_expires": "Link expired.",
     "gacha_log.link_error": "Link error.",

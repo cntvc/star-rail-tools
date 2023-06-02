@@ -9,8 +9,6 @@ zh_cn_lang_pack = {
     "gacha.retry": "请设置账号后重试",
     "gacha.true_user": "游戏已登陆账号与软件设置账号不一致，将导出账号 {} 的数据",
     "gacha.export_finish": "数据导出完成，按任意键查看抽卡报告",
-    "gacha.analyze_time": "统计时间:",
-    "gacha.tips": "注：平均抽数不包括“保底计数”",
     "gacha.file_not_found": "未找到账号 {} 相关数据文件",
     "gacha.export_xlsx_success": "导出到 Execl 成功",
     "gacha.export_srgf_success": "导出为 SRGF 格式成功",
@@ -22,6 +20,8 @@ zh_cn_lang_pack = {
     "gacha.import_data.info_inconsistent": "{} 信息不一致，无法合并",
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "无效的抽卡数据",
+    "gacha_data.analyze_time": "统计时间:",
+    "gacha_data.tips": "注：平均抽数不包括“保底计数”",
     # module/gacha/gacha_log
     "gacha_log.link_expires": "链接过期",
     "gacha_log.link_error": "链接错误",

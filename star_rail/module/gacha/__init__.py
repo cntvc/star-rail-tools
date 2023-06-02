@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 from pydantic import ValidationError
 
@@ -8,12 +7,11 @@ from star_rail.config import settings
 from star_rail.i18n import i18n
 from star_rail.module.account import Account, account_manager
 from star_rail.module.gacha.gacha_data import (
-    analyze,
-    convert_analyze_to_table,
+    Analyzer,
     create_xlsx,
-    is_app_gacha_data,
+    gacha_data_adapter,
     merge,
-    version_adapter,
+    parse_gacha_info,
 )
 from star_rail.module.gacha.gacha_log import (
     GachaData,
@@ -110,7 +108,7 @@ def _merge_history(user: Account, gacha_data):
         return True, gacha_data
     try:
         local_gacha_data = functional.load_json(user.gacha_log_json_path)
-        local_gacha_data = GachaData(**version_adapter(local_gacha_data))
+        local_gacha_data = GachaData(**gacha_data_adapter(local_gacha_data))
     except ValidationError:
         logger.error(_lang.validation_error.history)
         return False, None
@@ -139,20 +137,9 @@ def _save_and_show_result(user: Account, gacha_data):
         srgf_data = convert_to_srgf(gacha_data)
         functional.save_json(user.srgf_path, srgf_data.dict())
 
-    analyze_data = analyze(user, gacha_data)
     print(functional.color_str(_lang.export_finish, "green"))
     functional.pause()
-    _print_analytical_result(analyze_data)
-
-
-def _print_analytical_result(analyze_data):
-    overview, rank5_detail = convert_analyze_to_table(analyze_data)
-    functional.clear_screen()
-    print("UID:", functional.color_str("{}".format(analyze_data["uid"]), "green"))
-    print(_lang.analyze_time, analyze_data["time"])
-    print(overview)
-    print(functional.color_str(_lang.tips, "yellow"), end="\n\n")
-    print(rank5_detail)
+    Analyzer._parse_gacha_data(user, gacha_data).visualization()
 
 
 def show_analytical_result():
@@ -164,11 +151,10 @@ def show_analytical_result():
         logger.warning(_lang.file_not_found, user.uid)
         return
     if not user.gacha_log_analyze_path.exists():
-        analyze_data = analyze(user, functional.load_json(user.gacha_log_json_path))
+        analyzer = Analyzer.parse_file(user, user.gacha_log_json_path)
     else:
-        analyze_data = functional.load_json(user.gacha_log_analyze_path)
-
-    _print_analytical_result(analyze_data)
+        analyzer = Analyzer.parse_file(user, user.gacha_log_analyze_path)
+    analyzer.visualization()
 
 
 def export_to_xlsx():
@@ -193,7 +179,7 @@ def export_to_srgf():
         logger.warning(_lang.file_not_found, user.uid)
         return
     gacha_data = functional.load_json(user.gacha_log_json_path)
-    gacha_data = version_adapter(gacha_data)
+    gacha_data = gacha_data_adapter(gacha_data)
     functional.save_json(user.srgf_path, convert_to_srgf(gacha_data).dict())
     logger.success(_lang.export_srgf_success)
 
@@ -223,8 +209,8 @@ def merge_or_import_data():
                 logger.warning(_lang.validation_error.srgf, file_name)
                 continue
             data = convert_to_app(data)
-        elif is_app_gacha_data(data) and user.uid == data["info"]["uid"]:
-            data = version_adapter(data)
+        elif GachaData.is_gacha_data(data) and user.uid == data["info"]["uid"]:
+            data = gacha_data_adapter(data)
             try:
                 GachaData(**data)
             except ValidationError:
@@ -237,13 +223,13 @@ def merge_or_import_data():
     if user.gacha_log_json_path.exists():
         try:
             local_gacha_data = functional.load_json(user.gacha_log_json_path)
-            history_gacha_data = GachaData(**version_adapter(local_gacha_data))
+            history_gacha_data = GachaData(**gacha_data_adapter(local_gacha_data))
         except ValidationError:
             logger.error(_lang.validation_error.history)
             return
         gacha_datas.append(history_gacha_data.dict())
 
-    res, info = _parse_gacha_info(user, gacha_datas)
+    res, info = parse_gacha_info(user, gacha_datas)
     if res is False:
         logger.warning(_lang.import_data.info_inconsistent, info)
         return
@@ -251,23 +237,6 @@ def merge_or_import_data():
     functional.save_json(user.gacha_log_json_path, merge_result)
     logger.success(_lang.import_data.success)
     _save_and_show_result(user, merge_result)
-
-
-def _parse_gacha_info(user: Account, gacha_datas: List[dict]):
-    """验证并生成一个 GachaInfo"""
-    lang = ""
-    region_time_zone = None
-    for gacha_data in gacha_datas:
-        info = gacha_data["info"]
-        if not lang:
-            lang = info["lang"]
-        elif lang != info["lang"]:
-            return False, "lang"
-        if region_time_zone is None:
-            region_time_zone = info["region_time_zone"]
-        elif region_time_zone != info["region_time_zone"]:
-            return False, "region_time_zone"
-    return True, GachaInfo.gen(user.uid, lang, region_time_zone)
 
 
 def create_merge_dir():
