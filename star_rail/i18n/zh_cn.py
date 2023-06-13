@@ -115,6 +115,7 @@ zh_cn_lang_pack = {
     # common
     "common.open": "打开",
     "common.close": "关闭",
+    "common.network.error": "网络连接错误",
     # 卡池
     "regular_warp": "常驻跃迁",
     "starter_warp": "新手跃迁",

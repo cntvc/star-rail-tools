@@ -123,7 +123,11 @@ class GachaData(BaseModel):
 def verify_gacha_log_url(url):
     logger.debug("验证链接有效性: " + functional.desensitize_url(url, "authkey"))
 
-    res = requests.get(url, timeout=constants.REQUEST_TIMEOUT)
+    try:
+        res = requests.get(url, timeout=constants.REQUEST_TIMEOUT)
+    except requests.RequestException:
+        logger.error(i18n.common.network.error)
+        return False
     res_json = json.loads(res.content.decode("utf-8"))
 
     if not res_json["data"]:

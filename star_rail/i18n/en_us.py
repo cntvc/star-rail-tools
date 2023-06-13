@@ -115,6 +115,7 @@ en_us_lang_pack = {
     # common
     "common.open": "Open",
     "common.close": "Close",
+    "common.network.error": "Network connection error",
     # 卡池
     "regular_warp": "regular warp",
     "starter_warp": "starter warp",

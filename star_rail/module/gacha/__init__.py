@@ -1,5 +1,6 @@
 import os
 
+import requests
 from pydantic import ValidationError
 
 from star_rail import constants
@@ -45,7 +46,11 @@ def export_by_clipboard():
         return
 
     gacha_log_fetcher = GachaLogFetcher(url)
-    gacha_log_fetcher.query()
+    try:
+        gacha_log_fetcher.query()
+    except requests.RequestException:
+        logger.error(i18n.common.network.error)
+        return
     uid = gacha_log_fetcher.uid
     gacha_log = gacha_log_fetcher.gacha_data
 
@@ -89,7 +94,11 @@ def export_by_user_profile():
 def _query_gacha_log(url: str, user: Account):
     """查询抽卡记录并根据记录设置账户"""
     gacha_log_fetcher = GachaLogFetcher(url)
-    gacha_log_fetcher.query()
+    try:
+        gacha_log_fetcher.query()
+    except requests.RequestException:
+        logger.error(i18n.common.network.error)
+        return
     uid = gacha_log_fetcher.uid
 
     if uid != user.uid:
