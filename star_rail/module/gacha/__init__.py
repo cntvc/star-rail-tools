@@ -73,6 +73,8 @@ def export_by_webcache():
         return
 
     gacha_log_fetcher = _query_gacha_log(url, user)
+    if gacha_log_fetcher is None:
+        return
     _save_and_show_result(user, gacha_log_fetcher.gacha_data)
 
 
@@ -88,6 +90,8 @@ def export_by_user_profile():
         return
 
     gacha_log_fetcher = _query_gacha_log(url, user)
+    if gacha_log_fetcher is None:
+        return
     _save_and_show_result(user, gacha_log_fetcher.gacha_data)
 
 
@@ -98,7 +102,7 @@ def _query_gacha_log(url: str, user: Account):
         gacha_log_fetcher.query()
     except requests.RequestException:
         logger.error(i18n.common.network.error)
-        return
+        return None
     uid = gacha_log_fetcher.uid
 
     if uid != user.uid:
