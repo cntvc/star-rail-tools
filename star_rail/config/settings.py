@@ -30,7 +30,7 @@ class Settings(BaseModel):
 
     DEFAULT_UID = ""
 
-    LANGUAGE = "zh_cn"
+    LANGUAGE = ""
 
     class Config:
         extra = "forbid"

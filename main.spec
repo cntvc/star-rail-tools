@@ -35,6 +35,7 @@ file_list = [
     src_root_dir + "utils/__init__.py",
     src_root_dir + "utils/clipboard.py",
     src_root_dir + "utils/functional.py",
+    src_root_dir + "utils/info.py",
     src_root_dir + "utils/log.py",
     src_root_dir + "utils/menu.py",
     src_root_dir + "utils/time.py",

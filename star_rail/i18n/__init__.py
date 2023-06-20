@@ -16,9 +16,8 @@ from star_rail.config import settings
 from star_rail.i18n.en_us import en_us_lang_pack
 from star_rail.i18n.zh_cn import zh_cn_lang_pack
 from star_rail.utils.functional import input_yes_or_no, restart
+from star_rail.utils.info import get_default_locale
 from star_rail.utils.log import logger
-
-_default_language = zh_cn_lang_pack
 
 
 class LazyLanguagePack:
@@ -122,6 +121,17 @@ def parse_lang_pack(dictionary: Dict[str, str]) -> Dict[str, Dict]:
         current_dict[parts[-1]] = value
 
     return result
+
+
+def _get_default_lang():
+    default_locale = get_default_locale()
+    if default_locale.startswith("zh"):
+        return LanguageType.ZH_CN.lang_pack
+    else:
+        return LanguageType.EN_US.lang_pack
+
+
+_default_language = _get_default_lang()
 
 
 i18n = LazyLanguagePack(_default_language)
