@@ -1,3 +1,5 @@
+[中文][zh_cn] | [English][en_us]
+
 # 崩坏：星穹铁道小工具
 
 [![Test](https://github.com/cntvc/star-rail-tools/actions/workflows/test.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/test.yml)
@@ -17,13 +19,13 @@
 
 下载源：
 - [Github][latest_release]
-- [制品库（国内推荐）][coding_latest]
+- [制品库][coding_latest]（国内下载更快
 
 ### 1.导出跃迁记录
 
 1. 设置账户：输入或选择星穹铁道账号 UID
 2. 打开游戏，在**抽卡记录页面**选择历史记录并翻页
-3. 切换到软件，依次选择菜单 **导出抽卡数据** -> **使用游戏缓存导出**
+3. 切换到软件，依次选择菜单 "导出抽卡数据" -> "使用游戏缓存导出"
 4. 完成导出后，根据提示查看抽卡报告
 
 ### 2.导入或合并抽卡数据
@@ -35,6 +37,7 @@
 <details>
   <summary>点击查看 <b>数据目录结构</b></summary>
   <p>
+
 
 ```cmd
   StarRailTools_1.0.0.exe # 主程序文件
@@ -77,3 +80,5 @@
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
 
 [SRGF]: https://uigf.org/zh/standards/SRGF.html
+[zh_cn]: README.md
+[en_us]: docs/README_EN.md
