@@ -21,7 +21,7 @@ en_us_lang_pack = {
     # module/gacha_data
     "gacha_data.invalid_gacha_data": "Invalid gacha data.",
     "gacha_data.analyze_time": "Analysis Time:",
-    "gacha_data.tips": 'Note: The average count does not include "Pity Count."',
+    "gacha_data.tips": 'Note: The average count does not include "Pity Count"',
     # module/gacha/gacha_log
     "gacha_log.link_expires": "Link expired.",
     "gacha_log.link_error": "Link error.",
