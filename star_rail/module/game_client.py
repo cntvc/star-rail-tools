@@ -1,4 +1,5 @@
 import enum
+import glob
 import os
 import re
 from pathlib import Path
@@ -25,9 +26,6 @@ class GameLogPath(str, enum.Enum):
 
 
 class GameClient:
-    _WEB_CACHE_PATH = "webCaches/Cache/Cache_Data/data_2"
-    _GAME_DATA_DIR_NAME = "StarRail_Data"
-
     def __init__(self, user: Account) -> None:
         self.user = user
 
@@ -42,7 +40,7 @@ class GameClient:
             logger.debug(f"日志文件编码不是utf8, 尝试默认编码 {err}")
             log_text = log_path.read_text(encoding=None)
 
-        res = re.search("([A-Z]:/.+{})".format(GameClient._GAME_DATA_DIR_NAME), log_text)
+        res = re.search("([A-Z]:/.+StarRail_Data)", log_text)
         game_path = res.group() if res else None
         return game_path
 
@@ -51,8 +49,11 @@ class GameClient:
         if not game_path:
             logger.error(_lang.game_path_not_found)
             return None
-        data_2_path = os.path.join(game_path, GameClient._WEB_CACHE_PATH)
-        if not os.path.isfile(data_2_path):
+        cache_root_path = os.path.join(game_path, "webCaches")
+        data_2_files = glob.glob(os.path.join(cache_root_path, "*", "Cache/Cache_Data/data_2"))
+        if not data_2_files:
             logger.error(_lang.game_webcache_file_not_found)
             return None
-        return data_2_path
+        data_2_files = sorted(data_2_files, key=lambda file: os.path.getmtime(file), reverse=True)
+
+        return data_2_files[0]
