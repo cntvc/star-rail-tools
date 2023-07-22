@@ -1,6 +1,6 @@
 name: 功能建议 (Feature Request)
 description: 提交功能建议 (File a feature request)
-labels: ["type: feature"]
+labels: ["enhancement"]
 assignees:
   - cntvc
 body:
