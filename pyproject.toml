@@ -23,12 +23,12 @@ priority = "primary"
 [tool.poetry.dependencies]
 python = ">=3.8.1,<3.12"
 loguru = "^0.7.0"
-pywin32 = "^306"
 requests = "^2.31.0"
 prettytable = "^3.7.0"
 tqdm = "^4.65.0"
-pydantic = "^1.10.7"
 xlsxwriter = "^3.1.0"
+pydantic = "^2.1.1"
+pyperclip = "^1.8.2"
 
 
 [tool.poetry.group.dev.dependencies]

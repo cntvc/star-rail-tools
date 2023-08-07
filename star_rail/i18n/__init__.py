@@ -13,11 +13,11 @@ error eg:
 """
 
 from star_rail.config import settings
-from star_rail.i18n.en_us import en_us_lang_pack
-from star_rail.i18n.zh_cn import zh_cn_lang_pack
 from star_rail.utils.functional import input_yes_or_no, restart
-from star_rail.utils.info import get_default_locale
 from star_rail.utils.log import logger
+
+from .en_us import en_us_lang_pack
+from .zh_cn import zh_cn_lang_pack
 
 
 class LazyLanguagePack:
@@ -124,7 +124,9 @@ def parse_lang_pack(dictionary: Dict[str, str]) -> Dict[str, Dict]:
 
 
 def _get_default_lang():
-    default_locale = get_default_locale()
+    import locale
+
+    default_locale = locale.getdefaultlocale()[0].lower()
     if default_locale.startswith("zh"):
         return LanguageType.ZH_CN.lang_pack
     else:

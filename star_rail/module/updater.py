@@ -185,7 +185,7 @@ def select_updater_source(source: UpdateSource):
     _updater = _update_source[source.name]
     settings.FLAG_UPDATE_SOURCE = source.name
     settings.save()
-    logger.info(_lang.select_update_source.format(source.name))
+    logger.info(_lang.select_update_source, source.name)
 
 
 def upgrade():

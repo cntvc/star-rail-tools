@@ -7,7 +7,7 @@ en_us_lang_pack = {
     "i18n.update_lang.invalid_input": "Please enter a valid option. Only 'y' or 'N' are allowed.",
     # module/gacha
     "gacha.retry": "Please set up the account and retry.",
-    "gacha.true_user": "The game is currently logged in with a different account. Exporting data for account {}.",
+    "gacha.diff_user": "The game is currently logged in with a different account. Exporting data for account {}.",
     "gacha.export_finish": "Data export completed. Press any key to view the gacha report.",
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
@@ -18,7 +18,7 @@ en_us_lang_pack = {
     "gacha.import_data.success": "Successfully imported gacha data",
     "gacha.import_data.unfind_file": "No mergeable data file found, please place the file in the merge directory and try again",
     "gacha.import_data.info_inconsistent": "Inconsistent information for {}, unable to merge",
-    # module/gacha_data
+    # module/gacha/gacha_data
     "gacha_data.invalid_gacha_data": "Invalid gacha data.",
     "gacha_data.analyze_time": "Analysis Time:",
     "gacha_data.tips": 'Note: The average count does not include "Pity Count"',
@@ -31,10 +31,9 @@ en_us_lang_pack = {
     "gacha_log.fetch_finish": "Finished querying {}. Total data: {}",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "Failed to get gacha link.",
-    # module/account
+    # mihoyo/account
     "account.account_uid": "Current account: {}",
     "account.without_account": "No account set currently.",
-    # module/account-menu
     "account.menu.creat_user": "Create a new user",
     "account.menu.input_uid": "Please enter the user UID. Enter 0 to cancel creating a new user.\n",
     "account.menu.invalid_uid_format": "Please enter a valid UID format.",
@@ -63,8 +62,6 @@ en_us_lang_pack = {
     "updater.get_changelog_failed": "Failed to retrieve the changelog.",
     "updater.select_update_source": "Update source has been changed to {}",
     "updater.update_source_status": "Current update source is",
-    # utils/clipboard
-    "utils.clipboard.read_data_error": "An error occurred while reading from the clipboard.",
     # utils/menu
     "utils.menu.return_to_pre_menu": "0. Return to the previous menu",
     "utils.menu.exit": "0. Exit",
@@ -76,12 +73,12 @@ en_us_lang_pack = {
     # main-menu-account
     "main.menu.account_setting": "Account Settings",
     # main-menu-gacha_log
-    "main.menu.gacha_log.export": "Export Gacha Data",
-    "main.menu.gacha_log.by_webcache": "Export using game web cache",
-    "main.menu.gacha_log.by_clipboard": "Export using clipboard",
-    "main.menu.gacha_log.by_appcache": "Export using software cache",
-    "main.menu.gacha_log.to_xlsx": "Export to Excel spreadsheet",
-    "main.menu.gacha_log.to_srgf": "Export to SRGF universal format",
+    "main.menu.gacha_log.home": "Gacha Record",
+    "main.menu.gacha_log.fetch_by_webcache": "Fetch Using Game Cache",
+    "main.menu.gacha_log.fetch_by_clipboard": "Fetch Using Clipboard",
+    "main.menu.gacha_log.fetch_by_appcache": "Fetch Using App Cache",
+    "main.menu.gacha_log.to_xlsx": "Export to Excel Spreadsheet File",
+    "main.menu.gacha_log.to_srgf": "Export to SRGF Universal Format File",
     "main.menu.merge_gacha_log": "Import or merge Data",
     "main.menu.show_analyze_result": "View Gacha Analysis Report",
     # main-menu-setting

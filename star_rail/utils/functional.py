@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import subprocess
@@ -134,7 +135,12 @@ def desensitize_url(url: str, param_name: str, desensitized_value: str = "******
         end_index = url.find("&", start_index)
         if end_index == -1:
             end_index = len(url)
-        # param_value = url[start_index:end_index]
         desensitized_url = url[:start_index] + desensitized_value + url[end_index:]
         return desensitized_url
     return url
+
+
+def signature_with_md5(text: str):
+    md5 = hashlib.md5()
+    md5.update(text.encode())
+    return md5.hexdigest()

@@ -7,7 +7,7 @@ zh_cn_lang_pack = {
     "i18n.update_lang.invalid_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
     # module/gacha
     "gacha.retry": "请设置账号后重试",
-    "gacha.true_user": "游戏已登陆账号与软件设置账号不一致，将导出账号 {} 的数据",
+    "gacha.diff_user": "游戏已登陆账号与软件设置账号不一致，将导出账号 {} 的数据",
     "gacha.export_finish": "数据导出完成，按任意键查看抽卡报告",
     "gacha.file_not_found": "未找到账号 {} 相关数据文件",
     "gacha.export_xlsx_success": "导出到 Execl 成功",
@@ -18,7 +18,7 @@ zh_cn_lang_pack = {
     "gacha.import_data.success": "导入抽卡数据成功",
     "gacha.import_data.unfind_file": "未检测到可合并数据文件，请将文件放入 `merge` 目录后重试",
     "gacha.import_data.info_inconsistent": "{} 信息不一致，无法合并",
-    # module/gacha_data
+    # module/gacha/gacha_data
     "gacha_data.invalid_gacha_data": "无效的抽卡数据",
     "gacha_data.analyze_time": "统计时间:",
     "gacha_data.tips": "注：平均抽数不包括“保底计数”",
@@ -31,10 +31,9 @@ zh_cn_lang_pack = {
     "gacha_log.fetch_finish": "查询 {} 结束, 共 {} 条数据",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "未获取到抽卡链接",
-    # module/account
+    # mihoyo/account
     "account.account_uid": "当前账号 {}",
     "account.without_account": "当前未设置账号",
-    # module/account-menu
     "account.menu.creat_user": "创建新用户",
     "account.menu.input_uid": "请输入用户UID, 输入 0 取消新建用户\n",
     "account.menu.invalid_uid_format": "请输入正确格式的UID",
@@ -63,8 +62,6 @@ zh_cn_lang_pack = {
     "updater.get_changelog_failed": "更新日志获取失败",
     "updater.select_update_source": "更新源已变更为 {}",
     "updater.update_source_status": "当前更新源为",
-    # utils/clipboard
-    "utils.clipboard.read_data_error": "剪切板读取出现错误",
     # utils/menu
     "utils.menu.return_to_pre_menu": "0.返回上级菜单",
     "utils.menu.exit": "0.退出",
@@ -76,14 +73,16 @@ zh_cn_lang_pack = {
     # main-menu-account
     "main.menu.account_setting": "账号设置",
     # main-menu-gacha_log
-    "main.menu.gacha_log.export": "导出抽卡数据",
-    "main.menu.gacha_log.by_webcache": "使用游戏缓存导出",
-    "main.menu.gacha_log.by_clipboard": "使用剪切板导出",
-    "main.menu.gacha_log.by_appcache": "使用软件缓存导出",
+    "main.menu.gacha_log.home": "跃迁记录",
+    "main.menu.gacha_log.fetch_by_webcache": "通过游戏缓存获取",
+    "main.menu.gacha_log.fetch_by_clipboard": "通过剪切板获取",
+    "main.menu.gacha_log.fetch_by_appcache": "通过软件缓存获取",
     "main.menu.gacha_log.to_xlsx": "导出到 Execl 表格文件",
-    "main.menu.gacha_log.to_srgf": "导出到 SRGF 通用格式",
+    "main.menu.gacha_log.to_srgf": "导出为 SRGF 通用格式文件",
     "main.menu.merge_gacha_log": "导入或合并数据",
     "main.menu.show_analyze_result": "查看抽卡分析报告",
+    # main-menu-trailblaze_calendar
+    # "main.menu.trailblaze_calendar.home": "开拓月历",
     # main-menu-setting
     "main.menu.settings.home": "软件设置",
     "main.menu.settings.check_update": "自动更新",

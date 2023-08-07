@@ -20,10 +20,8 @@ file_list = [
     src_root_dir + "i18n/zh_cn.py",
 
     src_root_dir + "module/__init__.py",
-    src_root_dir + "module/account.py",
     src_root_dir + "module/game_client.py",
     src_root_dir + "module/info.py",
-    src_root_dir + "module/routes.py",
     src_root_dir + "module/updater.py",
 
     src_root_dir + "module/gacha/__init__.py",
@@ -32,10 +30,16 @@ file_list = [
     src_root_dir + "module/gacha/gacha_url.py",
     src_root_dir + "module/gacha/srgf.py",
 
+    src_root_dir + "module/mihoyo/__init__.py",
+    src_root_dir + "module/mihoyo/account.py",
+    src_root_dir + "module/mihoyo/cookie.py",
+    src_root_dir + "module/mihoyo/header.py",
+    src_root_dir + "module/mihoyo/model.py",
+    src_root_dir + "module/mihoyo/routes.py",
+    src_root_dir + "module/mihoyo/types.py",
+
     src_root_dir + "utils/__init__.py",
-    src_root_dir + "utils/clipboard.py",
     src_root_dir + "utils/functional.py",
-    src_root_dir + "utils/info.py",
     src_root_dir + "utils/log.py",
     src_root_dir + "utils/menu.py",
     src_root_dir + "utils/time.py",

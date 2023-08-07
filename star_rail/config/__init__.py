@@ -1,1 +1,1 @@
-from star_rail.config.settings import *  # noqa
+from .settings import *  # noqa

@@ -2,16 +2,15 @@ import abc
 import enum
 import os
 import re
+import subprocess
 import tempfile
 from typing import Callable, Dict, Optional
 
-import win32api
-
 from star_rail.i18n import i18n
-from star_rail.module.account import Account, GameBizType
 from star_rail.module.game_client import GameClient
-from star_rail.module.routes import GACHA_LOG_URL
-from star_rail.utils import clipboard
+from star_rail.module.mihoyo.account import Account
+from star_rail.module.mihoyo.routes import GACHA_LOG_URL
+from star_rail.module.mihoyo.types import GameBiz
 from star_rail.utils.log import logger
 
 __all__ = ["ProviderType", "get_provider"]
@@ -41,20 +40,30 @@ class GameWebCacheProvider(GachaUrlProvider):
     def __init__(self, user: Account) -> None:
         self.user = user
 
+    def copy_file_with_powershell(self, source_path, destination_path):
+        powershell_command = f"Copy-Item '{source_path}' '{destination_path}'"
+
+        try:
+            subprocess.run(["powershell", powershell_command], check=True)
+            logger.debug("缓存文件拷贝完成")
+        except subprocess.CalledProcessError:
+            logger.error("缓存文件读取失败")
+            return False
+        return destination_path
+
     def get_url(self):
         logger.debug("从游戏缓存获取抽卡链接")
 
-        with tempfile.NamedTemporaryFile("w+", delete=False) as tmp_file:
-            tmp_file_name = tmp_file.name
+        tmp_file_path = os.path.join(tempfile.gettempdir(), "data_2")
         webcache_path = GameClient(self.user).get_webcache_path()
         if not webcache_path:
             return None
-        win32api.CopyFile(webcache_path, tmp_file_name)
+        self.copy_file_with_powershell(webcache_path, tmp_file_path)
 
         logger.debug("开始读取缓存")
-        with open(tmp_file_name, "rb") as file:
+        with open(tmp_file_path, "rb") as file:
             results = file.read().split(b"1/0/")
-        os.remove(tmp_file_name)
+        os.remove(tmp_file_path)
 
         url = None
         # reverse order traversal
@@ -75,7 +84,9 @@ class GameWebCacheProvider(GachaUrlProvider):
 class ClipboardProvider(GachaUrlProvider):
     def get_url(self):
         logger.debug("从剪切板获取抽卡链接")
-        text = clipboard.get_text_or_html()
+        import pyperclip
+
+        text = pyperclip.paste()
         url = match_gacha_log_api(text)
         if not url:
             logger.warning(_lang.unfind_link)
@@ -102,9 +113,9 @@ def replace_gacha_log_url_host_path(url: str):
         raise ValueError("Invalid url value: ", url)
     spliturl = url.split("?")
     if "webstatic-sea.hoyoverse.com" in spliturl[0] or "api-os-takumi" in spliturl[0]:
-        spliturl[0] = GACHA_LOG_URL.get_url(GameBizType.GLOBAL)
+        spliturl[0] = GACHA_LOG_URL.get_url(GameBiz.GLOBAL)
     else:
-        spliturl[0] = GACHA_LOG_URL.get_url(GameBizType.CN)
+        spliturl[0] = GACHA_LOG_URL.get_url(GameBiz.CN)
     url = "?".join(spliturl)
     return url
 
