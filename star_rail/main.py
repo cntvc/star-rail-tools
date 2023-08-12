@@ -16,6 +16,7 @@ from star_rail.module.gacha import (
 )
 from star_rail.module.info import show_about
 from star_rail.module.mihoyo.account import AccountMenu, account_manager
+from star_rail.module.month import export_month_info
 from star_rail.module.updater import (
     UpdateSource,
     get_update_source_status,
@@ -46,7 +47,9 @@ def init_menu():
                         options=export_by_webcache,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.fetch_by_clipboard, options=export_by_input_url
+                        # TODO 修改函数名称
+                        title=_lang_menu.gacha_log.fetch_by_clipboard,
+                        options=export_by_input_url,
                     ),
                     MenuItem(
                         title=_lang_menu.gacha_log.fetch_by_appcache,
@@ -71,7 +74,7 @@ def init_menu():
             MenuItem(
                 title="开拓月历",
                 options=[
-                    MenuItem(title="获取开拓月历", options=lambda: print("待实现")),
+                    MenuItem(title="获取开拓月历", options=export_month_info),
                     MenuItem(
                         title="查看记录",
                         options=lambda: print("待实现"),

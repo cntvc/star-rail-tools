@@ -37,13 +37,13 @@
 3. 切换到软件，选择菜单 **导入或合并数据**
 
 ### 抽卡月历
-
+# TODO 添加示例图片
 1. 设置账户Cookie：
 首先登陆[米哈游通行证](https://user.mihoyo.com/)页面，打开F12，选择控制台，粘贴以下代码，弹出的对话框即cookie。
 ```javascript
 javascript:(function(){prompt(document.domain,document.cookie)})();
 ```
-
+# TODO 完善步骤
 
 <details>
   <summary>点击查看 <b>数据目录结构</b></summary>

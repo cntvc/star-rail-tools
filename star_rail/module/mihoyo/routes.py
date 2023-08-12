@@ -1,7 +1,7 @@
 import abc
 import typing
 
-from star_rail.module.mihoyo.types import GameBiz
+from .types import GameBiz
 
 
 class BaseRoute(abc.ABC):
@@ -43,6 +43,7 @@ TAKUMI_RECORD_HOST = Route("https://api-takumi-record.mihoyo.com")
 HOYOLAB_HOST = Route("https://bbs-api-os.hoyolab.com")
 """海外版米游社"""
 
+
 GACHA_LOG_URL = InternationalRoute(
     overseas=f"{TAKUMI_HOST.get_url(GameBiz.GLOBAL)}/common/gacha_record/api/getGachaLog",
     chinese=f"{TAKUMI_HOST.get_url(GameBiz.CN)}/common/gacha_record/api/getGachaLog",
@@ -62,14 +63,6 @@ COOKIE_TOKEN_BY_STOKEN_URL = Route(
 )
 """通过 SToken 获取 cookie_token """
 
-
-# WebApi
-
-TICKET_BY_LOGINTICKET_URL = Route("https://webapi.account.mihoyo.com/Api/get_ticket_by_loginticket")
-"""[WebApi] 获取 ticket"""
-
-USER_GAME_ROLES_URL = Route(f"{TAKUMI_HOST.get_url(GameBiz.CN)}/binding/api/getUserGameRoles")
-"""[WebApi] 获取游戏角色列表"""
 
 # 米游社api
 

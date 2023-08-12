@@ -1,1 +1,1 @@
-"""抽卡月历"""
+from .month import export_month_info  # noqa

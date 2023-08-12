@@ -1,11 +1,9 @@
 import os
 import re
-import time
 from pathlib import Path
 from typing import List, Union
 
-import requests
-import typing_extensions
+import pyperclip
 from pydantic import BaseModel, ValidationError, model_validator, validator
 
 from star_rail import constants
@@ -15,10 +13,10 @@ from star_rail.utils.functional import color_str, load_json, save_json
 from star_rail.utils.log import logger
 from star_rail.utils.menu import MenuItem
 
+from .client import PC_HEADER, Header, Salt, request
 from .cookie import Cookie
-from .header import ClientType, Header, Origin, Referer, Salt, UserAgent
-from .model import GameRecordCard, Ticket, UserGameRecordCards, UserGameRoles
-from .routes import GAME_RECORD_CARD_URL, TICKET_BY_LOGINTICKET_URL, USER_GAME_ROLES_URL
+from .model import GameRecordCard, UserGameRecordCards
+from .routes import GAME_RECORD_CARD_URL
 from .types import GameBiz, GameType, Region
 
 _UID_RE = re.compile("^[1-9][0-9]{8}$")
@@ -52,6 +50,8 @@ class Account(BaseModel):
 
     _verify_uid_format = validator("uid", always=True)(verify_uid_format)
 
+    _serialize_include_keys = {"cookie", "uid", "gacha_url"}
+
     @model_validator(mode="after")
     def init_param(self):
         self._init_datafile_path()
@@ -79,18 +79,20 @@ class Account(BaseModel):
     def load_profile(self):
         if not os.path.exists(self.profile_path):
             return False
-
         local_profile = load_json(self.profile_path)
-        for k, v in local_profile.items():
-            if k in self.__fields__:
-                setattr(self, k, v)
+        local_user_model = Account(**local_profile)
+        for k in local_user_model.model_fields_set:
+            if k not in self._serialize_include_keys:
+                continue
+            v = getattr(local_user_model, k)
+            setattr(self, k, v)
 
         self._init_game_biz()
         self._init_datafile_path()
         return True
 
     def model_dump(self):
-        return super().model_dump(include={"cookie", "uid", "gacha_url"})
+        return super().model_dump(include=self._serialize_include_keys)
 
     @staticmethod
     def verify_uid(v):
@@ -98,6 +100,7 @@ class Account(BaseModel):
 
 
 class AccountManager:
+    # TODO 重构
     def __init__(self) -> None:
         if not settings.DEFAULT_UID:
             self._account = None
@@ -201,74 +204,24 @@ class AccountMenu:
         account_manager.login(user)
 
     def _create_account_by_cookie(self):
-        import pyperclip
-
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
         if cookie is None:
             logger.warning("未识别到有效的cookie")
             return
         if cookie.verify_login_ticket() and not cookie.verify_stoken():
-            cookie.set_stoken_by_login_ticket()
-            cookie.set_cookie_token_by_stoken()
+            cookie.refresh_stoken_by_login_ticket()
+            cookie.refresh_cookie_token_by_stoken()
         roles = get_game_record_card(cookie)
         for role in roles.list:
             if not is_hsr_role(role):
                 continue
-            user = Account(uid=role.game_role_id, cookie=cookie)
+
+            user = Account(uid=role.game_role_id)
+            # 尝试加载本地数据后，更新 cookie 并保存
+            user.load_profile()
+            user.cookie = cookie
             user.save_profile()
-
-
-@typing_extensions.deprecated(
-    "The `get_ticket_by_loginticket` method is deprecated", category=DeprecationWarning
-)
-def get_ticket_by_loginticket(cookie: Cookie):
-    """ticket 用于获取角色列表"""
-    header = (
-        Header()
-        .origin(Origin.USER_MIHOYO)
-        .referer(Referer.USER_MUHOYO)
-        .user_agent(UserAgent.PC_WIN)
-        .x_rpc_client_type(ClientType.Web)
-        .build()
-    )
-    param = {
-        "action_type": "game_role",
-        "t": int(time.time()),
-    }
-    response = requests.post(
-        TICKET_BY_LOGINTICKET_URL.get_url(),
-        headers=header,
-        params=param,
-        cookies=cookie.model_dump("web"),
-    ).json()
-    return Ticket(**response["data"])
-
-
-@typing_extensions.deprecated(
-    "The `get_user_game_roles` method is deprecated", category=DeprecationWarning
-)
-def get_user_game_roles(cookie: Cookie, ticket: Ticket):
-    """根据ticket获取角色列表"""
-    header = (
-        Header()
-        .origin(Origin.USER_MIHOYO)
-        .referer(Referer.USER_MUHOYO)
-        .user_agent(UserAgent.PC_WIN)
-        .x_rpc_client_type(ClientType.Web)
-        .build()
-    )
-    param = {
-        "action_ticket": ticket.ticket,
-        "t": int(time.time()),
-    }
-    response = requests.get(
-        USER_GAME_ROLES_URL.get_url(),
-        headers=header,
-        params=param,
-        cookies=cookie.model_dump("web"),
-    ).json()
-    return UserGameRoles(**response["data"])
 
 
 def is_hsr_role(role: GameRecordCard):
@@ -277,26 +230,22 @@ def is_hsr_role(role: GameRecordCard):
 
 
 def get_game_record_card(cookie: Cookie):
-    param = {"uid": cookie.mihoyo_id}
+    param = {"uid": cookie.account_id}
 
-    header = (
-        Header()
-        .x_rpc_app_version()
-        .user_agent(UserAgent.ANDROID)
-        .x_rpc_client_type(ClientType.PC)
-        .referer(Referer.USER_MUHOYO)
-        .origin(Origin.USER_MIHOYO)
-        .ds(Salt.X4, param)
-        .build()
-    )
+    header = Header()
+    header.update(PC_HEADER)
+    header.set_ds("v2", Salt.X4, param)
 
-    response = requests.get(
+    data = request(
+        method="get",
         url=GAME_RECORD_CARD_URL.get_url(GameBiz.CN),
-        headers=header,
+        headers=header.dict(),
         params=param,
         cookies=cookie.model_dump("app"),
-    ).json()
-    return UserGameRecordCards(**response["data"])
+    )
+    return UserGameRecordCards(**data)
 
+
+# TODO stoken刷新其他cookie的接口
 
 account_manager = AccountManager()
