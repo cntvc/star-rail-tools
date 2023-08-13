@@ -172,4 +172,4 @@ def _convert_item(query_res: sqlite3.Row, item_type: typing.Type[DBModel]):
 
 db = DBClient(DATABASE_PATH)
 
-__all__ = ["db", "init_all_table"]
+__all__ = ["db", "init_all_table", "convert"]

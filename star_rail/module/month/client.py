@@ -2,8 +2,7 @@ import typing
 
 from prettytable import PrettyTable
 
-from star_rail.database import db
-from star_rail.database.db_client import convert
+from star_rail.database import convert, db
 from star_rail.utils import functional
 
 from ..mihoyo.account import Account
