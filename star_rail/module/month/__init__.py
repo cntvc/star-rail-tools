@@ -1,1 +1,3 @@
-from .month import export_month_info  # noqa
+from .client import MonthClient  # noqa
+
+__all__ = ["MonthClient"]

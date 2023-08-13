@@ -1,6 +1,6 @@
 import unittest
 
-from star_rail.module.mihoyo.client import Salt, gen_ds_v1, gen_ds_v2
+from star_rail.module.mihoyo.api_client import Salt, gen_ds_v1, gen_ds_v2
 
 
 class TestDynamicSecret(unittest.TestCase):

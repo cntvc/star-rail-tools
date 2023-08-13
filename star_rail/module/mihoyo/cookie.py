@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, model_validator
 
-from .client import WEB_HEADER, request
+from .api_client import WEB_HEADER, request
 from .routes import COOKIE_TOKEN_BY_STOKEN_URL, STOKEN_BY_LOGINTICKET_URL
 
 __all__ = ["Cookie"]

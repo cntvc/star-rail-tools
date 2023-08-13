@@ -13,7 +13,7 @@ from star_rail.utils.functional import color_str, load_json, save_json
 from star_rail.utils.log import logger
 from star_rail.utils.menu import MenuItem
 
-from .client import PC_HEADER, Header, Salt, request
+from .api_client import PC_HEADER, Header, Salt, request
 from .cookie import Cookie
 from .model import GameRecordCard, UserGameRecordCards
 from .routes import GAME_RECORD_CARD_URL
