@@ -2,6 +2,8 @@
 zh_cn_lang_pack = {
     # config
     "config.settings.current_status": "当前状态",
+    # core
+    "core.db_client.param_type_error": "参数类型错误，type: {}",
     # i18n
     "i18n.update_lang.tips": "重启后使语言更改生效，是否继续？ y/N",
     "i18n.update_lang.invalid_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
@@ -31,7 +33,12 @@ zh_cn_lang_pack = {
     "gacha_log.fetch_finish": "查询 {} 结束, 共 {} 条数据",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "未获取到抽卡链接",
-    # mihoyo/account
+    # mihoyo/mihoyo/account
+    "account.param_type_error": "参数类型错误，type: {}",
+    "account.login_account": "已设置账户：{}",
+    "account.invalid_cookie": "未识别到有效的 Cookie 数据",
+    "account.menu.add_by_game_uid": "输入游戏 UID",
+    "account.menu.add_by_cookie": "通过 Cookie 添加账号",
     "account.account_uid": "当前账号 {}",
     "account.without_account": "当前未设置账号",
     "account.menu.creat_user": "创建新用户",
@@ -67,6 +74,9 @@ zh_cn_lang_pack = {
     "utils.menu.exit": "0.退出",
     "utils.menu.input_number": "请输入数字选择菜单项:",
     "utils.menu.invalid_input": "无效输入，请重试",
+    # client
+    "client.no_account": "未设置账户",
+    "client.empty_cookie": "未找到 cookie，请设置 cookie 后重试",
     # main-menu
     "main.menu.todo": "等待开发",
     "main.menu.main_menu": "主菜单",
@@ -82,7 +92,9 @@ zh_cn_lang_pack = {
     "main.menu.merge_gacha_log": "导入或合并数据",
     "main.menu.show_analyze_result": "查看抽卡分析报告",
     # main-menu-trailblaze_calendar
-    # "main.menu.trailblaze_calendar.home": "开拓月历",
+    "main.menu.trailblaze_calendar.home": "开拓月历",
+    "main.menu.trailblaze_calendar.fetch": "获取开拓月历",
+    "main.menu.trailblaze_calendar.show_history": "查看历史记录",
     # main-menu-setting
     "main.menu.settings.home": "软件设置",
     "main.menu.settings.check_update": "自动更新",
@@ -103,6 +115,11 @@ zh_cn_lang_pack = {
     # 5 星详情表
     "table.star5.title": "5星详情",
     "table.star5.pull_count": "抽",
+    # 开拓月历
+    "table.trailblaze_calendar.title": "开拓月历",
+    "table.trailblaze_calendar.month": "日期",
+    "table.trailblaze_calendar.hcoin": "星穹",
+    "table.trailblaze_calendar.rails_pass": "票数",
     # Execl
     "execl.header.time": "时间",
     "execl.header.name": "名称",

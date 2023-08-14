@@ -147,17 +147,16 @@ class UserManager:
         elif isinstance(user, Account):
             self.user = user
         else:
-            raise ParamTypeError("登陆账户数据类型错误, type: {}", type(user))
+            raise ParamTypeError(_lang.param_type_error, type(user))
 
         self.user.reload_profile()
-        logger.info("已设置账户：{}", self.user.uid)
+        logger.info(_lang.login_account, self.user.uid)
         settings.DEFAULT_UID = self.user.uid
         settings.save()
 
     def create_by_input_uid(self):
         uid = _input_uid()
         if uid is None:
-            logger.info("未创建账户")
             return
         user = Account(uid)
         if not user.reload_profile():
@@ -170,7 +169,7 @@ class UserManager:
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
         if cookie is None:
-            logger.warning("未识别到有效的 cookie 数据")
+            logger.warning(_lang.invalid_cookie)
             return
         if cookie.verify_login_ticket() and not cookie.verify_stoken():
             cookie.refresh_stoken_by_login_ticket()
@@ -209,8 +208,12 @@ class UserManager:
             MenuItem(title=f"{uid}", options=lambda uid=uid: self.login(uid))
             for uid in uid_list
         ]
-        menu_list.append(MenuItem(title="输入游戏UID", options=lambda: self.create_by_input_uid()))
-        menu_list.append(MenuItem(title="通过cookie添加账号", options=lambda: self.create_by_cookie()))
+        menu_list.append(
+            MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid())
+        )
+        menu_list.append(
+            MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie())
+        )
         return menu_list
 
 

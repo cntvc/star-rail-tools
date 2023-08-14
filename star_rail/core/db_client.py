@@ -6,9 +6,12 @@ from pydantic import BaseModel
 
 from star_rail.constants import DATABASE_PATH
 from star_rail.exceptions import DBConnectionError, ParamTypeError
+from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton
 
 from .base_model import DBModel
+
+_lang = i18n.core.db_client
 
 __all__ = ["init_all_table", "convert", "DBClient"]
 
@@ -169,7 +172,7 @@ def convert(query_res: typing.Union[typing.List, sqlite3.Row], item_type: typing
     elif isinstance(query_res, sqlite3.Row):
         return _convert_item(query_res, item_type)
     else:
-        raise ParamTypeError("参数类型错误，type: {}", type(query_res))
+        raise ParamTypeError(_lang.param_type_error, type(query_res))
 
 
 def _convert_list(query_res: typing.List, item_type: typing.Type[DBModel]):

@@ -3,6 +3,7 @@ import typing
 from prettytable import PrettyTable
 
 from star_rail.core import DBClient
+from star_rail.i18n import i18n
 from star_rail.utils import functional
 
 from ..mihoyo.account import Account
@@ -44,10 +45,10 @@ class MonthClient:
         month_info_table = PrettyTable()
 
         month_info_table.align = "l"
-        month_info_table.title = "开拓月历"
+        month_info_table.title = i18n.table.trailblaze_calendar.title
         month_info_table.add_column(
-            "日期",  # month
-            ["星穹", "票数"],  # star_coin  # rails_pass
+            i18n.table.trailblaze_calendar.month,
+            [i18n.table.trailblaze_calendar.hcoin, i18n.table.trailblaze_calendar.rails_pass],
         )
         for item in month_infos:
             month_info_table.add_column(item.month, [item.hcoin, item.rails_pass])

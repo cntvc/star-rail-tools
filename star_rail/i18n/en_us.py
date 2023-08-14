@@ -2,6 +2,8 @@
 en_us_lang_pack = {
     # config
     "config.settings.current_status": "Current Status",
+    # core
+    "core.db_client.param_type_error": "Parameter type error, type: {}",
     # i18n
     "i18n.update_lang.tips": "The language changes will take effect after restarting. Do you want to continue? y/N",
     "i18n.update_lang.invalid_input": "Please enter a valid option. Only 'y' or 'N' are allowed.",
@@ -32,6 +34,11 @@ en_us_lang_pack = {
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "Failed to get gacha link.",
     # mihoyo/account
+    "account.param_type_error": "Parameter type error, type: {}",
+    "account.login_account": "Account set: {}",
+    "account.invalid_cookie": "invalid cookie",
+    "account.menu.add_by_game_uid": "Enter Game UID",
+    "account.menu.add_by_cookie": "Add account via cookie",
     "account.account_uid": "Current account: {}",
     "account.without_account": "No account set currently.",
     "account.menu.creat_user": "Create a new user",
@@ -67,6 +74,9 @@ en_us_lang_pack = {
     "utils.menu.exit": "0. Exit",
     "utils.menu.input_number": "Please enter a number to select a menu option:",
     "utils.menu.invalid_input": "This is an invalid input. Please try again.",
+    # client
+    "client.no_account": "No account found",
+    "client.empty_cookie": "No cookies found, please set cookies and retry",
     # main-menu
     "main.menu.todo": "Todo",
     "main.menu.main_menu": "Main Menu",
@@ -81,6 +91,10 @@ en_us_lang_pack = {
     "main.menu.gacha_log.to_srgf": "Export to SRGF Universal Format File",
     "main.menu.merge_gacha_log": "Import or merge Data",
     "main.menu.show_analyze_result": "View Gacha Analysis Report",
+    # main-menu-trailblaze_calendar
+    "main.menu.trailblaze_calendar.home": "Trailblaze Calendar",
+    "main.menu.trailblaze_calendar.fetch": "Fetch Trailblaze Calendar",
+    "main.menu.trailblaze_calendar.show_history": "View History",
     # main-menu-setting
     "main.menu.settings.home": "Software Settings",
     "main.menu.settings.check_update": "Auto Update",
@@ -101,6 +115,11 @@ en_us_lang_pack = {
     # 5 星详情表
     "table.star5.title": "5-Star Details",
     "table.star5.pull_count": "th Pull",
+    # 开拓月历
+    "table.trailblaze_calendar.title": "Trailblaze Calendar",
+    "table.trailblaze_calendar.month": "Date",
+    "table.trailblaze_calendar.hcoin": "Stellars",
+    "table.trailblaze_calendar.rails_pass": "Passes",
     # Execl
     "execl.header.time": "Time",
     "execl.header.name": "Name",

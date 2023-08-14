@@ -1,3 +1,4 @@
+from star_rail.i18n import i18n
 from star_rail.module.mihoyo.account import UserManager
 from star_rail.module.month.client import MonthClient
 from star_rail.module.month.mapper import MonthInfoMapper
@@ -5,7 +6,7 @@ from star_rail.utils import functional
 
 __all__ = ["refresh_month_info", "show_month_info"]
 
-
+_lang = i18n.client
 ##############################################################
 # 跃迁记录
 ##############################################################
@@ -14,10 +15,10 @@ __all__ = ["refresh_month_info", "show_month_info"]
 def refresh_month_info():
     user = UserManager().user
     if None is user:
-        print(functional.color_str("未设置账户", "yellow"))
+        print(functional.color_str(_lang.no_account, "yellow"))
         return
     if not user.cookie.verify_cookie_token():
-        print(functional.color_str("未找到 cookie，请设置 cookie 后重试", "yellow"))
+        print(functional.color_str(_lang.empty_cookie, "yellow"))
         return
     month_client = MonthClient(user)
     month_client.refresh_month_info()
@@ -27,7 +28,7 @@ def refresh_month_info():
 def show_month_info():
     user = UserManager().user
     if None is user:
-        print(functional.color_str("未设置账户", "yellow"))
+        print(functional.color_str(_lang.no_account, "yellow"))
         return
     month_client = MonthClient(user)
     month_client.visualization(MonthInfoMapper.query(user.uid, None, 6))

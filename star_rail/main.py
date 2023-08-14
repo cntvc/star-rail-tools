@@ -75,11 +75,13 @@ def init_menu():
                 tips=lambda: UserManager().get_status_desc(),
             ),
             MenuItem(
-                title="开拓月历",
+                title=_lang_menu.trailblaze_calendar.home,
                 options=[
-                    MenuItem(title="获取开拓月历", options=refresh_month_info),
                     MenuItem(
-                        title="查看记录",
+                        title=_lang_menu.trailblaze_calendar.fetch, options=refresh_month_info
+                    ),
+                    MenuItem(
+                        title=_lang_menu.trailblaze_calendar.show_history,
                         options=show_month_info,
                     ),
                 ],
