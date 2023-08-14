@@ -37,13 +37,29 @@
 3. 切换到软件，选择菜单 **导入或合并数据**
 
 ### 抽卡月历
-# TODO 添加示例图片
+
 1. 设置账户Cookie：
-首先登陆[米哈游通行证](https://user.mihoyo.com/)页面，打开F12，选择控制台，粘贴以下代码，弹出的对话框即cookie。
-```javascript
-javascript:(function(){prompt(document.domain,document.cookie)})();
-```
-# TODO 完善步骤
+    首先登陆[米哈游通行证](https://user.mihoyo.com/)页面，打开F12，选择控制台，粘贴以下代码，弹出的对话框复制 cookie。
+    ```javascript
+    javascript:(function(){prompt(document.domain,document.cookie)})();
+    ```
+    <details>
+      <summary>Cookie 获取示例</summary>
+    <p>
+
+    <p>
+      <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
+    </p>
+
+    </p>
+    </details>
+
+    > 其他方式获取 Cookie : https://hut.ao/zh/advanced/get-stoken-cookie-from-the-third-party.html
+
+2. 在 `账号设置`菜单中选择 `通过 Cookie 添加账号`，这将自动读取剪切板数据并获得相关账号，然后选择需要操作的 UID
+
+3. 选择 `开拓月历` -> `获取开拓月历` 功能，等待结果显示
+
 
 <details>
   <summary>点击查看 <b>数据目录结构</b></summary>
