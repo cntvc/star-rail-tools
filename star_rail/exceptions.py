@@ -1,4 +1,8 @@
+import functools
+import traceback
 import typing
+
+from star_rail.utils.log import logger
 
 
 class HsrException(Exception):
@@ -14,6 +18,16 @@ class HsrException(Exception):
 
 class ParamValueError(HsrException):
     """参数值错误"""
+
+
+class ParamTypeError(HsrException):
+    """参数类型错误"""
+
+
+class DBConnectionError(HsrException):
+    """数据库连接错误"""
+
+    msg = "数据库连接错误"
 
 
 ############################################################
@@ -71,6 +85,7 @@ class AuthkeyTimeoutError(AuthkeyExceptionError):
 
 _ERRORS: typing.Dict[int, typing.Type[HsrException]] = {
     -100: InvalidCookieError,
+    10001: InvalidCookieError,  # game record error
 }
 
 
@@ -99,3 +114,23 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
         raise exctype(data)
 
     raise ApiException(data)
+
+
+def exec_catch(
+    exec_type: typing.Union[HsrException, typing.Tuple[HsrException, ...]] = HsrException
+):
+    """出现异常时打印 msg 并使函数返回 None"""
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exec_type as e:
+                logger.error(e.msg)
+                logger.debug(traceback.format_exc())
+                return None
+
+        return wrapper
+
+    return decorator

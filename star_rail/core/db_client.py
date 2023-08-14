@@ -4,8 +4,13 @@ import typing
 
 from pydantic import BaseModel
 
-from ..constants import DATABASE_PATH
+from star_rail.constants import DATABASE_PATH
+from star_rail.exceptions import DBConnectionError, ParamTypeError
+from star_rail.utils.functional import Singleton
+
 from .base_model import DBModel
+
+__all__ = ["init_all_table", "convert", "DBClient"]
 
 
 class SqlFields(BaseModel):
@@ -40,13 +45,23 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
     return sql_fields
 
 
+@Singleton()
 class DBClient:
-    def __init__(self, db_path: str) -> None:
+    def __init__(self, db_path: str = DATABASE_PATH) -> None:
         self._db_path = db_path
         os.makedirs(os.path.split(db_path)[0], exist_ok=True)
         self._cache: typing.Dict[object, SqlFields] = dict()
-        self._conn = sqlite3.connect(self._db_path)
+        try:
+            self._conn = sqlite3.connect(self._db_path)
+        except sqlite3.Error:
+            raise DBConnectionError
         self._conn.row_factory = sqlite3.Row
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.commit()
 
     @property
     def conn(self):
@@ -148,15 +163,18 @@ def init_all_table(db: DBClient):
 
 
 def convert(query_res: typing.Union[typing.List, sqlite3.Row], item_type: typing.Type[DBModel]):
+    """查询结果转换"""
     if isinstance(query_res, typing.List):
         return _convert_list(query_res, item_type)
     elif isinstance(query_res, sqlite3.Row):
         return _convert_item(query_res, item_type)
     else:
-        raise Exception
+        raise ParamTypeError("参数类型错误，type: {}", type(query_res))
 
 
 def _convert_list(query_res: typing.List, item_type: typing.Type[DBModel]):
+    if not query_res:
+        return []
     res = []
     for item in query_res:
         res.append(_convert_item(item, item_type))
@@ -164,12 +182,9 @@ def _convert_list(query_res: typing.List, item_type: typing.Type[DBModel]):
 
 
 def _convert_item(query_res: sqlite3.Row, item_type: typing.Type[DBModel]):
+    if not query_res:
+        return None
     d = {}
     for k in query_res.keys():
         d[k] = query_res[k]
     return item_type(**d)
-
-
-db = DBClient(DATABASE_PATH)
-
-__all__ = ["db", "init_all_table", "convert"]

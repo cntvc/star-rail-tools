@@ -1,4 +1,6 @@
-from star_rail.database import DBModel, Field_Ex
+import typing
+
+from star_rail.core import DBClient, DBModel, Field_Ex, convert
 
 
 class MonthInfoMapper(DBModel):
@@ -15,6 +17,22 @@ class MonthInfoMapper(DBModel):
 
     rails_pass: int
     """列车票"""
+
+    @classmethod
+    def query(
+        cls, uid: str, month: typing.Optional[str], limit: typing.Optional[int]
+    ) -> typing.Union[typing.List["MonthInfoMapper"], typing.Optional["MonthInfoMapper"]]:
+        """查询开拓月历记录"""
+        where_month = """and month = "{}" """.format(month) if month else ""
+        limit = """ DESC LIMIT {} """.format(limit) if limit else ""
+        query_sql = """SELECT * FROM month_info WHERE uid = "{}" {} ORDER BY month {}
+        """.format(
+            uid, where_month, limit
+        )
+        with DBClient() as db:
+            cursor = db.select(query_sql)
+        res = cursor.fetchall()
+        return convert(res, MonthInfoMapper)
 
 
 class MonthInfoRewardSourceMapper(DBModel):

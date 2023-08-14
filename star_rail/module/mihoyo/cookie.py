@@ -41,11 +41,12 @@ class Cookie(BaseModel):
         self.account_id = mihoyo_uid
         return self
 
+    # TODO stoken刷新其他cookie的接口
     @staticmethod
     def parse(cookie_str: str):
         cookie_dict = parse_cookie(cookie_str)
 
-        if cookie_dict is None:
+        if not cookie_dict:
             return None
         # 从网页版获取的 cookie 部分参数带有 _v2 后缀
         cookie_dict = remove_suffix(cookie_dict, "_v2")
@@ -84,6 +85,9 @@ class Cookie(BaseModel):
             return super().model_dump(include={*group["app"]}, exclude_defaults=True)
         else:
             return super().model_dump(exclude_defaults=True)
+
+    def __str__(self) -> str:
+        return "; ".join([f"{key}={value}" for key, value in self.model_dump("all").items()])
 
     def refresh_stoken_by_login_ticket(self):
         params = {

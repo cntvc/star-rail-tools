@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
-from star_rail.module.mihoyo.account import Account, account_manager
+from star_rail.module.mihoyo.account import Account, UserManager
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 
@@ -46,13 +46,13 @@ def export_by_input_url():
 
     user = Account(uid=uid, gacha_url=url)
     user.save_profile()
-    account_manager.login(user)
+    UserManager().login(user)
 
     _save_and_show_result(user, gacha_log)
 
 
 def export_by_webcache():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -69,7 +69,7 @@ def export_by_webcache():
 
 
 def export_by_user_profile():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -101,7 +101,7 @@ def _query_gacha_log(url: str, user: Account):
 
     user.gacha_url = url
     user.save_profile()
-    account_manager.login(user)
+    UserManager().login(user)
     return gacha_log_fetcher
 
 
@@ -146,7 +146,7 @@ def _save_and_show_result(user: Account, gacha_data):
 
 
 def show_analytical_result():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -161,7 +161,7 @@ def show_analytical_result():
 
 
 def export_to_xlsx():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -174,7 +174,7 @@ def export_to_xlsx():
 
 
 def export_to_srgf():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -188,7 +188,7 @@ def export_to_srgf():
 
 
 def merge_or_import_data():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return

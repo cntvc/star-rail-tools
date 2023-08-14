@@ -1,4 +1,6 @@
-from star_rail.database.base_model import DBModel, Field_Ex
+import typing
+
+from star_rail.core import DBClient, DBModel, Field_Ex, convert
 
 
 class CookieMapper(DBModel):
@@ -24,10 +26,49 @@ class CookieMapper(DBModel):
 
     stuid: str = ""
 
+    @staticmethod
+    def query_cookie(uid: str) -> typing.Optional["CookieMapper"]:
+        sql = """select * from cookie where uid = "{}"
+        """.format(
+            uid
+        )
+        with DBClient() as db:
+            row = db.select(sql).fetchone()
+        if not row:
+            return
+        return convert(row, CookieMapper)
 
-class AccountMapper(DBModel):
+
+class UserMapper(DBModel):
     __table_name__ = "user"
 
     uid: str = Field_Ex(primary_key=True)
 
-    gacha_url: str = ""
+    gacha_url: str
+
+    region: str
+
+    game_biz: str
+
+    @staticmethod
+    def query_user(uid: str) -> typing.Optional["UserMapper"]:
+        """根据id查询用户数据"""
+        sql = """select * from user where uid = "{}"
+        """.format(
+            uid
+        )
+        with DBClient() as db:
+            row = db.select(sql).fetchone()
+        if not row:
+            return
+        return convert(row, UserMapper)
+
+    @staticmethod
+    def query_all() -> typing.List["UserMapper"]:
+        """查询所有用户"""
+        sql = """select * from user;"""
+        with DBClient() as db:
+            row = db.select(sql).fetchall()
+        if not row:
+            return []
+        return convert(row, UserMapper)

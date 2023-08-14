@@ -5,7 +5,8 @@ import time
 from star_rail import __version__ as version
 from star_rail.client import *
 from star_rail.config import get_config_status_desc, settings
-from star_rail.database import db, init_all_table
+from star_rail.core import init_all_table
+from star_rail.core.db_client import DBClient
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module.gacha import (
     create_merge_dir,
@@ -18,7 +19,7 @@ from star_rail.module.gacha import (
     show_analytical_result,
 )
 from star_rail.module.info import show_about
-from star_rail.module.mihoyo.account import AccountMenu, account_manager
+from star_rail.module.mihoyo.account import UserManager
 from star_rail.module.updater import (
     UpdateSource,
     get_update_source_status,
@@ -38,8 +39,8 @@ def init_menu():
         options=[
             MenuItem(
                 title=_lang_menu.account_setting,
-                gen_menu=lambda: AccountMenu().create(),
-                tips=lambda: account_manager.get_status_desc(),
+                gen_menu=lambda: UserManager().gen_account_menu(),
+                tips=lambda: UserManager().get_status_desc(),
             ),
             MenuItem(
                 title=_lang_menu.gacha_log.home,
@@ -71,7 +72,7 @@ def init_menu():
                         options=lambda: show_analytical_result(),
                     ),
                 ],
-                tips=lambda: account_manager.get_status_desc(),
+                tips=lambda: UserManager().get_status_desc(),
             ),
             MenuItem(
                 title="开拓月历",
@@ -164,7 +165,7 @@ def init_menu():
             ),
             MenuItem(title=_lang_menu.about, options=show_about),
         ],
-        tips=lambda: account_manager.get_status_desc(),
+        tips=lambda: UserManager().get_status_desc(),
     )
     return Menu(main_menu)
 
@@ -190,7 +191,7 @@ def run():
     create_merge_dir()
     if settings.FLAG_CHECK_UPDATE:
         upgrade()
-    init_all_table(db)
+    init_all_table(DBClient())
     menu = init_menu()
     menu.run()
 

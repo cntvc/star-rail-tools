@@ -137,3 +137,15 @@ def desensitize_url(url: str, param_name: str, desensitized_value: str = "******
         desensitized_url = url[:start_index] + desensitized_value + url[end_index:]
         return desensitized_url
     return url
+
+
+class Singleton:
+    _instance = {}
+
+    def __call__(self, cls):
+        def get_instance(*args, **kwargs):
+            if cls not in self._instance:
+                self._instance[cls] = cls(*args, **kwargs)
+            return self._instance[cls]
+
+        return get_instance
