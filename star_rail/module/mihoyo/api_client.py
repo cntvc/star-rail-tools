@@ -36,24 +36,26 @@ def request(
     timeout=constants.REQUEST_TIMEOUT,
     **kwargs,
 ):
-    with requests.request(
-        method=method,
-        url=url,
-        params=params,
-        cookies=cookies,
-        headers=headers,
-        data=body,
-        timeout=timeout,
-        **kwargs,
-    ) as response:
-        # TODO i18n
-        r = response.headers.get("content-type")
-        if r != "application/json":
-            raise error.ApiException(
-                msg="Recieved a response with an invalid content type:\n" + response.text
-            )
+    try:
+        with requests.request(
+            method=method,
+            url=url,
+            params=params,
+            cookies=cookies,
+            headers=headers,
+            data=body,
+            timeout=timeout,
+            **kwargs,
+        ) as response:
+            r = response.headers.get("content-type")
+            if r != "application/json":
+                raise error.ApiException(
+                    msg="Recieved a response with an invalid content type:\n" + response.text
+                )
+            data = response.json()
 
-        data = response.json()
+    except requests.RequestException:
+        raise error.RequestError
 
     if data["retcode"] == 0:
         return data["data"]

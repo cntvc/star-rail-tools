@@ -2,7 +2,7 @@ import functools
 import traceback
 import typing
 
-from star_rail.utils.log import logger
+from .utils.log import logger
 
 
 class HsrException(Exception):
@@ -58,6 +58,10 @@ class ApiException(HsrException):
         if self.retcode:
             return f"[{self.retcode}] {self.msg}"
         return self.msg
+
+
+class RequestError(ApiException):
+    msg = "网络异常"
 
 
 class InvalidCookieError(ApiException):
