@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Union
 
 import pyperclip
-from pydantic import BaseModel, ValidationError, model_validator, validator
+from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from star_rail import constants
 from star_rail.config import settings
@@ -57,7 +57,7 @@ class Account(BaseModel):
     def __init__(self, uid: str, **data):
         super().__init__(uid=uid, **data)
 
-    _verify_uid_format = validator("uid", always=True)(verify_uid_format)
+    _verify_uid_format = field_validator("uid", mode="before")(verify_uid_format)
 
     _serialize_include_keys = {"cookie", "uid", "gacha_url"}
 

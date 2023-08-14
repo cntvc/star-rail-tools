@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from star_rail import constants
 from star_rail.utils.functional import color_str, load_json, save_json
@@ -32,8 +32,7 @@ class Settings(BaseModel):
 
     LANGUAGE: str = ""
 
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="ignore")
 
     def __setattr__(self, k, v):
         if k not in self.__fields__:

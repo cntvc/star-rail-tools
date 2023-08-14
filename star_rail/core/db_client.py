@@ -31,9 +31,7 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
     else:
         return None
     for name, fields in cls.model_fields.items():
-        if fields.json_schema_extra is not None and fields.json_schema_extra.get(
-            "primary_key", None
-        ):
+        if fields.json_schema_extra and fields.json_schema_extra.get("primary_key", None):
             sql_fields.primary_key.add(name)
         sql_fields.cloumn.add(name)
 
