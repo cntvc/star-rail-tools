@@ -5,10 +5,11 @@ from pydantic import BaseModel, validator
 
 from star_rail import __version__ as version
 from star_rail import constants
-from star_rail.module.account import verify_uid_format
-from star_rail.module.gacha.gacha_log import BaseGachaItem, GachaInfo, GachaType
+from star_rail.module.mihoyo.account import verify_uid_format
 from star_rail.utils.time import convert_time_to_timezone, get_format_time
 from star_rail.utils.version import get_version
+
+from .gacha_log import BaseGachaItem, GachaInfo, GachaType
 
 SRGF_VERSION = (1, 0)
 
@@ -85,8 +86,10 @@ def convert_to_app(srgf_data: dict):
             key=lambda x: x["id"],
         )
     gacha_data = {}
-    gacha_data["info"] = GachaInfo.gen(info["uid"], info["lang"], info["region_time_zone"]).dict()
-    gacha_data["gacha_type"] = GachaType.dict()
+    gacha_data["info"] = GachaInfo.gen(
+        info["uid"], info["lang"], info["region_time_zone"]
+    ).model_dump()
+    gacha_data["gacha_type"] = GachaType.dump_dict()
     gacha_data["gacha_log"] = gacha_log
     return gacha_data
 

@@ -12,3 +12,5 @@ REQUEST_TIMEOUT = 3
 MENU_BANNER_LENGTH = 40
 
 APP_NAME = "StarRailTools"
+
+DATABASE_PATH = os.path.join(ROOT_PATH, "data", "star_rail.db")

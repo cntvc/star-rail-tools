@@ -11,7 +11,7 @@ from pydantic import BaseModel, ValidationError, validator
 from star_rail import __version__ as version
 from star_rail import constants
 from star_rail.i18n import i18n
-from star_rail.module.account import verify_uid_format
+from star_rail.module.mihoyo.account import verify_uid_format
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 from star_rail.utils.time import convert_time_to_timezone, get_format_time
@@ -26,7 +26,7 @@ class GachaType(str, enum.Enum):
     LIGHT_CONE_EVENT_WARP = "12"
 
     @staticmethod
-    def dict():
+    def dump_dict():
         return {
             GachaType.REGULAR_WARP.value: i18n.regular_warp,
             GachaType.STARTER_WARP.value: i18n.starter_warp,
@@ -101,7 +101,7 @@ class GachaItem(BaseGachaItem):
 class GachaData(BaseModel):
     info: GachaInfo
     gacha_log: Dict[str, List[GachaItem]]
-    gacha_type: dict = GachaType.dict()
+    gacha_type: dict = GachaType.dump_dict()
 
     @validator("gacha_log")
     def _gacha_log_key_must_in_gacha_type(cls, _value: dict):
@@ -128,8 +128,8 @@ def verify_gacha_log_url(url):
     except requests.RequestException:
         logger.error(i18n.common.network.error)
         return False
-    res_json = json.loads(res.content.decode("utf-8"))
-
+    res_json = res.json()
+    # TODO 统一为接口错误处理
     if not res_json["data"]:
         if res_json["message"] == "authkey timeout":
             logger.warning(_lang.link_expires)
@@ -174,16 +174,16 @@ class GachaLogFetcher:
 
         self.uid, self.lang = get_uid_and_lang(gacha_log)
         gacha_data = {}
-        gacha_data["info"] = GachaInfo.gen(self.uid, self.lang, self.region_time_zone).dict()
+        gacha_data["info"] = GachaInfo.gen(self.uid, self.lang, self.region_time_zone).model_dump()
         gacha_data["gacha_log"] = gacha_log
-        gacha_data["gacha_type"] = GachaType.dict()
+        gacha_data["gacha_type"] = GachaType.dump_dict()
         self.gacha_data = gacha_data
 
     def _query_by_type_id(self, gacha_type_id: str):
         max_size = "20"
         gacha_list = []
         end_id = "0"
-        type_name = GachaType.dict()[gacha_type_id]
+        type_name = GachaType.dump_dict()[gacha_type_id]
         for page in range(1, 9999):
             msg = _lang.fetch_status.format(type_name, ".." * ((page - 1) % 3 + 1))
             print(msg, end="\r")

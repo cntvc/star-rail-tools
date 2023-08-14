@@ -6,27 +6,17 @@ from pydantic import ValidationError
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
-from star_rail.module.account import Account, account_manager
-from star_rail.module.gacha.gacha_data import (
-    Analyzer,
-    create_xlsx,
-    gacha_data_adapter,
-    merge,
-    parse_gacha_info,
-)
-from star_rail.module.gacha.gacha_log import (
-    GachaData,
-    GachaInfo,
-    GachaLogFetcher,
-    verify_gacha_log_url,
-)
-from star_rail.module.gacha.gacha_url import *  # noqa
-from star_rail.module.gacha.srgf import SrgfData, convert_to_app, convert_to_srgf, is_srgf_data
+from star_rail.module.mihoyo.account import Account, UserManager
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 
+from .gacha_data import Analyzer, create_xlsx, gacha_data_adapter, merge, parse_gacha_info
+from .gacha_log import GachaData, GachaInfo, GachaLogFetcher, verify_gacha_log_url
+from .gacha_url import *  # noqa
+from .srgf import SrgfData, convert_to_app, convert_to_srgf, is_srgf_data
+
 __all__ = [
-    "export_by_clipboard",
+    "export_by_input_url",
     "export_by_webcache",
     "export_by_user_profile",
     "export_to_xlsx",
@@ -38,7 +28,7 @@ __all__ = [
 _lang = i18n.gacha
 
 
-def export_by_clipboard():
+def export_by_input_url():
     url = get_provider(ProviderType.CLIPBOARD)().get_url()
     if not url:
         return
@@ -56,13 +46,13 @@ def export_by_clipboard():
 
     user = Account(uid=uid, gacha_url=url)
     user.save_profile()
-    account_manager.login(user)
+    UserManager().login(user)
 
     _save_and_show_result(user, gacha_log)
 
 
 def export_by_webcache():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -79,7 +69,7 @@ def export_by_webcache():
 
 
 def export_by_user_profile():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -106,12 +96,12 @@ def _query_gacha_log(url: str, user: Account):
     uid = gacha_log_fetcher.uid
 
     if uid != user.uid:
-        logger.warning(_lang.true_user, uid)
+        logger.warning(_lang.diff_user, uid)
         user = Account(uid)
 
     user.gacha_url = url
     user.save_profile()
-    account_manager.login(user)
+    UserManager().login(user)
     return gacha_log_fetcher
 
 
@@ -125,7 +115,7 @@ def _merge_history(user: Account, gacha_data):
     except ValidationError:
         logger.error(_lang.validation_error.history)
         return False, None
-    history_gacha_log = local_gacha_data.dict()
+    history_gacha_log = local_gacha_data.model_dump()
     if history_gacha_log:
         info = GachaInfo.gen(
             gacha_data["info"]["uid"],
@@ -148,7 +138,7 @@ def _save_and_show_result(user: Account, gacha_data):
         create_xlsx(user, gacha_data)
     if settings.FLAG_GENERATE_SRGF:
         srgf_data = convert_to_srgf(gacha_data)
-        functional.save_json(user.srgf_path, srgf_data.dict())
+        functional.save_json(user.srgf_path, srgf_data.model_dump())
 
     print(functional.color_str(_lang.export_finish, "green"))
     functional.pause()
@@ -156,7 +146,7 @@ def _save_and_show_result(user: Account, gacha_data):
 
 
 def show_analytical_result():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -171,7 +161,7 @@ def show_analytical_result():
 
 
 def export_to_xlsx():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -184,7 +174,7 @@ def export_to_xlsx():
 
 
 def export_to_srgf():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -193,12 +183,12 @@ def export_to_srgf():
         return
     gacha_data = functional.load_json(user.gacha_log_json_path)
     gacha_data = gacha_data_adapter(gacha_data)
-    functional.save_json(user.srgf_path, convert_to_srgf(gacha_data).dict())
+    functional.save_json(user.srgf_path, convert_to_srgf(gacha_data).model_dump())
     logger.success(_lang.export_srgf_success)
 
 
 def merge_or_import_data():
-    user = account_manager.account
+    user = UserManager().user
     if None is user:
         print(functional.color_str(_lang.retry, "yellow"))
         return
@@ -209,7 +199,7 @@ def merge_or_import_data():
         if os.path.isfile(os.path.join(merge_path, name)) and name.endswith(".json")
     ]
     if not file_list:
-        logger.info(_lang.import_data.unfind_file)
+        logger.warning(_lang.import_data.unfind_file)
         return
     gacha_datas = []
     for file_name in file_list:
@@ -240,7 +230,7 @@ def merge_or_import_data():
         except ValidationError:
             logger.error(_lang.validation_error.history)
             return
-        gacha_datas.append(history_gacha_data.dict())
+        gacha_datas.append(history_gacha_data.model_dump())
 
     res, info = parse_gacha_info(user, gacha_datas)
     if res is False:

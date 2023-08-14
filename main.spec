@@ -5,43 +5,17 @@ block_cipher = None
 
 exe_name = "StarRailTools"
 
-src_root_dir = "star_rail/"
+src_root_dir = "star_rail"
 
-file_list = [
-    src_root_dir + "__init__.py",
-    src_root_dir + "constants.py",
-    src_root_dir + "main.py",
+def find_py_files(folder_path):
+    py_files = []
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith('.py'):
+                py_files.append(os.path.join(root, file))
+    return py_files
 
-    src_root_dir + "config/__init__.py",
-    src_root_dir + "config/settings.py",
-
-    src_root_dir + "i18n/__init__.py",
-    src_root_dir + "i18n/en_us.py",
-    src_root_dir + "i18n/zh_cn.py",
-
-    src_root_dir + "module/__init__.py",
-    src_root_dir + "module/account.py",
-    src_root_dir + "module/game_client.py",
-    src_root_dir + "module/info.py",
-    src_root_dir + "module/routes.py",
-    src_root_dir + "module/updater.py",
-
-    src_root_dir + "module/gacha/__init__.py",
-    src_root_dir + "module/gacha/gacha_data.py",
-    src_root_dir + "module/gacha/gacha_log.py",
-    src_root_dir + "module/gacha/gacha_url.py",
-    src_root_dir + "module/gacha/srgf.py",
-
-    src_root_dir + "utils/__init__.py",
-    src_root_dir + "utils/clipboard.py",
-    src_root_dir + "utils/functional.py",
-    src_root_dir + "utils/info.py",
-    src_root_dir + "utils/log.py",
-    src_root_dir + "utils/menu.py",
-    src_root_dir + "utils/time.py",
-    src_root_dir + "utils/version.py",
-]
-
+file_list = find_py_files(src_root_dir)
 
 icon_path = "resource/hsr.ico"
 

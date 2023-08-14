@@ -5,12 +5,13 @@ import xlsxwriter
 from prettytable import PrettyTable
 
 from star_rail.i18n import i18n
-from star_rail.module.account import Account
-from star_rail.module.gacha.gacha_log import GachaData, GachaInfo, GachaType
+from star_rail.module.mihoyo.account import Account
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 from star_rail.utils.time import get_format_time, get_timezone
 from star_rail.utils.version import compare_versions
+
+from .gacha_log import GachaData, GachaInfo, GachaType
 
 _lang = i18n.gacha_data
 
@@ -45,9 +46,9 @@ def merge(info: GachaInfo, gacha_data_list: List[dict]):
         gacha_log[gacha_type] = sorted(gacha_log[gacha_type], key=lambda item: item["id"])
 
     gacha_data = {}
-    gacha_data["info"] = info.dict()
+    gacha_data["info"] = info.model_dump()
     gacha_data["gacha_log"] = gacha_log
-    gacha_data["gacha_type"] = GachaType.dict()
+    gacha_data["gacha_type"] = GachaType.dump_dict()
     return gacha_data
 
 
@@ -82,7 +83,7 @@ def create_xlsx(user: Account, gacha_data):
     star_3 = workbook.add_format({"color": "#8e8e8e"})
 
     for gahca_type, gacha_data in gacha_data["gacha_log"].items():
-        gacha_type_name = GachaType.dict()[gahca_type]
+        gacha_type_name = GachaType.dump_dict()[gahca_type]
         logger.debug("写入 {}，共 {} 条数据", gacha_type_name, len(gacha_data))
         worksheet = workbook.add_worksheet(gacha_type_name)
         excel_header = [
@@ -245,7 +246,7 @@ class Analyzer:
                 i18n.table.total.pity_cnt,
             ],
         )
-        for gacha_type, gacha_name in GachaType.dict().items():
+        for gacha_type, gacha_name in GachaType.dump_dict().items():
             data = self.result[gacha_type]
             total_count = data["total_count"]
             rank5_count = len(data["rank5"])
@@ -266,12 +267,13 @@ class Analyzer:
         rank5_detail_table = PrettyTable()
         rank5_detail_table.title = i18n.table.star5.title
         rank5_detail_table.align = "l"
-        for gacha_type, gacha_name in GachaType.dict().items():
+        for gacha_type, gacha_name in GachaType.dump_dict().items():
             rank5_data: list = self.result[gacha_type]["rank5"]
             rank5_detail = [
                 item["name"] + " : " + item["number"] + i18n.table.star5.pull_count
                 for item in rank5_data
             ]
+            # 表格不支持可变长度，因此在末尾追加空字符串使列表长度均达到最大
             rank5_detail += [""] * (max_rank5_count - len(rank5_detail))
             rank5_detail_table.add_column(gacha_name, rank5_detail)
         return rank5_detail_table

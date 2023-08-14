@@ -7,7 +7,7 @@ from star_rail import constants
 from star_rail.utils.functional import color_str, load_json, save_json
 from star_rail.utils.log import logger
 
-__all__ = ["settings", "get_config_status_msg"]
+__all__ = ["settings", "get_config_status_desc"]
 
 _config_path = Path(constants.CONFIG_PATH, "settings.json")
 
@@ -25,12 +25,12 @@ class Settings(BaseModel):
 
     FLAG_UPATED_COMPLETE: bool = False
 
-    # 旧版本文件名，在更新版本后删除该文件
-    OLD_EXE_NAME = ""
+    OLD_EXE_NAME: str = ""
+    """旧版本程序文件名，用于在更新版本后删除该文件"""
 
-    DEFAULT_UID = ""
+    DEFAULT_UID: str = ""
 
-    LANGUAGE = ""
+    LANGUAGE: str = ""
 
     class Config:
         extra = "forbid"
@@ -52,7 +52,7 @@ class Settings(BaseModel):
         self.update(local_config)
 
     def save(self):
-        save_json(_config_path, self.dict())
+        save_json(_config_path, self.model_dump())
 
     def update(self, config_data: dict):
         for k, v in config_data.items():
@@ -77,7 +77,7 @@ class Settings(BaseModel):
 settings = Settings()
 
 
-def get_config_status_msg(key):
+def get_config_status_desc(key):
     assert hasattr(settings, key)
     from star_rail.i18n import i18n
 

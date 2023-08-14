@@ -22,7 +22,7 @@ from star_rail.utils.functional import color_str, input_yes_or_no, pause
 from star_rail.utils.log import logger
 from star_rail.utils.version import compare_versions
 
-__all__ = ["upgrade", "select_updater_source"]
+__all__ = ["upgrade", "select_updater_source", "get_update_source_status"]
 
 _lang = i18n.updater
 
@@ -185,7 +185,7 @@ def select_updater_source(source: UpdateSource):
     _updater = _update_source[source.name]
     settings.FLAG_UPDATE_SOURCE = source.name
     settings.save()
-    logger.info(_lang.select_update_source.format(source.name))
+    logger.info(_lang.select_update_source, source.name)
 
 
 def upgrade():

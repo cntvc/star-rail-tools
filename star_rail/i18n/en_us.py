@@ -2,12 +2,14 @@
 en_us_lang_pack = {
     # config
     "config.settings.current_status": "Current Status",
+    # core
+    "core.db_client.param_type_error": "Parameter type error, type: {}",
     # i18n
     "i18n.update_lang.tips": "The language changes will take effect after restarting. Do you want to continue? y/N",
     "i18n.update_lang.invalid_input": "Please enter a valid option. Only 'y' or 'N' are allowed.",
     # module/gacha
     "gacha.retry": "Please set up the account and retry.",
-    "gacha.true_user": "The game is currently logged in with a different account. Exporting data for account {}.",
+    "gacha.diff_user": "The game is currently logged in with a different account. Exporting data for account {}.",
     "gacha.export_finish": "Data export completed. Press any key to view the gacha report.",
     "gacha.file_not_found": "No data files found for account {}.",
     "gacha.export_xlsx_success": "Export to Excel successful.",
@@ -18,7 +20,7 @@ en_us_lang_pack = {
     "gacha.import_data.success": "Successfully imported gacha data",
     "gacha.import_data.unfind_file": "No mergeable data file found, please place the file in the merge directory and try again",
     "gacha.import_data.info_inconsistent": "Inconsistent information for {}, unable to merge",
-    # module/gacha_data
+    # module/gacha/gacha_data
     "gacha_data.invalid_gacha_data": "Invalid gacha data.",
     "gacha_data.analyze_time": "Analysis Time:",
     "gacha_data.tips": 'Note: The average count does not include "Pity Count"',
@@ -31,10 +33,16 @@ en_us_lang_pack = {
     "gacha_log.fetch_finish": "Finished querying {}. Total data: {}",
     # module/gacha/gacha_url
     "gacha_url.unfind_link": "Failed to get gacha link.",
-    # module/account
+    # mihoyo/account
+    "account.param_type_error": "Parameter type error, type: {}",
+    "account.login_account": "Account set: {}",
+    "account.invalid_cookie": "invalid cookie",
+    "account.add_success": "Account added successfully, UID: {}",
+    "account.update_cookie_success": "Account cookie updated successfully, UID: {}",
+    "account.menu.add_by_game_uid": "Enter Game UID",
+    "account.menu.add_by_cookie": "Add account via cookie",
     "account.account_uid": "Current account: {}",
     "account.without_account": "No account set currently.",
-    # module/account-menu
     "account.menu.creat_user": "Create a new user",
     "account.menu.input_uid": "Please enter the user UID. Enter 0 to cancel creating a new user.\n",
     "account.menu.invalid_uid_format": "Please enter a valid UID format.",
@@ -63,27 +71,32 @@ en_us_lang_pack = {
     "updater.get_changelog_failed": "Failed to retrieve the changelog.",
     "updater.select_update_source": "Update source has been changed to {}",
     "updater.update_source_status": "Current update source is",
-    # utils/clipboard
-    "utils.clipboard.read_data_error": "An error occurred while reading from the clipboard.",
     # utils/menu
     "utils.menu.return_to_pre_menu": "0. Return to the previous menu",
     "utils.menu.exit": "0. Exit",
     "utils.menu.input_number": "Please enter a number to select a menu option:",
     "utils.menu.invalid_input": "This is an invalid input. Please try again.",
+    # client
+    "client.no_account": "No account found",
+    "client.empty_cookie": "No cookies found, please set cookies and retry",
     # main-menu
     "main.menu.todo": "Todo",
     "main.menu.main_menu": "Main Menu",
     # main-menu-account
     "main.menu.account_setting": "Account Settings",
     # main-menu-gacha_log
-    "main.menu.gacha_log.export": "Export Gacha Data",
-    "main.menu.gacha_log.by_webcache": "Export using game web cache",
-    "main.menu.gacha_log.by_clipboard": "Export using clipboard",
-    "main.menu.gacha_log.by_appcache": "Export using software cache",
-    "main.menu.gacha_log.to_xlsx": "Export to Excel spreadsheet",
-    "main.menu.gacha_log.to_srgf": "Export to SRGF universal format",
+    "main.menu.gacha_log.home": "Gacha Record",
+    "main.menu.gacha_log.fetch_by_webcache": "Fetch Using Game Cache",
+    "main.menu.gacha_log.fetch_by_clipboard": "Fetch Using Clipboard",
+    "main.menu.gacha_log.fetch_by_appcache": "Fetch Using App Cache",
+    "main.menu.gacha_log.to_xlsx": "Export to Excel Spreadsheet File",
+    "main.menu.gacha_log.to_srgf": "Export to SRGF Universal Format File",
     "main.menu.merge_gacha_log": "Import or merge Data",
     "main.menu.show_analyze_result": "View Gacha Analysis Report",
+    # main-menu-trailblaze_calendar
+    "main.menu.trailblaze_calendar.home": "Trailblaze Calendar",
+    "main.menu.trailblaze_calendar.fetch": "Fetch Trailblaze Calendar",
+    "main.menu.trailblaze_calendar.show_history": "View History",
     # main-menu-setting
     "main.menu.settings.home": "Software Settings",
     "main.menu.settings.check_update": "Auto Update",
@@ -104,6 +117,11 @@ en_us_lang_pack = {
     # 5 星详情表
     "table.star5.title": "5-Star Details",
     "table.star5.pull_count": "th Pull",
+    # 开拓月历
+    "table.trailblaze_calendar.title": "Trailblaze Calendar",
+    "table.trailblaze_calendar.month": "Date",
+    "table.trailblaze_calendar.hcoin": "Stellars",
+    "table.trailblaze_calendar.rails_pass": "Passes",
     # Execl
     "execl.header.time": "Time",
     "execl.header.name": "Name",

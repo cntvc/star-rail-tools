@@ -9,6 +9,8 @@ from star_rail.utils.functional import clear_screen, input_int, pause
 
 _lang = i18n.utils.menu
 
+__all__ = ["MenuItem", "Menu"]
+
 
 class MenuItem(BaseModel):
     title: str

@@ -5,7 +5,8 @@ import re
 from pathlib import Path
 
 from star_rail.i18n import i18n
-from star_rail.module.account import Account, GameBizType
+from star_rail.module.mihoyo.account import Account
+from star_rail.module.mihoyo.types import GameBiz
 from star_rail.utils.log import logger
 
 _lang = i18n.game_client
@@ -19,9 +20,9 @@ class GameLogPath(str, enum.Enum):
 
     @staticmethod
     def get_by_user(user: Account):
-        if user.game_biz == GameBizType.CN.value:
+        if user.game_biz == GameBiz.CN.value:
             return Path(MHY_LOG_ROOT_PATH, GameLogPath.CN.value, "Player.log")
-        elif user.game_biz == GameBizType.GLOBAL.value:
+        elif user.game_biz == GameBiz.GLOBAL.value:
             return Path(MHY_LOG_ROOT_PATH, GameLogPath.GLOBAL.value, "Player.log")
 
 
