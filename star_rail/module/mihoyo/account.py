@@ -162,7 +162,7 @@ class UserManager:
         if not user.reload_profile():
             # 如果库里没有该账户，则创建
             user.save_profile()
-        logger.debug("添加账号:{}", uid)
+        logger.success(_lang.add_success, user.uid)
 
     @exec_catch()
     def create_by_cookie(self):
@@ -184,6 +184,13 @@ class UserManager:
             user.reload_profile()
             user.cookie = cookie
             user.save_profile()
+
+            # 如果与当前登陆的账号一致，直接更新数据
+            if self.user is not None and self.user.uid == user.uid:
+                self.user = user
+                logger.success(_lang.update_cookie_success, user.uid)
+            else:
+                logger.success(_lang.add_success, user.uid)
 
     def delete(self, user: Account):
         """# TODO 删除user的所有表数据"""

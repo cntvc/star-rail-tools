@@ -37,6 +37,8 @@ en_us_lang_pack = {
     "account.param_type_error": "Parameter type error, type: {}",
     "account.login_account": "Account set: {}",
     "account.invalid_cookie": "invalid cookie",
+    "account.add_success": "Account added successfully, UID: {}",
+    "account.update_cookie_success": "Account cookie updated successfully, UID: {}",
     "account.menu.add_by_game_uid": "Enter Game UID",
     "account.menu.add_by_cookie": "Add account via cookie",
     "account.account_uid": "Current account: {}",

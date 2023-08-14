@@ -37,6 +37,8 @@ zh_cn_lang_pack = {
     "account.param_type_error": "参数类型错误，type: {}",
     "account.login_account": "已设置账户：{}",
     "account.invalid_cookie": "未识别到有效的 Cookie 数据",
+    "account.add_success": "添加账户成功, UID: {}",
+    "account.update_cookie_success": "更新账户 Cookie 成功, UID: {}",
     "account.menu.add_by_game_uid": "输入游戏 UID",
     "account.menu.add_by_cookie": "通过 Cookie 添加账号",
     "account.account_uid": "当前账号 {}",
