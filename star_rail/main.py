@@ -4,20 +4,11 @@ import time
 
 from star_rail import __version__ as version
 from star_rail.client import *
+from star_rail.client import client
 from star_rail.config import get_config_status_desc, settings
 from star_rail.core import init_all_table
 from star_rail.core.db_client import DBClient
 from star_rail.i18n import LanguageType, i18n, set_locales
-from star_rail.module.gacha import (
-    create_merge_dir,
-    export_by_input_url,
-    export_by_user_profile,
-    export_by_webcache,
-    export_to_srgf,
-    export_to_xlsx,
-    merge_or_import_data,
-    show_analytical_result,
-)
 from star_rail.module.info import show_about
 from star_rail.module.mihoyo.account import UserManager
 from star_rail.module.updater import (
@@ -47,29 +38,19 @@ def init_menu():
                 options=[
                     MenuItem(
                         title=_lang_menu.gacha_log.fetch_by_webcache,
-                        options=export_by_webcache,
+                        options=client.refresh_record_by_game_cache,
                     ),
                     MenuItem(
-                        # TODO 修改函数名称
                         title=_lang_menu.gacha_log.fetch_by_clipboard,
-                        options=export_by_input_url,
+                        options=client.refresh_record_by_clipboard,
                     ),
                     MenuItem(
                         title=_lang_menu.gacha_log.fetch_by_appcache,
-                        options=export_by_user_profile,
+                        options=client.refresh_record_by_user_cache,
                     ),
-                    MenuItem(
-                        title=_lang_menu.gacha_log.to_xlsx,
-                        options=export_to_xlsx,
-                    ),
-                    MenuItem(
-                        title=_lang_menu.gacha_log.to_srgf,
-                        options=export_to_srgf,
-                    ),
-                    MenuItem(title=_lang_menu.merge_gacha_log, options=merge_or_import_data),
                     MenuItem(
                         title=_lang_menu.show_analyze_result,
-                        options=lambda: show_analytical_result(),
+                        options=client.show_analyze_result,
                     ),
                 ],
                 tips=lambda: UserManager().get_status_desc(),
@@ -130,39 +111,6 @@ def init_menu():
                             ),
                         ],
                     ),
-                    MenuItem(
-                        title=_lang_menu.settings.export.to_xlsx,
-                        options=[
-                            MenuItem(
-                                title=i18n.common.open,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_XLSX", True),
-                            ),
-                            MenuItem(
-                                title=i18n.common.close,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_XLSX", False),
-                            ),
-                        ],
-                        tips=lambda: get_config_status_desc("FLAG_GENERATE_XLSX"),
-                    ),
-                    MenuItem(
-                        title=_lang_menu.settings.export.srgf,
-                        options=[
-                            MenuItem(
-                                title=i18n.common.open,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", True),
-                            ),
-                            MenuItem(
-                                title=i18n.common.close,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", False),
-                            ),
-                        ],
-                        tips=lambda: get_config_status_desc("FLAG_GENERATE_SRGF"),
-                    ),
-                    # TODO
-                    MenuItem(
-                        title="统计显示新手跃迁卡池",
-                        options=lambda: print("待实现"),
-                    ),
                 ],
             ),
             MenuItem(title=_lang_menu.about, options=show_about),
@@ -190,7 +138,7 @@ def run():
         platform.platform(),
         settings.model_dump(),
     )
-    create_merge_dir()
+    # create_merge_dir()
     if settings.FLAG_CHECK_UPDATE:
         upgrade()
     init_all_table(DBClient())

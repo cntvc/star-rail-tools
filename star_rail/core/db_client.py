@@ -165,6 +165,8 @@ def init_all_table(db: DBClient):
 
 def convert(query_res: typing.Union[typing.List, sqlite3.Row], item_type: typing.Type[DBModel]):
     """查询结果转换"""
+    if not query_res:
+        return None
     if isinstance(query_res, typing.List):
         return _convert_list(query_res, item_type)
     elif isinstance(query_res, sqlite3.Row):
@@ -174,17 +176,10 @@ def convert(query_res: typing.Union[typing.List, sqlite3.Row], item_type: typing
 
 
 def _convert_list(query_res: typing.List, item_type: typing.Type[DBModel]):
-    if not query_res:
-        return []
-    res = []
-    for item in query_res:
-        res.append(_convert_item(item, item_type))
-    return res
+    return [_convert_item(item, item_type) for item in query_res]
 
 
 def _convert_item(query_res: sqlite3.Row, item_type: typing.Type[DBModel]):
-    if not query_res:
-        return None
     d = {}
     for k in query_res.keys():
         d[k] = query_res[k]

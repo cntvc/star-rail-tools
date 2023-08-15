@@ -34,8 +34,6 @@ class CookieMapper(DBModel):
         )
         with DBClient() as db:
             row = db.select(sql).fetchone()
-        if not row:
-            return
         return convert(row, CookieMapper)
 
 
@@ -59,8 +57,6 @@ class UserMapper(DBModel):
         )
         with DBClient() as db:
             row = db.select(sql).fetchone()
-        if not row:
-            return
         return convert(row, UserMapper)
 
     @staticmethod
@@ -69,6 +65,4 @@ class UserMapper(DBModel):
         sql = """select * from user;"""
         with DBClient() as db:
             row = db.select(sql).fetchall()
-        if not row:
-            return []
         return convert(row, UserMapper)

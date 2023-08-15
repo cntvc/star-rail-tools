@@ -102,8 +102,10 @@ class Account(BaseModel):
 
         local_user = converter.user_mapper_to_user(user_mapper)
         user_ck = CookieMapper.query_cookie(self.uid)
-        local_cookie = converter.cookie_mapper_to_cookie(user_ck)
-        local_user.cookie = local_cookie
+        if user_ck:
+            # TODO cookie为空时更新逻辑
+            local_cookie = converter.cookie_mapper_to_cookie(user_ck)
+            local_user.cookie = local_cookie
 
         for k in local_user.model_fields_set:
             if k not in self._serialize_include_keys:
@@ -111,8 +113,6 @@ class Account(BaseModel):
             v = getattr(local_user, k)
             setattr(self, k, v)
 
-        self._init_game_biz()
-        self._init_datafile_path()
         return True
 
     def model_dump(self):

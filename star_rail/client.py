@@ -1,6 +1,5 @@
 from star_rail.i18n import i18n
-from star_rail.module.mihoyo.account import UserManager
-from star_rail.module.month.client import MonthClient
+from star_rail.module import GachaClient, MonthClient, UserManager
 from star_rail.module.month.mapper import MonthInfoMapper
 from star_rail.utils import functional
 
@@ -10,6 +9,11 @@ _lang = i18n.client
 ##############################################################
 # 跃迁记录
 ##############################################################
+
+
+class HSRClient:
+    def __init__(self) -> None:
+        pass
 
 
 def refresh_month_info():
@@ -32,3 +36,6 @@ def show_month_info():
         return
     month_client = MonthClient(user)
     month_client.visualization(MonthInfoMapper.query(user.uid, None, 6))
+
+
+client = GachaClient()

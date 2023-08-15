@@ -6,8 +6,7 @@ from star_rail.core import DBClient
 from star_rail.i18n import i18n
 from star_rail.utils import functional
 
-from ..mihoyo.account import Account
-from ..mihoyo.api_client import request
+from ..mihoyo import Account, request
 from ..mihoyo.routes import MONTH_INFO_URL
 from .converter import info_to_mapper, reward_source_to_mapper
 from .mapper import MonthInfoMapper

@@ -30,6 +30,14 @@ class DBConnectionError(HsrException):
     msg = "数据库连接错误"
 
 
+class DataError(HsrException):
+    msg = "数据错误"
+
+
+class FileNotFoundError(HsrException):
+    pass
+
+
 ############################################################
 # Api Exception
 ############################################################
@@ -72,19 +80,21 @@ class InvalidCookieError(ApiException):
 class AuthkeyExceptionError(ApiException):
     """"""
 
+    msg = "链接错误"
+
 
 class InvalidAuthkeyError(AuthkeyExceptionError):
     """Authkey is not valid."""
 
     retcode = -100
-    msg = "Authkey is not valid."
+    msg = "链接无效"
 
 
 class AuthkeyTimeoutError(AuthkeyExceptionError):
     """Authkey has timed out."""
 
     retcode = -101
-    msg = "Authkey has timed out."
+    msg = "链接无效"
 
 
 _ERRORS: typing.Dict[int, typing.Type[HsrException]] = {
@@ -123,7 +133,7 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
 def exec_catch(
     exec_type: typing.Union[HsrException, typing.Tuple[HsrException, ...]] = HsrException
 ):
-    """出现异常时打印 msg 并使函数返回 None"""
+    """捕获异常打印 msg 并返回 None"""
 
     def decorator(func):
         @functools.wraps(func)
