@@ -4,11 +4,11 @@ import time
 
 from star_rail import __version__ as version
 from star_rail.client import *
-from star_rail.client import client
 from star_rail.config import get_config_status_desc, settings
 from star_rail.core import init_all_table
 from star_rail.core.db_client import DBClient
 from star_rail.i18n import LanguageType, i18n, set_locales
+from star_rail.module import GachaClient
 from star_rail.module.info import show_about
 from star_rail.module.mihoyo.account import UserManager
 from star_rail.module.updater import (
@@ -24,7 +24,7 @@ from star_rail.utils.time import get_format_time
 _lang_menu = i18n.main.menu
 
 
-def init_menu():
+def init_menu(client: GachaClient):
     main_menu = MenuItem(
         title=_lang_menu.main_menu,
         options=[
@@ -48,6 +48,15 @@ def init_menu():
                         title=_lang_menu.gacha_log.fetch_by_appcache,
                         options=client.refresh_record_by_user_cache,
                     ),
+                    MenuItem(
+                        title=_lang_menu.gacha_log.to_xlsx,
+                        options=client.export_record_to_xlsx,
+                    ),
+                    MenuItem(
+                        title=_lang_menu.gacha_log.to_srgf,
+                        options=client.export_record_to_srgf,
+                    ),
+                    MenuItem(title=_lang_menu.merge_gacha_log, options=client.import_gacha_record),
                     MenuItem(
                         title=_lang_menu.show_analyze_result,
                         options=client.show_analyze_result,
@@ -142,7 +151,8 @@ def run():
     if settings.FLAG_CHECK_UPDATE:
         upgrade()
     init_all_table(DBClient())
-    menu = init_menu()
+    client = GachaClient()
+    menu = init_menu(client)
     menu.run()
 
 

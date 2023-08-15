@@ -4,10 +4,11 @@ import typing
 
 from pydantic import BaseModel
 
-from star_rail.constants import DATABASE_PATH
+from star_rail.constants import DATA_PATH
 from star_rail.exceptions import DBConnectionError, ParamTypeError
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton
+from star_rail.utils.log import logger
 
 from .base_model import DBModel
 
@@ -46,11 +47,15 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
     return sql_fields
 
 
+_default_db_path = os.path.join(DATA_PATH, "star_rail.db")
+
+
 @Singleton()
 class DBClient:
-    def __init__(self, db_path: str = DATABASE_PATH) -> None:
+    def __init__(self, db_path: str = _default_db_path) -> None:
         self._db_path = db_path
         os.makedirs(os.path.split(db_path)[0], exist_ok=True)
+        logger.debug("数据库文件路径{}", self._db_path)
         self._cache: typing.Dict[object, SqlFields] = dict()
         try:
             self._conn = sqlite3.connect(self._db_path)

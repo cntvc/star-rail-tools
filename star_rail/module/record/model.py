@@ -1,10 +1,11 @@
 import time
 import typing
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from star_rail import __version__ as version
 from star_rail import constants
+from star_rail.utils.version import get_version
 
 
 class BaseGachaItem(BaseModel):
@@ -58,8 +59,14 @@ class GachaRecordInfo(BaseModel):
 # SRGF
 ########################################################################
 
+SRGF_VERSION = (1, 0)
 
-class SrgfInfo(BaseModel):
+
+def get_srgf_version(srgf_version):
+    return "v" + get_version(srgf_version)
+
+
+class SRGFInfo(BaseModel):
     """SRGF v1.0 info"""
 
     uid: str
@@ -69,7 +76,7 @@ class SrgfInfo(BaseModel):
     export_time: str = "-"
     export_app: str = "-"
     export_app_version: str = "-"
-    srgf_version: str
+    srgf_version: str = Field(default=get_srgf_version(SRGF_VERSION))
 
     from star_rail.module.mihoyo.account import verify_uid_format
 
@@ -77,36 +84,33 @@ class SrgfInfo(BaseModel):
 
     @classmethod
     def gen(cls, uid: str, lang: str, region_time_zone: int):
-        from star_rail.module.record.srgf import SRGF_VERSION, get_srgf_version
         from star_rail.utils.time import convert_time_to_timezone, get_format_time
 
         local_std_time = time.localtime(time.time())
         origin_time = convert_time_to_timezone(local_std_time, region_time_zone)
 
-        export_app = constants.APP_NAME
         export_app_version = version
-        return SrgfInfo(
+        return SRGFInfo(
             uid=uid,
             lang=lang,
             region_time_zone=region_time_zone,
             export_timestamp=int(time.mktime(origin_time)),
             export_time=get_format_time(time.mktime(origin_time)),
-            export_app=export_app,
+            export_app=constants.APP_NAME,
             export_app_version=export_app_version,
-            srgf_version=get_srgf_version(SRGF_VERSION),
         )
 
 
-class SrgfGachaItem(BaseGachaItem):
+class SRGFRecordItem(BaseGachaItem):
     count: str = "1"
     name: str = "-"
     rank_type: str = "-"
     item_type: str = "-"
 
 
-class SrgfData(BaseModel):
-    info: SrgfInfo
-    list: typing.List[SrgfGachaItem]
+class SRGFData(BaseModel):
+    info: SRGFInfo
+    list: typing.List[SRGFRecordItem]
 
 
 ########################################################################

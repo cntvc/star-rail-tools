@@ -1,10 +1,14 @@
 import bisect
+import os
 import time
 import typing
 
+import pydantic
+import xlsxwriter
 import yarl
 from prettytable import PrettyTable
 
+from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.core.db_client import DBClient
 from star_rail.i18n import i18n
@@ -23,7 +27,9 @@ from .model import (
     GachaData,
     GachaItem,
     GachaRecordInfo,
+    SRGFData,
 )
+from .srgf import convert_to_gacha_record, convert_to_srgf
 from .types import GACHA_TYPE_DICT, GACHA_TYPE_IDS, GachaType
 
 __all__ = ["GachaClient"]
@@ -349,11 +355,160 @@ class GachaClient:
 
     def import_gacha_record(self):
         """
-        导入SRGF格式
+        导入跃迁记录
         """
+        user = self.user_manager.user
+        if user is None:
+            logger.warning("设置账户后重试")
+            return
+
+        import_data_path = constants.IMPORT_DATA_PATH
+        file_list = [
+            name
+            for name in os.listdir(import_data_path)
+            if os.path.isfile(os.path.join(import_data_path, name)) and name.endswith(".json")
+        ]
+        for file_name in file_list:
+            file_path = os.path.join(import_data_path, file_name)
+            data = functional.load_json(file_path)
+            try:
+                srgf_data = SRGFData(**data)
+            except pydantic.ValidationError:
+                logger.warning("文件 {} 不是标准的 SRGF 格式，本次导入将忽略该文件", file_path)
+                continue
+            if srgf_data.info.uid != user.uid:
+                logger.warning("文件 {} 中数据不属于当前账户，本次导入将忽略该文件", file_path)
+                continue
+            record_info, item_list = convert_to_gacha_record(srgf_data)
+            GachaRecordClient.save_record_info(record_info)
+            GachaRecordClient.save_record_gacha_item(item_list)
+            logger.success("成功导入文件 {}", file_path)
+        analyzer = Analyzer(user, record_info, GachaRecordClient.query_all(user.uid))
+        analyzer.save_result()
+
+    def export_record_to_xlsx(self):
+        user = self.user_manager.user
+        if user is None:
+            logger.warning("设置账户后重试")
+            return
+
+        record_info = GachaRecordClient.query_gacha_record_info(user.uid)
+        if not record_info:
+            logger.warning("无数据可导出")
+            return
+        gacha_data = GachaRecordClient.query_all(user.uid)
+        _create_xlsx(user, gacha_data)
+        logger.success("导出成功，文件位于 {} ", user.gacha_log_xlsx_path.as_posix())
 
     def export_record_to_srgf(self):
-        pass
+        user = self.user_manager.user
+        if user is None:
+            logger.warning("设置账户后重试")
+            return
+        record_info = GachaRecordClient.query_gacha_record_info(user.uid)
+        if not record_info:
+            logger.warning("无数据可导出")
+            return
+        gacha_data = GachaRecordClient.query_all(user.uid)
+        srgf_data = convert_to_srgf(record_info, gacha_data)
+        functional.save_json(user.srgf_path, srgf_data.model_dump())
+        logger.success("导出成功")
+        print("文件位于 {}".format(user.srgf_path.as_posix()))
 
-    def export_record_to_execl(self):
-        pass
+
+def _create_xlsx(user: Account, data: typing.List[GachaItem]):
+    logger.debug("创建工作簿: " + user.gacha_log_xlsx_path.as_posix())
+    workbook = xlsxwriter.Workbook(user.gacha_log_xlsx_path.as_posix())
+
+    # 初始化单元格样式
+    content_css = workbook.add_format(
+        {
+            "align": "left",
+            "font_name": "微软雅黑",
+            "border_color": "#c4c2bf",
+            "border": 1,
+        }
+    )
+    title_css = workbook.add_format(
+        {
+            "align": "left",
+            "font_name": "微软雅黑",
+            "color": "#757575",
+            "border_color": "#c4c2bf",
+            "border": 1,
+            "bold": True,
+        }
+    )
+
+    star_5 = workbook.add_format({"color": "#bd6932", "bold": True})
+    star_4 = workbook.add_format({"color": "#a256e1", "bold": True})
+    star_3 = workbook.add_format({"color": "#8e8e8e"})
+
+    for gacha_type in GACHA_TYPE_IDS:
+        gacha_data = [item for item in data if item.gacha_type == gacha_type]
+        gacha_type_name = GACHA_TYPE_DICT[gacha_type]
+
+        worksheet = workbook.add_worksheet(gacha_type_name)
+        excel_header = [
+            i18n.execl.header.time,
+            i18n.execl.header.name,
+            i18n.execl.header.type,
+            i18n.execl.header.level,
+            i18n.execl.header.gacha_type,
+            i18n.execl.header.total_count,
+            i18n.execl.header.pity_count,
+        ]
+        worksheet.set_column("A:A", 22)
+        worksheet.set_column("B:B", 14)
+        worksheet.set_column("E:E", 14)
+        worksheet.write_row(0, 0, excel_header, title_css)
+        worksheet.freeze_panes(1, 0)  # 固定标题行
+        counter = 0
+        pity_counter = 0
+        for item in gacha_data:
+            counter = counter + 1
+            pity_counter = pity_counter + 1
+            excel_data = [
+                item.time,
+                item.name,
+                item.item_type,
+                item.rank_type,
+                gacha_type_name,
+                counter,
+                pity_counter,
+            ]
+            # 这里转换为int类型，在后面修改单元格样式时使用
+            excel_data[3] = int(excel_data[3])
+            worksheet.write_row(counter, 0, excel_data, content_css)
+            if excel_data[3] == 5:
+                pity_counter = 0
+
+        first_row = 1  # 不包含表头第一行 (zero indexed)
+        first_col = 0  # 第一列
+        last_row = len(gacha_data)  # 最后一行
+        last_col = len(excel_header) - 1  # 最后一列，zero indexed 所以要减 1
+        worksheet.conditional_format(
+            first_row,
+            first_col,
+            last_row,
+            last_col,
+            {"type": "formula", "criteria": "=$D2=5", "format": star_5},
+        )
+        worksheet.conditional_format(
+            first_row,
+            first_col,
+            last_row,
+            last_col,
+            {"type": "formula", "criteria": "=$D2=4", "format": star_4},
+        )
+        worksheet.conditional_format(
+            first_row,
+            first_col,
+            last_row,
+            last_col,
+            {"type": "formula", "criteria": "=$D2=3", "format": star_3},
+        )
+        logger.debug("写入 {}，共 {} 条数据", gacha_type_name, len(gacha_data))
+
+    workbook.close()
+    logger.debug("工作簿写入完成")

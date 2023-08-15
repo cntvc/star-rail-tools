@@ -48,7 +48,6 @@ class Account(BaseModel):
     region: str = ""
     game_biz: str = ""
 
-    gacha_log_json_path: Path = ""  # TODO 移除
     gacha_log_xlsx_path: Path = ""
     gacha_log_analyze_path: Path = ""
     srgf_path: Path = ""
@@ -67,7 +66,6 @@ class Account(BaseModel):
         self._init_region()
 
     def _init_datafile_path(self):
-        self.gacha_log_json_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_{self.uid}.json")
         self.gacha_log_xlsx_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_{self.uid}.xlsx")
         self.gacha_log_analyze_path = Path(constants.TEMP_PATH, f"GachaAnalyze_{self.uid}.json")
         self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_SRGF_{self.uid}.json")

@@ -1,5 +1,5 @@
 from star_rail.i18n import i18n
-from star_rail.module import GachaClient, MonthClient, UserManager
+from star_rail.module import MonthClient, UserManager
 from star_rail.module.month.mapper import MonthInfoMapper
 from star_rail.utils import functional
 
@@ -36,6 +36,3 @@ def show_month_info():
         return
     month_client = MonthClient(user)
     month_client.visualization(MonthInfoMapper.query(user.uid, None, 6))
-
-
-client = GachaClient()

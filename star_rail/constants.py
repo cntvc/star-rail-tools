@@ -18,8 +18,9 @@ CONFIG_PATH = os.path.join(APPDATA_PATH, "config")
 
 LOG_PATH = os.path.join(APPDATA_PATH, "log")
 
-DATABASE_PATH = os.path.join(APPDATA_PATH, "data", "star_rail.db")
+DATA_PATH = os.path.join(APPDATA_PATH, "data")
 
+IMPORT_DATA_PATH = os.path.join(ROOT_PATH, "import")
 
 ####################################################################
 # constants
@@ -28,3 +29,11 @@ DATABASE_PATH = os.path.join(APPDATA_PATH, "data", "star_rail.db")
 REQUEST_TIMEOUT = 3
 
 MENU_BANNER_LENGTH = 40
+
+####################################################################
+# init
+####################################################################
+
+for path_var in [name for name in dir() if name.endswith("_PATH")]:
+    path = globals()[path_var]
+    os.makedirs(path, exist_ok=True)
