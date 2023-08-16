@@ -3,8 +3,7 @@ import traceback
 import typing
 
 from star_rail.i18n import i18n
-
-from .utils.log import logger
+from star_rail.utils.log import logger
 
 
 class HsrException(Exception):
