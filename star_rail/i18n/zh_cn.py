@@ -21,6 +21,8 @@ zh_cn_lang_pack = {
     "account.menu.invalid_uid_format": "请输入正确格式的UID",
     # module/record/client
     "record.client.fetch_record": "正在查询记录",
+    "record.client.fetch_msg": "\033[K正在查询 {} 卡池数据 {}",
+    "record.client.fetch_finish": "\033[K查询 {} 结束, 共 {} 条数据",
     "record.client.analyze_update_time": "统计更新时间: ",
     "record.client.invalid_gacha_url": "未获取到有效抽卡链接",
     "record.client.record_info_data_error": "账户存储数据出现错误, record_info_uid: {}",

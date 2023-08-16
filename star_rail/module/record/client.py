@@ -76,12 +76,13 @@ class GachaRecordClient:
 
     def _fetch_by_type_id(self, gacha_type_id: str):
         gacha_list: typing.List[ApiGachaItem] = []
-
+        gacha_name = GACHA_TYPE_DICT[gacha_type_id]
         page = 1
         max_size = 20
         end_id = 0
-
+        cnt = 1
         while True:
+            print(_lang.fetch_msg.format(gacha_name, ".." * (cnt % 3 + 1)), end="\r")
             data = request(
                 "get",
                 GachaRecordClient._update_url_param(
@@ -96,6 +97,9 @@ class GachaRecordClient:
             gacha_list.extend(gacha_data.list)
             # 防止请求过快
             time.sleep(0.3)
+            cnt = cnt + 1
+        print(_lang.fetch_finish.format(gacha_name, len(gacha_list)))
+        logger.debug("fetch {} finish, total count : {}", gacha_name, len(gacha_list))
         return gacha_list
 
     @classmethod
