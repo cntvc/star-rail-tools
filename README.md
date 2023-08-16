@@ -8,7 +8,7 @@
 [![license](https://img.shields.io/github/license/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/blob/main/LICENSE)
 
 
-崩坏：星穹铁道小工具，可导出跃迁记录，目前仅支持 Windows 系统。
+崩坏：星穹铁道小工具，可导出跃迁记录和开拓月历
 
 <p>
   <img src="docs/image/analyze_result.png" alt="analyze_result" height = 80% width = 80% align="middle">
@@ -25,7 +25,7 @@
 ### 0. 添加账号
 
 1. 添加账户 Cookie (也可以通过该途径手动更新账号 Cookie)
-首先登陆[米哈游通行证](https://user.mihoyo.com/)页面，打开F12，选择控制台，粘贴以下代码，弹出的对话框复制 cookie
+首先登陆[米哈游通行证]()页面，打开F12，选择控制台，粘贴以下代码，弹出的对话框复制 cookie
 ```javascript
 javascript:(function(){prompt(document.domain,document.cookie)})();
 ```
@@ -57,11 +57,11 @@ javascript:(function(){prompt(document.domain,document.cookie)})();
 3. 切换到软件，依次选择菜单 "导出抽卡数据" -> "使用游戏缓存导出"
 4. 完成导出后，根据提示查看抽卡报告
 
-#### (2) 导入或合并抽卡数据
+#### (2) 导入抽卡数据
 
 1. 设置账户：输入或选择星穹铁道账号 UID
-2. 将需要导入的数据放入 `import` 文件夹内，可一次放入多个文件。支持 [SRGF][SRGF] 格式的 json 文件
-3. 切换到软件，选择菜单 **导入或合并数据**
+2. 将需要导入的数据放入 "import" 文件夹内，可一次放入多个文件。支持 [SRGF][SRGF] 格式的 json 文件
+3. 切换到软件，选择菜单 **导入跃迁记录**
 
 ### 2. 开拓月历
 
