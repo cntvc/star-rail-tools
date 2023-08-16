@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, model_validator
 
+from star_rail.utils.log import logger
+
 from .api_client import WEB_HEADER, request
 from .routes import COOKIE_TOKEN_BY_STOKEN_URL, STOKEN_BY_LOGINTICKET_URL
 
@@ -41,6 +43,7 @@ class Cookie(BaseModel):
         self.account_id = mihoyo_uid
         return self
 
+    # TODO 校验stoken有效性
     # TODO stoken刷新其他cookie的接口
     @staticmethod
     def parse(cookie_str: str):
@@ -48,10 +51,12 @@ class Cookie(BaseModel):
 
         if not cookie_dict:
             return None
+
         # 从网页版获取的 cookie 部分参数带有 _v2 后缀
         cookie_dict = remove_suffix(cookie_dict, "_v2")
         if "ltmid" in cookie_dict:
             cookie_dict["mid"] = cookie_dict["ltmid"]
+        logger.debug("cookie param:" + " ".join(k for k, _ in cookie_dict.items()))
         cookie = Cookie.model_validate(cookie_dict)
         return cookie
 

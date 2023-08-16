@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from star_rail import constants
-from star_rail.utils.functional import color_str, load_json, save_json
+from star_rail.utils.functional import load_json, save_json
 from star_rail.utils.log import logger
 
-__all__ = ["settings", "get_config_status_desc"]
+__all__ = ["settings"]
 
 _config_path = Path(constants.CONFIG_PATH, "settings.json")
 
@@ -18,11 +18,6 @@ class Settings(BaseModel):
     FLAG_UPDATE_SOURCE: str = "Github"
     """更新源 : ["Github", "Coding"] """
 
-    FLAG_GENERATE_XLSX: bool = False
-
-    FLAG_GENERATE_SRGF: bool = False
-    """自动生成 SRGF 格式文件"""
-
     FLAG_UPATED_COMPLETE: bool = False
 
     OLD_EXE_NAME: str = ""
@@ -32,13 +27,12 @@ class Settings(BaseModel):
 
     LANGUAGE: str = ""
 
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="ignore")
 
     def __setattr__(self, k, v):
         if k not in self.__fields__:
             return
-        logger.debug("更新设置: {} -> {}", k, v)
+        logger.debug("update config: {} -> {}", k, v)
         return super().__setattr__(k, v)
 
     def __init__(self, **data):
@@ -75,15 +69,3 @@ class Settings(BaseModel):
 
 
 settings = Settings()
-
-
-def get_config_status_desc(key):
-    assert hasattr(settings, key)
-    from star_rail.i18n import i18n
-
-    return "{}: {}".format(
-        i18n.config.settings.current_status,
-        color_str(i18n.common.open, "green")
-        if settings.get(key)
-        else color_str(i18n.common.close, "red"),
-    )

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "star_rail"
-version = "1.1.2"
+version = "2.0.0"
 description = "Honkai: Star Rail GachaLog Export Tools"
 authors = ["Charlie Brown <cntvc@outlook.com>"]
 license = "GPLv3"
@@ -29,6 +29,7 @@ tqdm = "^4.65.0"
 xlsxwriter = "^3.1.0"
 pydantic = "^2.1.1"
 pyperclip = "^1.8.2"
+yarl = "^1.9.2"
 
 
 [tool.poetry.group.dev.dependencies]

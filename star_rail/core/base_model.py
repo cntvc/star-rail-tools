@@ -17,5 +17,4 @@ class DBModel(pydantic.BaseModel):
 
 def Field_Ex(primary_key=False, **kwargs):
     d = {"primary_key": primary_key}
-    kwargs.update(d)
-    return pydantic.Field(**kwargs)
+    return pydantic.Field(json_schema_extra=d, **kwargs)

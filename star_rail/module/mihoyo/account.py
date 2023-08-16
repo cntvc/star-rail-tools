@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Union
 
 import pyperclip
-from pydantic import BaseModel, ValidationError, model_validator, validator
+from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from star_rail import constants
 from star_rail.config import settings
@@ -29,7 +29,7 @@ _lang = i18n.account
 __all__ = [
     "verify_uid_format",
     "Account",
-    "UserManager",
+    "AccountManager",
 ]
 
 
@@ -48,16 +48,14 @@ class Account(BaseModel):
     region: str = ""
     game_biz: str = ""
 
-    profile_path: Path = ""
-    gacha_log_json_path: Path = ""  # TODO 移除
     gacha_log_xlsx_path: Path = ""
-    gacha_log_analyze_path: Path = ""  # TODO 转移到缓存目录
+    gacha_log_analyze_path: Path = ""
     srgf_path: Path = ""
 
     def __init__(self, uid: str, **data):
         super().__init__(uid=uid, **data)
 
-    _verify_uid_format = validator("uid", always=True)(verify_uid_format)
+    _verify_uid_format = field_validator("uid", mode="before")(verify_uid_format)
 
     _serialize_include_keys = {"cookie", "uid", "gacha_url"}
 
@@ -68,12 +66,8 @@ class Account(BaseModel):
         self._init_region()
 
     def _init_datafile_path(self):
-        self.profile_path = Path(constants.ROOT_PATH, self.uid, f"UserProfile_{self.uid}.json")
-        self.gacha_log_json_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_{self.uid}.json")
         self.gacha_log_xlsx_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_{self.uid}.xlsx")
-        self.gacha_log_analyze_path = Path(
-            constants.ROOT_PATH, self.uid, f"GachaAnalyze_{self.uid}.json"
-        )
+        self.gacha_log_analyze_path = Path(constants.TEMP_PATH, f"GachaAnalyze_{self.uid}.json")
         self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_SRGF_{self.uid}.json")
 
     def _init_game_biz(self):
@@ -106,8 +100,9 @@ class Account(BaseModel):
 
         local_user = converter.user_mapper_to_user(user_mapper)
         user_ck = CookieMapper.query_cookie(self.uid)
-        local_cookie = converter.cookie_mapper_to_cookie(user_ck)
-        local_user.cookie = local_cookie
+        if user_ck:
+            local_cookie = converter.cookie_mapper_to_cookie(user_ck)
+            local_user.cookie = local_cookie
 
         for k in local_user.model_fields_set:
             if k not in self._serialize_include_keys:
@@ -115,8 +110,6 @@ class Account(BaseModel):
             v = getattr(local_user, k)
             setattr(self, k, v)
 
-        self._init_game_biz()
-        self._init_datafile_path()
         return True
 
     def model_dump(self):
@@ -128,7 +121,7 @@ class Account(BaseModel):
 
 
 @Singleton()
-class UserManager:
+class AccountManager:
     def __init__(self) -> None:
         if not settings.DEFAULT_UID:
             self.user = None
@@ -136,7 +129,7 @@ class UserManager:
         self.user = Account(settings.DEFAULT_UID)
         result = self.user.reload_profile()
         if not result:
-            # 不存在该账号
+            # 本地文件设置了默认账户数据库却不存在该账号
             self.user = None
             settings.DEFAULT_UID = ""
             settings.save()
@@ -147,10 +140,10 @@ class UserManager:
         elif isinstance(user, Account):
             self.user = user
         else:
-            raise ParamTypeError(_lang.param_type_error, type(user))
+            raise ParamTypeError(i18n.error.param_type_error, type(user))
 
         self.user.reload_profile()
-        logger.info(_lang.login_account, self.user.uid)
+        logger.success(_lang.login_account_success, self.user.uid)
         settings.DEFAULT_UID = self.user.uid
         settings.save()
 
@@ -162,9 +155,9 @@ class UserManager:
         if not user.reload_profile():
             # 如果库里没有该账户，则创建
             user.save_profile()
-        logger.success(_lang.add_success, user.uid)
+        logger.success(_lang.add_account_success, user.uid)
 
-    @exec_catch()
+    @exec_catch(level="warning")
     def create_by_cookie(self):
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
@@ -190,7 +183,7 @@ class UserManager:
                 self.user = user
                 logger.success(_lang.update_cookie_success, user.uid)
             else:
-                logger.success(_lang.add_success, user.uid)
+                logger.success(_lang.add_account_success, user.uid)
 
     def delete(self, user: Account):
         """# TODO 删除user的所有表数据"""
@@ -201,18 +194,22 @@ class UserManager:
 
     def get_uid_list(self):
         user_list = UserMapper.query_all()
+        if user_list is None:
+            return []
         return [user.uid for user in user_list]
 
     def get_status_desc(self):
         if self.user is not None:
-            return _lang.account_uid.format(color_str(self.user.uid, color="green"))
+            return _lang.current_account.format(color_str(self.user.uid, color="green"))
         return _lang.without_account
 
     def gen_account_menu(self):
         uid_list = self.get_uid_list()
         menu_list = [
             # lambda 闭包捕获外部变量值 uid = uid
-            MenuItem(title=f"{uid}", options=lambda uid=uid: self.login(uid))
+            MenuItem(
+                title=_lang.menu.select_account.format(uid), options=lambda uid=uid: self.login(uid)
+            )
             for uid in uid_list
         ]
         menu_list.append(
@@ -255,4 +252,5 @@ def get_game_record_card(cookie: Cookie):
         params=param,
         cookies=cookie.model_dump("app"),
     )
+    logger.debug("get game record card")
     return UserGameRecordCards(**data)

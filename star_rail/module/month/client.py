@@ -6,12 +6,11 @@ from star_rail.core import DBClient
 from star_rail.i18n import i18n
 from star_rail.utils import functional
 
-from ..mihoyo.account import Account
-from ..mihoyo.api_client import request
+from ..mihoyo import Account, request
 from ..mihoyo.routes import MONTH_INFO_URL
-from .converter import info_to_mapper, reward_source_to_mapper
+from ..month import converter
 from .mapper import MonthInfoMapper
-from .model import MonthInfo
+from .model import ApiMonthInfo, MonthInfo
 
 
 class MonthClient:
@@ -33,15 +32,15 @@ class MonthClient:
             params=param,
             cookies=self.user.cookie.model_dump("all"),
         )
-        return MonthInfo(**data)
+        return ApiMonthInfo(**data)
 
-    def _save_or_update_month_info(self, month_info: MonthInfo):
-        month_info_mapper = info_to_mapper(self.user, month_info)
+    def _save_or_update_month_info(self, month_info: ApiMonthInfo):
+        month_info_mapper = converter.api_info_to_mapper(self.user, month_info)
         with DBClient() as db:
             db.insert(month_info_mapper, "update")
-            db.insert_batch(reward_source_to_mapper(self.user, month_info), "update")
+            db.insert_batch(converter.reward_source_to_mapper(self.user, month_info), "update")
 
-    def _gen_month_info_tables(self, month_infos: typing.List[MonthInfoMapper]):
+    def _gen_month_info_tables(self, month_infos: typing.List[MonthInfo]):
         month_info_table = PrettyTable()
 
         month_info_table.align = "l"
@@ -54,7 +53,11 @@ class MonthClient:
             month_info_table.add_column(item.month, [item.hcoin, item.rails_pass])
         return month_info_table
 
-    def visualization(self, data: typing.List[MonthInfoMapper]):
+    def show_month_info(self):
+        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, 6)
+        data = []
+        if month_info_mappers:
+            data = converter.mapper_to_month_info(month_info_mappers)
         functional.clear_screen()
         print("UID:", functional.color_str("{}".format(self.user.uid), "green"))
         print(self._gen_month_info_tables(data))

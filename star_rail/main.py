@@ -1,31 +1,13 @@
-# flake8: noqa:  F405
 import platform
 import time
 
 from star_rail import __version__ as version
-from star_rail.client import *
-from star_rail.config import get_config_status_desc, settings
-from star_rail.core import init_all_table
-from star_rail.core.db_client import DBClient
+from star_rail.client import HSRClient
+from star_rail.config import settings
+from star_rail.core import DBClient, init_all_table
 from star_rail.i18n import LanguageType, i18n, set_locales
-from star_rail.module.gacha import (
-    create_merge_dir,
-    export_by_input_url,
-    export_by_user_profile,
-    export_by_webcache,
-    export_to_srgf,
-    export_to_xlsx,
-    merge_or_import_data,
-    show_analytical_result,
-)
+from star_rail.module import AccountManager, updater
 from star_rail.module.info import show_about
-from star_rail.module.mihoyo.account import UserManager
-from star_rail.module.updater import (
-    UpdateSource,
-    get_update_source_status,
-    select_updater_source,
-    upgrade,
-)
 from star_rail.utils.log import logger
 from star_rail.utils.menu import Menu, MenuItem
 from star_rail.utils.time import get_format_time
@@ -33,56 +15,58 @@ from star_rail.utils.time import get_format_time
 _lang_menu = i18n.main.menu
 
 
-def init_menu():
+def init_menu(client: HSRClient):
     main_menu = MenuItem(
-        title=_lang_menu.main_menu,
+        title=_lang_menu.main_menu.home,
         options=[
             MenuItem(
                 title=_lang_menu.account_setting,
-                gen_menu=lambda: UserManager().gen_account_menu(),
-                tips=lambda: UserManager().get_status_desc(),
+                gen_menu=lambda: AccountManager().gen_account_menu(),
+                tips=lambda: AccountManager().get_status_desc(),
             ),
             MenuItem(
-                title=_lang_menu.gacha_log.home,
+                title=_lang_menu.gacha_record.home,
                 options=[
                     MenuItem(
-                        title=_lang_menu.gacha_log.fetch_by_webcache,
-                        options=export_by_webcache,
+                        title=_lang_menu.refresh_record_by_game_cache,
+                        options=client.refresh_record_by_game_cache,
                     ),
                     MenuItem(
-                        # TODO 修改函数名称
-                        title=_lang_menu.gacha_log.fetch_by_clipboard,
-                        options=export_by_input_url,
+                        title=_lang_menu.refresh_record_by_clipboard,
+                        options=client.refresh_record_by_clipboard,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.fetch_by_appcache,
-                        options=export_by_user_profile,
+                        title=_lang_menu.refresh_record_by_user_cache,
+                        options=client.refresh_record_by_user_cache,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.to_xlsx,
-                        options=export_to_xlsx,
+                        title=_lang_menu.export_record_to_xlsx,
+                        options=client.export_record_to_xlsx,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.to_srgf,
-                        options=export_to_srgf,
+                        title=_lang_menu.export_record_to_srgf,
+                        options=client.export_record_to_srgf,
                     ),
-                    MenuItem(title=_lang_menu.merge_gacha_log, options=merge_or_import_data),
+                    MenuItem(
+                        title=_lang_menu.import_gacha_record, options=client.import_gacha_record
+                    ),
                     MenuItem(
                         title=_lang_menu.show_analyze_result,
-                        options=lambda: show_analytical_result(),
+                        options=client.show_analyze_result,
                     ),
                 ],
-                tips=lambda: UserManager().get_status_desc(),
+                tips=lambda: AccountManager().get_status_desc(),
             ),
             MenuItem(
                 title=_lang_menu.trailblaze_calendar.home,
                 options=[
                     MenuItem(
-                        title=_lang_menu.trailblaze_calendar.fetch, options=refresh_month_info
+                        title=_lang_menu.trailblaze_calendar.fetch,
+                        options=client.refresh_month_info,
                     ),
                     MenuItem(
                         title=_lang_menu.trailblaze_calendar.show_history,
-                        options=show_month_info,
+                        options=client.show_month_info,
                     ),
                 ],
             ),
@@ -90,32 +74,36 @@ def init_menu():
                 title=_lang_menu.settings.home,
                 options=[
                     MenuItem(
-                        title=_lang_menu.settings.check_update,
+                        title=_lang_menu.settings.auto_update,
                         options=[
                             MenuItem(
                                 title=i18n.common.open,
-                                options=lambda: settings.set_and_save("FLAG_CHECK_UPDATE", True),
+                                options=lambda: client.open_setting("FLAG_CHECK_UPDATE"),
                             ),
                             MenuItem(
                                 title=i18n.common.close,
-                                options=lambda: settings.set_and_save("FLAG_CHECK_UPDATE", False),
+                                options=lambda: client.close_setting("FLAG_CHECK_UPDATE"),
                             ),
                         ],
-                        tips=lambda: get_config_status_desc("FLAG_CHECK_UPDATE"),
+                        tips=lambda: client.get_config_status("FLAG_CHECK_UPDATE"),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.update_source,
                         options=[
                             MenuItem(
                                 title=_lang_menu.settings.update_source_coding,
-                                options=lambda: select_updater_source(UpdateSource.CODING),
+                                options=lambda: updater.select_updater_source(
+                                    updater.UpdateSource.CODING
+                                ),
                             ),
                             MenuItem(
                                 title=_lang_menu.settings.update_source_github,
-                                options=lambda: select_updater_source(UpdateSource.GITHUB),
+                                options=lambda: updater.select_updater_source(
+                                    updater.UpdateSource.GITHUB
+                                ),
                             ),
                         ],
-                        tips=lambda: get_update_source_status(),
+                        tips=lambda: updater.get_update_source_status(),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.language,
@@ -130,44 +118,11 @@ def init_menu():
                             ),
                         ],
                     ),
-                    MenuItem(
-                        title=_lang_menu.settings.export.to_xlsx,
-                        options=[
-                            MenuItem(
-                                title=i18n.common.open,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_XLSX", True),
-                            ),
-                            MenuItem(
-                                title=i18n.common.close,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_XLSX", False),
-                            ),
-                        ],
-                        tips=lambda: get_config_status_desc("FLAG_GENERATE_XLSX"),
-                    ),
-                    MenuItem(
-                        title=_lang_menu.settings.export.srgf,
-                        options=[
-                            MenuItem(
-                                title=i18n.common.open,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", True),
-                            ),
-                            MenuItem(
-                                title=i18n.common.close,
-                                options=lambda: settings.set_and_save("FLAG_GENERATE_SRGF", False),
-                            ),
-                        ],
-                        tips=lambda: get_config_status_desc("FLAG_GENERATE_SRGF"),
-                    ),
-                    # TODO
-                    MenuItem(
-                        title="统计显示新手跃迁卡池",
-                        options=lambda: print("待实现"),
-                    ),
                 ],
             ),
             MenuItem(title=_lang_menu.about, options=show_about),
         ],
-        tips=lambda: UserManager().get_status_desc(),
+        tips=lambda: AccountManager().get_status_desc(),
     )
     return Menu(main_menu)
 
@@ -190,11 +145,11 @@ def run():
         platform.platform(),
         settings.model_dump(),
     )
-    create_merge_dir()
     if settings.FLAG_CHECK_UPDATE:
-        upgrade()
+        updater.upgrade()
     init_all_table(DBClient())
-    menu = init_menu()
+    client = HSRClient()
+    menu = init_menu(client)
     menu.run()
 
 

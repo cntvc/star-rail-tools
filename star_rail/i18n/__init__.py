@@ -75,7 +75,6 @@ class LanguageType(enum.Enum):
         for lang in LanguageType:
             if name == lang.lang_name:
                 return lang.lang_pack
-        logger.debug("未受支持的语言包 {}", name)
         return default
 
     @property

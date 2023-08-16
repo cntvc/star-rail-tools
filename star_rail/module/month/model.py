@@ -21,7 +21,7 @@ class MonthInfoRewardSource(BaseModel):
     action_name: str
 
 
-class MonthInfoMonthData(BaseModel):
+class ApiMonthInfoMonthData(BaseModel):
     """月历数据"""
 
     current_hcoin: int
@@ -40,7 +40,7 @@ class MonthInfoMonthData(BaseModel):
     """星穹来源"""
 
 
-class MonthInfo(BaseModel):
+class ApiMonthInfo(BaseModel):
     uid: str
     region: str
     login_flag: bool
@@ -49,7 +49,7 @@ class MonthInfo(BaseModel):
     month: str
     """当前月份"""
     data_month: str  # 202306
-    month_data: MonthInfoMonthData
+    month_data: ApiMonthInfoMonthData
     day_data: MonthInfoDayData
     version: str  # 1.2
     start_month: str
@@ -57,17 +57,31 @@ class MonthInfo(BaseModel):
     data_text: typing.Dict
 
 
-class MonthDetailData(BaseModel):
+class ApiMonthDetailData(BaseModel):
     action: str
     action_name: str
     num: int
     time: str  # ? 2023-09-02 09:02:23
 
 
-class MonthDetail(BaseModel):
+class ApiMonthDetail(BaseModel):
     current_page: int
     data_month: str  # 202306
-    list: typing.List[MonthDetailData]
+    list: typing.List[ApiMonthDetailData]
     region: str
     total: int
     uid: str
+
+
+class MonthInfo(BaseModel):
+    uid: str
+    """用户id"""
+
+    month: str
+    """月份"""
+
+    hcoin: int
+    """星穹"""
+
+    rails_pass: int
+    """列车票"""

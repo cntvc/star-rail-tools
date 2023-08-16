@@ -34,8 +34,6 @@ class CookieMapper(DBModel):
         )
         with DBClient() as db:
             row = db.select(sql).fetchone()
-        if not row:
-            return
         return convert(row, CookieMapper)
 
 
@@ -59,16 +57,12 @@ class UserMapper(DBModel):
         )
         with DBClient() as db:
             row = db.select(sql).fetchone()
-        if not row:
-            return
         return convert(row, UserMapper)
 
     @staticmethod
     def query_all() -> typing.List["UserMapper"]:
-        """查询所有用户"""
-        sql = """select * from user;"""
+        """查询所有用户，按照uid顺序返回"""
+        sql = """select * from user order by uid;"""
         with DBClient() as db:
             row = db.select(sql).fetchall()
-        if not row:
-            return []
         return convert(row, UserMapper)

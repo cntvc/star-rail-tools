@@ -4,14 +4,13 @@ import typing
 
 from pydantic import BaseModel
 
-from star_rail.constants import DATABASE_PATH
+from star_rail.constants import DATA_PATH
 from star_rail.exceptions import DBConnectionError, ParamTypeError
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton
+from star_rail.utils.log import logger
 
 from .base_model import DBModel
-
-_lang = i18n.core.db_client
 
 __all__ = ["init_all_table", "convert", "DBClient"]
 
@@ -31,9 +30,7 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
     else:
         return None
     for name, fields in cls.model_fields.items():
-        if fields.json_schema_extra is not None and fields.json_schema_extra.get(
-            "primary_key", None
-        ):
+        if fields.json_schema_extra and fields.json_schema_extra.get("primary_key", None):
             sql_fields.primary_key.add(name)
         sql_fields.cloumn.add(name)
 
@@ -48,11 +45,15 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
     return sql_fields
 
 
+_default_db_path = os.path.join(DATA_PATH, "star_rail.db")
+
+
 @Singleton()
 class DBClient:
-    def __init__(self, db_path: str = DATABASE_PATH) -> None:
+    def __init__(self, db_path: str = _default_db_path) -> None:
         self._db_path = db_path
         os.makedirs(os.path.split(db_path)[0], exist_ok=True)
+        logger.debug("database file path : {}", self._db_path)
         self._cache: typing.Dict[object, SqlFields] = dict()
         try:
             self._conn = sqlite3.connect(self._db_path)
@@ -98,14 +99,15 @@ class DBClient:
             mode = " or replace "
 
         colunms = ",".join(sql_field.cloumn)
-        # TODO 这里插入时数据类型转换
-        values = ",".join(['"{}"'.format(getattr(item, k)) for k in sql_field.cloumn])
+        placeholders = ",".join(["?" for _ in sql_field.cloumn])
+        values = [getattr(item, k) for k in sql_field.cloumn]
 
-        sql = """insert {} into {} ({}) values ({});
+        sql = """insert {} into {} ({}) values ({})
         """.format(
-            mode, sql_field.table_name, colunms, values
+            mode, sql_field.table_name, colunms, placeholders
         )
-        cur = self.execute_sql(sql)
+        logger.debug("[SQL] [insert] : {}", sql)
+        cur = self._conn.cursor().execute(sql, values)
         self.commit()
         return cur
 
@@ -138,6 +140,7 @@ class DBClient:
         """.format(
             mode, sql_field.table_name, colunms, placeholders
         )
+        logger.debug("[SQL] [insert] : {}", sql_temp)
         self.conn.cursor().executemany(sql_temp, values)
         self.commit()
 
@@ -167,26 +170,21 @@ def init_all_table(db: DBClient):
 
 def convert(query_res: typing.Union[typing.List, sqlite3.Row], item_type: typing.Type[DBModel]):
     """查询结果转换"""
+    if not query_res:
+        return None
     if isinstance(query_res, typing.List):
         return _convert_list(query_res, item_type)
     elif isinstance(query_res, sqlite3.Row):
         return _convert_item(query_res, item_type)
     else:
-        raise ParamTypeError(_lang.param_type_error, type(query_res))
+        raise ParamTypeError(i18n.error.param_type_error, type(query_res))
 
 
 def _convert_list(query_res: typing.List, item_type: typing.Type[DBModel]):
-    if not query_res:
-        return []
-    res = []
-    for item in query_res:
-        res.append(_convert_item(item, item_type))
-    return res
+    return [_convert_item(item, item_type) for item in query_res]
 
 
 def _convert_item(query_res: sqlite3.Row, item_type: typing.Type[DBModel]):
-    if not query_res:
-        return None
     d = {}
     for k in query_res.keys():
         d[k] = query_res[k]
