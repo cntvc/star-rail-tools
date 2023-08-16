@@ -2,6 +2,8 @@ import functools
 import traceback
 import typing
 
+from star_rail.i18n import i18n
+
 from .utils.log import logger
 
 
@@ -27,11 +29,11 @@ class ParamTypeError(HsrException):
 class DBConnectionError(HsrException):
     """数据库连接错误"""
 
-    msg = "数据库连接错误"
+    msg = i18n.error.db_conn_error
 
 
 class DataError(HsrException):
-    msg = "数据错误"
+    pass
 
 
 class FileNotFoundError(HsrException):
@@ -69,32 +71,32 @@ class ApiException(HsrException):
 
 
 class RequestError(ApiException):
-    msg = "网络异常"
+    msg = i18n.error.request_error
 
 
 class InvalidCookieError(ApiException):
     retcode = -100
-    msg = "Cookie 无效"
+    msg = i18n.error.invalid_cookie_error
 
 
 class AuthkeyExceptionError(ApiException):
     """"""
 
-    msg = "链接错误"
+    msg = i18n.error.authkey_error
 
 
 class InvalidAuthkeyError(AuthkeyExceptionError):
     """Authkey is not valid."""
 
     retcode = -100
-    msg = "链接无效"
+    msg = i18n.error.invalid_authkey_error
 
 
 class AuthkeyTimeoutError(AuthkeyExceptionError):
     """Authkey has timed out."""
 
     retcode = -101
-    msg = "链接无效"
+    msg = i18n.error.invalid_authkey_error
 
 
 _ERRORS: typing.Dict[int, typing.Type[HsrException]] = {

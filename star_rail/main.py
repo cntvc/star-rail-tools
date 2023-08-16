@@ -1,4 +1,3 @@
-# flake8: noqa:  F405
 import platform
 import time
 
@@ -18,7 +17,7 @@ _lang_menu = i18n.main.menu
 
 def init_menu(client: HSRClient):
     main_menu = MenuItem(
-        title=_lang_menu.main_menu,
+        title=_lang_menu.main_menu.home,
         options=[
             MenuItem(
                 title=_lang_menu.account_setting,
@@ -26,29 +25,31 @@ def init_menu(client: HSRClient):
                 tips=lambda: AccountManager().get_status_desc(),
             ),
             MenuItem(
-                title=_lang_menu.gacha_log.home,
+                title=_lang_menu.gacha_record.home,
                 options=[
                     MenuItem(
-                        title=_lang_menu.gacha_log.fetch_by_webcache,
+                        title=_lang_menu.refresh_record_by_game_cache,
                         options=client.refresh_record_by_game_cache,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.fetch_by_clipboard,
+                        title=_lang_menu.refresh_record_by_clipboard,
                         options=client.refresh_record_by_clipboard,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.fetch_by_appcache,
+                        title=_lang_menu.refresh_record_by_user_cache,
                         options=client.refresh_record_by_user_cache,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.to_xlsx,
+                        title=_lang_menu.export_record_to_xlsx,
                         options=client.export_record_to_xlsx,
                     ),
                     MenuItem(
-                        title=_lang_menu.gacha_log.to_srgf,
+                        title=_lang_menu.export_record_to_srgf,
                         options=client.export_record_to_srgf,
                     ),
-                    MenuItem(title=_lang_menu.merge_gacha_log, options=client.import_gacha_record),
+                    MenuItem(
+                        title=_lang_menu.import_gacha_record, options=client.import_gacha_record
+                    ),
                     MenuItem(
                         title=_lang_menu.show_analyze_result,
                         options=client.show_analyze_result,
@@ -73,7 +74,7 @@ def init_menu(client: HSRClient):
                 title=_lang_menu.settings.home,
                 options=[
                     MenuItem(
-                        title=_lang_menu.settings.check_update,
+                        title=_lang_menu.settings.auto_update,
                         options=[
                             MenuItem(
                                 title=i18n.common.open,

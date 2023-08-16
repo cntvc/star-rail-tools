@@ -12,8 +12,6 @@ from star_rail.utils.log import logger
 
 from .base_model import DBModel
 
-_lang = i18n.core.db_client
-
 __all__ = ["init_all_table", "convert", "DBClient"]
 
 
@@ -179,7 +177,7 @@ def convert(query_res: typing.Union[typing.List, sqlite3.Row], item_type: typing
     elif isinstance(query_res, sqlite3.Row):
         return _convert_item(query_res, item_type)
     else:
-        raise ParamTypeError(_lang.param_type_error, type(query_res))
+        raise ParamTypeError(i18n.error.param_type_error, type(query_res))
 
 
 def _convert_list(query_res: typing.List, item_type: typing.Type[DBModel]):

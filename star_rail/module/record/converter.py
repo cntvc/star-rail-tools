@@ -1,6 +1,7 @@
 import typing
 
 from star_rail import exceptions as error
+from star_rail.i18n import i18n
 
 from .mapper import GachaItemMapper, GachaRecordInfoMapper
 from .model import ApiGachaItem, GachaRecordInfo
@@ -24,4 +25,4 @@ def mapper_to_gacha_item(data: typing.Union[GachaItemMapper, typing.List[GachaIt
     elif isinstance(data, GachaItemMapper):
         return ApiGachaItem(**data.model_dump())
     else:
-        raise error.ParamTypeError("参数类型错误, type: {}", type(data))
+        raise error.ParamTypeError(i18n.error.param_type_error, type(data))

@@ -25,11 +25,15 @@ class ConfigClient:
     def open_setting(self, key: str):
         if not hasattr(self.setting, key):
             return
+        from star_rail.i18n import i18n
+
         self.setting.set_and_save(key, True)
-        logger.success("开启成功")
+        logger.success(i18n.config.settings.open_success)
 
     def close_setting(self, key: str):
         if not hasattr(self.setting, key):
             return
+        from star_rail.i18n import i18n
+
         self.setting.set_and_save(key, False)
-        logger.success("关闭成功")
+        logger.success(i18n.config.settings.close_success)

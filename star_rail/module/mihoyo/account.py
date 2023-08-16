@@ -140,10 +140,10 @@ class AccountManager:
         elif isinstance(user, Account):
             self.user = user
         else:
-            raise ParamTypeError(_lang.param_type_error, type(user))
+            raise ParamTypeError(i18n.error.param_type_error, type(user))
 
         self.user.reload_profile()
-        logger.success(_lang.login_account, self.user.uid)
+        logger.success(_lang.login_account_success, self.user.uid)
         settings.DEFAULT_UID = self.user.uid
         settings.save()
 
@@ -155,7 +155,7 @@ class AccountManager:
         if not user.reload_profile():
             # 如果库里没有该账户，则创建
             user.save_profile()
-        logger.success(_lang.add_success, user.uid)
+        logger.success(_lang.add_account_success, user.uid)
 
     @exec_catch(level="warning")
     def create_by_cookie(self):
@@ -183,7 +183,7 @@ class AccountManager:
                 self.user = user
                 logger.success(_lang.update_cookie_success, user.uid)
             else:
-                logger.success(_lang.add_success, user.uid)
+                logger.success(_lang.add_account_success, user.uid)
 
     def delete(self, user: Account):
         """# TODO 删除user的所有表数据"""
@@ -200,14 +200,16 @@ class AccountManager:
 
     def get_status_desc(self):
         if self.user is not None:
-            return _lang.account_uid.format(color_str(self.user.uid, color="green"))
+            return _lang.current_account.format(color_str(self.user.uid, color="green"))
         return _lang.without_account
 
     def gen_account_menu(self):
         uid_list = self.get_uid_list()
         menu_list = [
             # lambda 闭包捕获外部变量值 uid = uid
-            MenuItem(title=f"{uid}", options=lambda uid=uid: self.login(uid))
+            MenuItem(
+                title=_lang.menu.select_account.format(uid), options=lambda uid=uid: self.login(uid)
+            )
             for uid in uid_list
         ]
         menu_list.append(

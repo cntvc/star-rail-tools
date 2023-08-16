@@ -34,6 +34,8 @@ from .types import GACHA_TYPE_DICT, GACHA_TYPE_IDS, GachaType
 
 __all__ = ["GachaClient"]
 
+_lang = i18n.record.client
+
 
 class GachaRecordClient:
     def __init__(self, url: yarl.URL) -> None:
@@ -66,7 +68,7 @@ class GachaRecordClient:
         return True
 
     def fetch_gacha_record(self):
-        logger.info("正在查询记录")
+        logger.info(_lang.fetch_record)
         gacha_log: typing.List[ApiGachaItem] = []
         for gacha_type_id in GACHA_TYPE_IDS:
             gacha_log.extend(self._fetch_by_type_id(gacha_type_id))
@@ -97,7 +99,7 @@ class GachaRecordClient:
         return gacha_list
 
     @classmethod
-    def _update_url_param(cls, url, gacha_type, size, page, end_id):
+    def _update_url_param(cls, url: yarl.URL, gacha_type, size, page, end_id):
         query_params = {}
         query_params["size"] = size
         query_params["gacha_type"] = gacha_type
@@ -237,7 +239,7 @@ class StatisticalTable:
     def show(self):
         functional.clear_screen()
         print("UID:", functional.color_str("{}".format(self.analyze_result.uid), "green"))
-        print("更新时间", self.analyze_result.update_time)
+        print(_lang.analyze_update_time, self.analyze_result.update_time)
         print(self.gen_overview_table())
         print("", end="\n\n")
         print(self.gen_detail_table())
@@ -250,16 +252,16 @@ class GachaClient:
     def refresh_record_by_user_cache(self):
         url = api.get_from_user_cache(self.user)
         if url is None:
-            logger.warning("未获取到链接")
+            logger.warning(_lang.invalid_gacha_url)
             return
 
         if not GachaRecordClient.verify_url(url):
-            logger.warning("链接无效")
+            logger.warning(_lang.invalid_gacha_url)
             return
 
         record_info = GachaRecordClient.get_record_info(url)
         if record_info.uid != self.user.uid:
-            raise error.DataError("账户存储数据出现错误, record_info_uid: {}", record_info.uid)
+            raise error.DataError(_lang.record_info_data_error, record_info.uid)
 
         self._refresh_gacha_record(url, record_info)
         self.show_analyze_result()
@@ -267,16 +269,16 @@ class GachaClient:
     def refresh_record_by_game_cache(self):
         url = api.get_from_game_cache(self.user)
         if url is None:
-            logger.warning("游戏缓存未获取到有效链接")
+            logger.warning(_lang.invalid_gacha_url)
             return
 
         if not GachaRecordClient.verify_url(url):
-            logger.warning("链接无效")
+            logger.warning(_lang.invalid_gacha_url)
             return
 
         record_info = GachaRecordClient.get_record_info(url)
         if self.user.uid != record_info.uid:
-            logger.warning("游戏链接账户与设置不一致，无法导出")
+            logger.warning(_lang.diff_account)
             return
 
         self.user.gacha_url = str(url)
@@ -288,16 +290,16 @@ class GachaClient:
     def refresh_record_by_clipboard(self):
         url = api.get_from_clipboard()
         if url is None:
-            logger.warning("从剪切板未读取到有效链接")
+            logger.warning(_lang.invalid_gacha_url)
             return
 
         if not GachaRecordClient.verify_url(url):
-            logger.warning("链接无效")
+            logger.warning(_lang.invalid_gacha_url)
             return
 
         record_info = GachaRecordClient.get_record_info(url)
 
-        user = Account(uid=record_info.uid, gacha_url=url)
+        user = Account(uid=record_info.uid, gacha_url=str(url))
         user.save_profile()
         AccountManager().login(user)
 
@@ -306,13 +308,12 @@ class GachaClient:
 
     def _refresh_gacha_record(self, url: yarl.URL, record_info: GachaRecordInfo):
         """刷新抽卡记录和分析结果"""
-        user = self.user_manager.user
         record_client = GachaRecordClient(url)
 
         gacha_data = record_client.fetch_gacha_record()
 
         # 数据库增量更
-        latest_gacha_item = record_client.query_latest(user.uid)
+        latest_gacha_item = record_client.query_latest(self.user.uid)
         if not latest_gacha_item:
             # 数据库无记录，直接保存全部数据
             record_client.save_record_info(record_info)
@@ -321,7 +322,7 @@ class GachaClient:
             index = bisect.bisect_right(gacha_data, latest_gacha_item)
             new_gacha_data = gacha_data[index:]
             record_client.save_record_gacha_item(new_gacha_data)
-        analyzer = Analyzer(user, record_info, GachaRecordClient.query_all(user.uid))
+        analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
         analyzer.save_result()
 
     def show_analyze_result(self):
@@ -331,7 +332,7 @@ class GachaClient:
         else:
             record_info_mapper = GachaRecordInfoMapper.query(self.user.uid)
             if not record_info_mapper:
-                logger.warning("账户无抽卡记录")
+                logger.warning(_lang.account_no_record_data)
                 return
             record_info = converter.mapper_to_record_info(record_info_mapper)
             analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
@@ -346,52 +347,51 @@ class GachaClient:
             if os.path.isfile(os.path.join(import_data_path, name)) and name.endswith(".json")
         ]
         record_info = None
-        cnt = 0
+
         for file_name in file_list:
             file_path = os.path.join(import_data_path, file_name)
             data = functional.load_json(file_path)
             try:
                 srgf_data = SRGFData(**data)
             except pydantic.ValidationError:
-                logger.warning("文件 {} 不是标准的 SRGF 格式，本次导入将忽略该文件", file_path)
+                logger.info(_lang.invalid_srgf_data, file_path)
                 continue
             if srgf_data.info.uid != self.user.uid:
-                logger.warning("文件 {} 中数据不属于当前账户，本次导入将忽略该文件", file_path)
+                logger.info(_lang.diff_account_srgf_data, file_path)
                 continue
             record_info, item_list = convert_to_gacha_record(srgf_data)
             GachaRecordClient.save_record_info(record_info)
             GachaRecordClient.save_record_gacha_item(item_list)
-            logger.success("成功导入文件 {}", file_path)
-            cnt = cnt + 1
+            logger.success(_lang.import_file_success, file_path)
+
         if record_info is None:
-            logger.info("未识别到可导入数据")
+            logger.info(_lang.no_file_import)
             return
-        else:
-            logger.success("成功导入 {} 个文件", cnt)
+
         analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
         analyzer.save_result()
 
     def export_record_to_xlsx(self):
         record_info = GachaRecordClient.query_gacha_record_info(self.user.uid)
         if not record_info:
-            logger.warning("无数据可导出")
+            logger.warning(_lang.account_no_record_data)
             return
         gacha_data = GachaRecordClient.query_all(self.user.uid)
-        self._create_xlsx(self.user, gacha_data)
-        logger.success("导出成功，文件位于 {} ", self.user.gacha_log_xlsx_path.as_posix())
+        self._create_xlsx(gacha_data)
+        logger.success(_lang.export_file_success, self.user.gacha_log_xlsx_path.as_posix())
 
     def export_record_to_srgf(self):
         record_info = GachaRecordClient.query_gacha_record_info(self.user.uid)
         if not record_info:
-            logger.warning("无数据可导出")
+            logger.warning(_lang.account_no_record_data)
             return
         gacha_data = GachaRecordClient.query_all(self.user.uid)
         srgf_data = convert_to_srgf(record_info, gacha_data)
         functional.save_json(self.user.srgf_path, srgf_data.model_dump())
-        logger.success("导出成功, 文件位于 {}", self.user.srgf_path.as_posix())
+        logger.success(_lang.export_file_success, self.user.srgf_path.as_posix())
 
     def _create_xlsx(self, data: typing.List[ApiGachaItem]):
-        logger.debug("创建工作簿: " + self.user.gacha_log_xlsx_path.as_posix())
+        logger.debug("create sheet: " + self.user.gacha_log_xlsx_path.as_posix())
         os.makedirs(self.user.gacha_log_xlsx_path.parent.as_posix(), exist_ok=True)
         workbook = xlsxwriter.Workbook(self.user.gacha_log_xlsx_path.as_posix())
 
@@ -483,7 +483,7 @@ class GachaClient:
                 last_col,
                 {"type": "formula", "criteria": "=$D2=3", "format": star_3},
             )
-            logger.debug("写入 {}，共 {} 条数据", gacha_type_name, len(gacha_data))
+            logger.debug("create sheet {}，total count: {} ", gacha_type_name, len(gacha_data))
 
         workbook.close()
-        logger.debug("工作簿写入完成")
+        logger.debug("create xlsx file success")
