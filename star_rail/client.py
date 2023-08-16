@@ -30,6 +30,11 @@ class HSRClient(GachaClient, MonthClient, ConfigClient):
     @error.exec_catch()
     @check_user
     def refresh_month_info(self):
+        # TODO 支持国际服
+        from star_rail.module.mihoyo import GameBiz
+
+        if GameBiz.get_by_uid(self.user.uid) == GameBiz.GLOBAL:
+            raise error.HsrException("该功能尚未支持国际服账号")
         if not self.user.cookie.verify_cookie_token():
             print(functional.color_str(_lang.empty_cookie, "yellow"))
             return
