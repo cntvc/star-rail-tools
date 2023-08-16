@@ -1,6 +1,8 @@
 import abc
 import typing
 
+from star_rail.exceptions import ParamValueError
+
 from .types import GameBiz
 
 
@@ -29,7 +31,8 @@ class InternationalRoute(BaseRoute):
 
     def get_url(self, game_biz: GameBiz):
         if not self.urls[game_biz]:
-            raise ValueError(f"URL does not support {game_biz.name} region.")
+            # 不会触发
+            raise ParamValueError(f"URL does not support {game_biz.name} game_biz.")
         return self.urls[game_biz]
 
 

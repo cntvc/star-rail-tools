@@ -1,5 +1,7 @@
 import enum
 
+from star_rail.exceptions import ParamValueError
+
 
 class GameBiz(str, enum.Enum):
     GLOBAL = "hkrpg_global"
@@ -12,7 +14,8 @@ class GameBiz(str, enum.Enum):
         elif "1" <= uid[0] <= "5":
             return GameBiz.CN
         else:
-            raise ValueError(f"Invalid UID value: {uid}")
+            # 不会触发
+            raise ParamValueError(f"Invalid UID value: {uid}")
 
 
 class Region(str, enum.Enum):

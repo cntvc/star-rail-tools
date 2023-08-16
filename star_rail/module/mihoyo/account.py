@@ -143,7 +143,7 @@ class AccountManager:
             raise ParamTypeError(_lang.param_type_error, type(user))
 
         self.user.reload_profile()
-        logger.info(_lang.login_account, self.user.uid)
+        logger.success(_lang.login_account, self.user.uid)
         settings.DEFAULT_UID = self.user.uid
         settings.save()
 
@@ -250,5 +250,5 @@ def get_game_record_card(cookie: Cookie):
         params=param,
         cookies=cookie.model_dump("app"),
     )
-    logger.debug("获取角色信息")
+    logger.debug("get game record card")
     return UserGameRecordCards(**data)

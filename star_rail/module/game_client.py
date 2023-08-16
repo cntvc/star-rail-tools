@@ -36,7 +36,7 @@ class GameClient:
         try:
             log_text = log_path.read_text(encoding="utf8")
         except UnicodeDecodeError as err:
-            logger.debug(f"日志文件编码不是utf8, 尝试默认编码 {err}")
+            logger.debug(f"file encoding format is not utf8, try to use default encoding \n {err}")
             log_text = log_path.read_text(encoding=None)
 
         res = re.search("([A-Z]:/.+StarRail_Data)", log_text)

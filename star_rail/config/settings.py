@@ -32,7 +32,7 @@ class Settings(BaseModel):
     def __setattr__(self, k, v):
         if k not in self.__fields__:
             return
-        logger.debug("更新设置: {} -> {}", k, v)
+        logger.debug("update config: {} -> {}", k, v)
         return super().__setattr__(k, v)
 
     def __init__(self, **data):

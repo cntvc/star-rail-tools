@@ -144,7 +144,6 @@ class Analyzer:
 
     def _analyze(self, info: GachaRecordInfo, data: typing.List[ApiGachaItem]):
         """分析全部抽卡数据"""
-        logger.debug("分析抽卡数据")
         # 每个卡池统计信息：总抽数，时间范围，5星的具体抽数，当前未保底次数，平均抽数（不计算未保底）
         analyze_result = AnalyzeResult()
         analyze_result.uid = info.uid
@@ -389,8 +388,7 @@ class GachaClient:
         gacha_data = GachaRecordClient.query_all(self.user.uid)
         srgf_data = convert_to_srgf(record_info, gacha_data)
         functional.save_json(self.user.srgf_path, srgf_data.model_dump())
-        logger.success("导出成功")
-        print("文件位于 {}".format(self.user.srgf_path.as_posix()))
+        logger.success("导出成功, 文件位于 {}", self.user.srgf_path.as_posix())
 
     def _create_xlsx(self, data: typing.List[ApiGachaItem]):
         logger.debug("创建工作簿: " + self.user.gacha_log_xlsx_path.as_posix())

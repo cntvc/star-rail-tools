@@ -55,7 +55,7 @@ class DBClient:
     def __init__(self, db_path: str = _default_db_path) -> None:
         self._db_path = db_path
         os.makedirs(os.path.split(db_path)[0], exist_ok=True)
-        logger.debug("数据库文件路径{}", self._db_path)
+        logger.debug("database file path : {}", self._db_path)
         self._cache: typing.Dict[object, SqlFields] = dict()
         try:
             self._conn = sqlite3.connect(self._db_path)
