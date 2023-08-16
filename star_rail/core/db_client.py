@@ -104,7 +104,6 @@ class DBClient:
         placeholders = ",".join(["?" for _ in sql_field.cloumn])
         values = [getattr(item, k) for k in sql_field.cloumn]
 
-        # TODO 测试
         sql = """insert {} into {} ({}) values ({})
         """.format(
             mode, sql_field.table_name, colunms, placeholders
