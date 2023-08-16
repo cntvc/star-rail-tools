@@ -29,7 +29,7 @@ _lang = i18n.account
 __all__ = [
     "verify_uid_format",
     "Account",
-    "UserManager",
+    "AccountManager",
 ]
 
 
@@ -101,7 +101,6 @@ class Account(BaseModel):
         local_user = converter.user_mapper_to_user(user_mapper)
         user_ck = CookieMapper.query_cookie(self.uid)
         if user_ck:
-            # TODO cookie为空时更新逻辑
             local_cookie = converter.cookie_mapper_to_cookie(user_ck)
             local_user.cookie = local_cookie
 
@@ -122,7 +121,7 @@ class Account(BaseModel):
 
 
 @Singleton()
-class UserManager:
+class AccountManager:
     def __init__(self) -> None:
         if not settings.DEFAULT_UID:
             self.user = None
@@ -130,7 +129,7 @@ class UserManager:
         self.user = Account(settings.DEFAULT_UID)
         result = self.user.reload_profile()
         if not result:
-            # 不存在该账号
+            # 本地文件设置了默认账户数据库却不存在该账号
             self.user = None
             settings.DEFAULT_UID = ""
             settings.save()
@@ -195,7 +194,9 @@ class UserManager:
 
     def get_uid_list(self):
         user_list = UserMapper.query_all()
-        return [user.uid for user in user_list]
+        if user_list is None:
+            return []
+        return sorted([user.uid for user in user_list])
 
     def get_status_desc(self):
         if self.user is not None:
@@ -249,4 +250,5 @@ def get_game_record_card(cookie: Cookie):
         params=param,
         cookies=cookie.model_dump("app"),
     )
+    logger.debug("获取角色信息")
     return UserGameRecordCards(**data)

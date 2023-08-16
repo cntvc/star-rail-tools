@@ -37,9 +37,10 @@ class GachaItemMapper(DBModel):
 
     @classmethod
     def query_all(cls, uid: str, gacha_type: str = "", begin_id: str = ""):
+        """查询按id从小到大排序的结果"""
         type_sql = """ and gacha_type = "{}" """.format(gacha_type) if gacha_type else ""
         id_sql = """ and id > "{}" """.format(begin_id) if begin_id else ""
-        sql = """select * from {} where uid = "{}" {} {}; """.format(
+        sql = """select * from {} where uid = "{}" {} {} ORDER BY id; """.format(
             cls.__table_name__, uid, type_sql, id_sql
         )
         with DBClient() as db:

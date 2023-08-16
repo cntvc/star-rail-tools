@@ -101,14 +101,16 @@ class DBClient:
             mode = " or replace "
 
         colunms = ",".join(sql_field.cloumn)
-        # TODO 这里插入时数据类型转换
-        values = ",".join(['"{}"'.format(getattr(item, k)) for k in sql_field.cloumn])
+        placeholders = ",".join(["?" for _ in sql_field.cloumn])
+        values = [getattr(item, k) for k in sql_field.cloumn]
 
-        sql = """insert {} into {} ({}) values ({});
+        # TODO 测试
+        sql = """insert {} into {} ({}) values ({})
         """.format(
-            mode, sql_field.table_name, colunms, values
+            mode, sql_field.table_name, colunms, placeholders
         )
-        cur = self.execute_sql(sql)
+        logger.debug("[SQL] [insert] : {}", sql)
+        cur = self._conn.cursor().execute(sql, values)
         self.commit()
         return cur
 
@@ -141,6 +143,7 @@ class DBClient:
         """.format(
             mode, sql_field.table_name, colunms, placeholders
         )
+        logger.debug("[SQL] [insert] : {}", sql_temp)
         self.conn.cursor().executemany(sql_temp, values)
         self.commit()
 

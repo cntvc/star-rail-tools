@@ -28,7 +28,7 @@ class BaseGachaItem(BaseModel):
         return self.id < __value.id
 
 
-class GachaItem(BaseGachaItem):
+class ApiGachaItem(BaseGachaItem):
     count: str
     name: str
     rank_type: str
@@ -37,10 +37,10 @@ class GachaItem(BaseGachaItem):
     item_type: str
 
 
-class GachaData(BaseModel):
+class ApiGachaData(BaseModel):
     page: int
     size: int
-    list: typing.List[GachaItem]
+    list: typing.List[ApiGachaItem]
     region: str
     region_time_zone: int
 
@@ -118,7 +118,7 @@ class SRGFData(BaseModel):
 ########################################################################
 
 
-class AnalyzeDataRecordItem(GachaItem):
+class AnalyzeDataRecordItem(ApiGachaItem):
     # 添加索引表示抽数
     number: str
 

@@ -10,22 +10,22 @@ from prettytable import PrettyTable
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.core.db_client import DBClient
+from star_rail.core import DBClient
 from star_rail.i18n import i18n
-from star_rail.module.mihoyo import Account, UserManager
-from star_rail.module.record.mapper import GachaItemMapper, GachaRecordInfoMapper
+from star_rail.module import Account, AccountManager
 from star_rail.utils import functional
 from star_rail.utils.log import logger
 from star_rail.utils.time import get_format_time
 
 from ..mihoyo import request
 from ..record import api, converter
+from .mapper import GachaItemMapper, GachaRecordInfoMapper
 from .model import (
     AnalyzeData,
     AnalyzeDataRecordItem,
     AnalyzeResult,
-    GachaData,
-    GachaItem,
+    ApiGachaData,
+    ApiGachaItem,
     GachaRecordInfo,
     SRGFData,
 )
@@ -45,7 +45,7 @@ class GachaRecordClient:
         data = {}
         for gacha_type_id in GACHA_TYPE_IDS:
             data = request("get", cls._update_url_param(url, gacha_type_id, 1, 1, 0))
-            gacha_data = GachaData(**data)
+            gacha_data = ApiGachaData(**data)
             if gacha_data.list:
                 data["region"] = gacha_data.region
                 data["region_time_zone"] = gacha_data.region_time_zone
@@ -67,13 +67,13 @@ class GachaRecordClient:
 
     def fetch_gacha_record(self):
         logger.info("正在查询记录")
-        gacha_log: typing.List[GachaItem] = []
+        gacha_log: typing.List[ApiGachaItem] = []
         for gacha_type_id in GACHA_TYPE_IDS:
             gacha_log.extend(self._fetch_by_type_id(gacha_type_id))
         return sorted(gacha_log, key=lambda item: item.id)
 
     def _fetch_by_type_id(self, gacha_type_id: str):
-        gacha_list: typing.List[GachaItem] = []
+        gacha_list: typing.List[ApiGachaItem] = []
 
         page = 1
         max_size = 20
@@ -86,7 +86,7 @@ class GachaRecordClient:
                     self.url, gacha_type_id, max_size, page, end_id
                 ),
             )
-            gacha_data = GachaData(**data)
+            gacha_data = ApiGachaData(**data)
             if not gacha_data.list:
                 break
             page = page + 1
@@ -111,14 +111,14 @@ class GachaRecordClient:
             db.insert(converter.record_info_to_mapper(info), "ignore")
 
     @classmethod
-    def save_record_gacha_item(cls, data: typing.List[GachaItem]):
+    def save_record_gacha_item(cls, data: typing.List[ApiGachaItem]):
         with DBClient() as db:
             db.insert_batch(converter.record_gacha_item_to_mapper(data), "ignore")
 
     @classmethod
     def query_all(
         cls, uid: str, gacha_type: str = "", begin_id: str = ""
-    ) -> typing.List[GachaItem]:
+    ) -> typing.List[ApiGachaItem]:
         data = GachaItemMapper.query_all(uid, gacha_type, begin_id)
         return converter.mapper_to_gacha_item(data) if data else None
 
@@ -134,13 +134,15 @@ class GachaRecordClient:
 
 
 class Analyzer:
-    def __init__(self, user: Account, info: GachaRecordInfo, data: typing.List[GachaItem]) -> None:
+    def __init__(
+        self, user: Account, info: GachaRecordInfo, data: typing.List[ApiGachaItem]
+    ) -> None:
         self.user = user
         self.info = info
         self.data = data
         self.result = self._analyze(info, data)
 
-    def _analyze(self, info: GachaRecordInfo, data: typing.List[GachaItem]):
+    def _analyze(self, info: GachaRecordInfo, data: typing.List[ApiGachaItem]):
         """分析全部抽卡数据"""
         logger.debug("分析抽卡数据")
         # 每个卡池统计信息：总抽数，时间范围，5星的具体抽数，当前未保底次数，平均抽数（不计算未保底）
@@ -154,7 +156,7 @@ class Analyzer:
             analyze_result.data.append(self._analyze_gacha_type_data(gacha_type, gacha_data))
         return analyze_result
 
-    def _analyze_gacha_type_data(self, gacha_type: str, gacha_data: typing.List[GachaItem]):
+    def _analyze_gacha_type_data(self, gacha_type: str, gacha_data: typing.List[ApiGachaItem]):
         """分析单一跃迁类型数据"""
         # 5 星列表
         rank_5 = [item for item in gacha_data if item.rank_type == "5"]
@@ -238,21 +240,16 @@ class StatisticalTable:
         print("UID:", functional.color_str("{}".format(self.analyze_result.uid), "green"))
         print("更新时间", self.analyze_result.update_time)
         print(self.gen_overview_table())
-        print(functional.color_str("注：XXX", "yellow"), end="\n\n")
+        print("", end="\n\n")
         print(self.gen_detail_table())
 
 
 class GachaClient:
-    def __init__(self) -> None:
-        self.user_manager = UserManager()
+    def __init__(self, user: Account) -> None:
+        self.user = user
 
-    @error.exec_catch(error.HsrException)
     def refresh_record_by_user_cache(self):
-        user = self.user_manager.user
-        if user is None:
-            logger.warning("设置账户后重试")
-            return
-        url = api.get_from_user_cache(user)
+        url = api.get_from_user_cache(self.user)
         if url is None:
             logger.warning("未获取到链接")
             return
@@ -262,20 +259,14 @@ class GachaClient:
             return
 
         record_info = GachaRecordClient.get_record_info(url)
-        if record_info.uid != user.uid:
+        if record_info.uid != self.user.uid:
             raise error.DataError("账户存储数据出现错误, record_info_uid: {}", record_info.uid)
 
         self._refresh_gacha_record(url, record_info)
         self.show_analyze_result()
 
-    @error.exec_catch(error.HsrException)
     def refresh_record_by_game_cache(self):
-        user = self.user_manager.user
-        if user is None:
-            logger.warning("设置账户后重试")
-            return
-
-        url = api.get_from_game_cache(user)
+        url = api.get_from_game_cache(self.user)
         if url is None:
             logger.warning("游戏缓存未获取到有效链接")
             return
@@ -285,17 +276,16 @@ class GachaClient:
             return
 
         record_info = GachaRecordClient.get_record_info(url)
-        if user.uid != record_info.uid:
+        if self.user.uid != record_info.uid:
             logger.warning("游戏链接账户与设置不一致，无法导出")
             return
 
-        user.gacha_url = str(url)
-        user.save_profile()
+        self.user.gacha_url = str(url)
+        self.user.save_profile()
 
         self._refresh_gacha_record(url, record_info)
         self.show_analyze_result()
 
-    @error.exec_catch(error.HsrException)
     def refresh_record_by_clipboard(self):
         url = api.get_from_clipboard()
         if url is None:
@@ -310,7 +300,7 @@ class GachaClient:
 
         user = Account(uid=record_info.uid, gacha_url=url)
         user.save_profile()
-        UserManager().login(user)
+        AccountManager().login(user)
 
         self._refresh_gacha_record(url, record_info)
         self.show_analyze_result()
@@ -336,38 +326,28 @@ class GachaClient:
         analyzer.save_result()
 
     def show_analyze_result(self):
-        user = self.user_manager.user
-        if user is None:
-            logger.warning("设置账户后重试")
-            return
-        if user.gacha_log_analyze_path.exists():
-            result = AnalyzeResult(**functional.load_json(user.gacha_log_analyze_path))
+        if self.user.gacha_log_analyze_path.exists():
+            result = AnalyzeResult(**functional.load_json(self.user.gacha_log_analyze_path))
             StatisticalTable(result).show()
         else:
-            record_info_mapper = GachaRecordInfoMapper.query(user.uid)
+            record_info_mapper = GachaRecordInfoMapper.query(self.user.uid)
             if not record_info_mapper:
                 logger.warning("账户无抽卡记录")
                 return
             record_info = converter.mapper_to_record_info(record_info_mapper)
-            analyzer = Analyzer(user, record_info, GachaRecordClient.query_all(user.uid))
+            analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
             analyzer.save_result()
             StatisticalTable(analyzer.result).show()
 
     def import_gacha_record(self):
-        """
-        导入跃迁记录
-        """
-        user = self.user_manager.user
-        if user is None:
-            logger.warning("设置账户后重试")
-            return
-
         import_data_path = constants.IMPORT_DATA_PATH
         file_list = [
             name
             for name in os.listdir(import_data_path)
             if os.path.isfile(os.path.join(import_data_path, name)) and name.endswith(".json")
         ]
+        record_info = None
+        cnt = 0
         for file_name in file_list:
             file_path = os.path.join(import_data_path, file_name)
             data = functional.load_json(file_path)
@@ -376,139 +356,136 @@ class GachaClient:
             except pydantic.ValidationError:
                 logger.warning("文件 {} 不是标准的 SRGF 格式，本次导入将忽略该文件", file_path)
                 continue
-            if srgf_data.info.uid != user.uid:
+            if srgf_data.info.uid != self.user.uid:
                 logger.warning("文件 {} 中数据不属于当前账户，本次导入将忽略该文件", file_path)
                 continue
             record_info, item_list = convert_to_gacha_record(srgf_data)
             GachaRecordClient.save_record_info(record_info)
             GachaRecordClient.save_record_gacha_item(item_list)
             logger.success("成功导入文件 {}", file_path)
-        analyzer = Analyzer(user, record_info, GachaRecordClient.query_all(user.uid))
+            cnt = cnt + 1
+        if record_info is None:
+            logger.info("未识别到可导入数据")
+            return
+        else:
+            logger.success("成功导入 {} 个文件", cnt)
+        analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
         analyzer.save_result()
 
     def export_record_to_xlsx(self):
-        user = self.user_manager.user
-        if user is None:
-            logger.warning("设置账户后重试")
-            return
-
-        record_info = GachaRecordClient.query_gacha_record_info(user.uid)
+        record_info = GachaRecordClient.query_gacha_record_info(self.user.uid)
         if not record_info:
             logger.warning("无数据可导出")
             return
-        gacha_data = GachaRecordClient.query_all(user.uid)
-        _create_xlsx(user, gacha_data)
-        logger.success("导出成功，文件位于 {} ", user.gacha_log_xlsx_path.as_posix())
+        gacha_data = GachaRecordClient.query_all(self.user.uid)
+        self._create_xlsx(self.user, gacha_data)
+        logger.success("导出成功，文件位于 {} ", self.user.gacha_log_xlsx_path.as_posix())
 
     def export_record_to_srgf(self):
-        user = self.user_manager.user
-        if user is None:
-            logger.warning("设置账户后重试")
-            return
-        record_info = GachaRecordClient.query_gacha_record_info(user.uid)
+        record_info = GachaRecordClient.query_gacha_record_info(self.user.uid)
         if not record_info:
             logger.warning("无数据可导出")
             return
-        gacha_data = GachaRecordClient.query_all(user.uid)
+        gacha_data = GachaRecordClient.query_all(self.user.uid)
         srgf_data = convert_to_srgf(record_info, gacha_data)
-        functional.save_json(user.srgf_path, srgf_data.model_dump())
+        functional.save_json(self.user.srgf_path, srgf_data.model_dump())
         logger.success("导出成功")
-        print("文件位于 {}".format(user.srgf_path.as_posix()))
+        print("文件位于 {}".format(self.user.srgf_path.as_posix()))
 
+    def _create_xlsx(self, data: typing.List[ApiGachaItem]):
+        logger.debug("创建工作簿: " + self.user.gacha_log_xlsx_path.as_posix())
+        os.makedirs(self.user.gacha_log_xlsx_path.parent.as_posix(), exist_ok=True)
+        workbook = xlsxwriter.Workbook(self.user.gacha_log_xlsx_path.as_posix())
 
-def _create_xlsx(user: Account, data: typing.List[GachaItem]):
-    logger.debug("创建工作簿: " + user.gacha_log_xlsx_path.as_posix())
-    workbook = xlsxwriter.Workbook(user.gacha_log_xlsx_path.as_posix())
+        # 初始化单元格样式
+        content_css = workbook.add_format(
+            {
+                "align": "left",
+                "font_name": "微软雅黑",
+                "border_color": "#c4c2bf",
+                "border": 1,
+            }
+        )
+        title_css = workbook.add_format(
+            {
+                "align": "left",
+                "font_name": "微软雅黑",
+                "color": "#757575",
+                "border_color": "#c4c2bf",
+                "border": 1,
+                "bold": True,
+            }
+        )
 
-    # 初始化单元格样式
-    content_css = workbook.add_format(
-        {
-            "align": "left",
-            "font_name": "微软雅黑",
-            "border_color": "#c4c2bf",
-            "border": 1,
-        }
-    )
-    title_css = workbook.add_format(
-        {
-            "align": "left",
-            "font_name": "微软雅黑",
-            "color": "#757575",
-            "border_color": "#c4c2bf",
-            "border": 1,
-            "bold": True,
-        }
-    )
+        star_5 = workbook.add_format({"color": "#bd6932", "bold": True})
+        star_4 = workbook.add_format({"color": "#a256e1", "bold": True})
+        star_3 = workbook.add_format({"color": "#8e8e8e"})
 
-    star_5 = workbook.add_format({"color": "#bd6932", "bold": True})
-    star_4 = workbook.add_format({"color": "#a256e1", "bold": True})
-    star_3 = workbook.add_format({"color": "#8e8e8e"})
+        for gacha_type in GACHA_TYPE_IDS:
+            gacha_data = [item for item in data if item.gacha_type == gacha_type]
+            gacha_type_name = GACHA_TYPE_DICT[gacha_type]
 
-    for gacha_type in GACHA_TYPE_IDS:
-        gacha_data = [item for item in data if item.gacha_type == gacha_type]
-        gacha_type_name = GACHA_TYPE_DICT[gacha_type]
-
-        worksheet = workbook.add_worksheet(gacha_type_name)
-        excel_header = [
-            i18n.execl.header.time,
-            i18n.execl.header.name,
-            i18n.execl.header.type,
-            i18n.execl.header.level,
-            i18n.execl.header.gacha_type,
-            i18n.execl.header.total_count,
-            i18n.execl.header.pity_count,
-        ]
-        worksheet.set_column("A:A", 22)
-        worksheet.set_column("B:B", 14)
-        worksheet.set_column("E:E", 14)
-        worksheet.write_row(0, 0, excel_header, title_css)
-        worksheet.freeze_panes(1, 0)  # 固定标题行
-        counter = 0
-        pity_counter = 0
-        for item in gacha_data:
-            counter = counter + 1
-            pity_counter = pity_counter + 1
-            excel_data = [
-                item.time,
-                item.name,
-                item.item_type,
-                item.rank_type,
-                gacha_type_name,
-                counter,
-                pity_counter,
+            worksheet = workbook.add_worksheet(gacha_type_name)
+            excel_header = [
+                i18n.execl.header.time,
+                i18n.execl.header.name,
+                i18n.execl.header.type,
+                i18n.execl.header.level,
+                i18n.execl.header.gacha_type,
+                i18n.execl.header.total_count,
+                i18n.execl.header.pity_count,
             ]
-            # 这里转换为int类型，在后面修改单元格样式时使用
-            excel_data[3] = int(excel_data[3])
-            worksheet.write_row(counter, 0, excel_data, content_css)
-            if excel_data[3] == 5:
-                pity_counter = 0
+            worksheet.set_column("A:A", 22)
+            worksheet.set_column("B:B", 14)
+            worksheet.set_column("E:E", 14)
+            worksheet.write_row(0, 0, excel_header, title_css)
+            worksheet.freeze_panes(1, 0)  # 固定标题行
+            counter = 0
+            pity_counter = 0
+            for item in gacha_data:
+                counter = counter + 1
+                pity_counter = pity_counter + 1
+                excel_data = [
+                    item.time,
+                    item.name,
+                    item.item_type,
+                    item.rank_type,
+                    gacha_type_name,
+                    counter,
+                    pity_counter,
+                ]
+                # 这里转换为int类型，在后面修改单元格样式时使用
+                excel_data[3] = int(excel_data[3])
+                worksheet.write_row(counter, 0, excel_data, content_css)
+                if excel_data[3] == 5:
+                    pity_counter = 0
 
-        first_row = 1  # 不包含表头第一行 (zero indexed)
-        first_col = 0  # 第一列
-        last_row = len(gacha_data)  # 最后一行
-        last_col = len(excel_header) - 1  # 最后一列，zero indexed 所以要减 1
-        worksheet.conditional_format(
-            first_row,
-            first_col,
-            last_row,
-            last_col,
-            {"type": "formula", "criteria": "=$D2=5", "format": star_5},
-        )
-        worksheet.conditional_format(
-            first_row,
-            first_col,
-            last_row,
-            last_col,
-            {"type": "formula", "criteria": "=$D2=4", "format": star_4},
-        )
-        worksheet.conditional_format(
-            first_row,
-            first_col,
-            last_row,
-            last_col,
-            {"type": "formula", "criteria": "=$D2=3", "format": star_3},
-        )
-        logger.debug("写入 {}，共 {} 条数据", gacha_type_name, len(gacha_data))
+            first_row = 1  # 不包含表头第一行 (zero indexed)
+            first_col = 0  # 第一列
+            last_row = len(gacha_data)  # 最后一行
+            last_col = len(excel_header) - 1  # 最后一列，zero indexed 所以要减 1
+            worksheet.conditional_format(
+                first_row,
+                first_col,
+                last_row,
+                last_col,
+                {"type": "formula", "criteria": "=$D2=5", "format": star_5},
+            )
+            worksheet.conditional_format(
+                first_row,
+                first_col,
+                last_row,
+                last_col,
+                {"type": "formula", "criteria": "=$D2=4", "format": star_4},
+            )
+            worksheet.conditional_format(
+                first_row,
+                first_col,
+                last_row,
+                last_col,
+                {"type": "formula", "criteria": "=$D2=3", "format": star_3},
+            )
+            logger.debug("写入 {}，共 {} 条数据", gacha_type_name, len(gacha_data))
 
-    workbook.close()
-    logger.debug("工作簿写入完成")
+        workbook.close()
+        logger.debug("工作簿写入完成")

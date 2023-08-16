@@ -1,13 +1,13 @@
 from star_rail.module.mihoyo.account import Account
 
 from .mapper import MonthInfoMapper, MonthInfoRewardSourceMapper
-from .model import MonthInfo
+from .model import ApiMonthInfo, MonthInfo
 
-__all__ = ["info_to_mapper", "reward_source_to_mapper"]
+__all__ = ["api_info_to_mapper", "reward_source_to_mapper"]
 
 
-def info_to_mapper(user: Account, month_info: MonthInfo):
-    """将 MonthInfo 转换为 MonthInfoMapper"""
+def api_info_to_mapper(user: Account, month_info: ApiMonthInfo):
+    """将 ApiMonthInfo 转换为 MonthInfoMapper"""
     return MonthInfoMapper(
         uid=user.uid,
         month=month_info.data_month,
@@ -16,7 +16,7 @@ def info_to_mapper(user: Account, month_info: MonthInfo):
     )
 
 
-def reward_source_to_mapper(user: Account, month_info: MonthInfo):
+def reward_source_to_mapper(user: Account, month_info: ApiMonthInfo):
     """将 MonthInfo 转为 MonthInfoRewardSourceMapper"""
     return [
         MonthInfoRewardSourceMapper(
@@ -29,3 +29,7 @@ def reward_source_to_mapper(user: Account, month_info: MonthInfo):
         )
         for item in month_info.month_data.group_by
     ]
+
+
+def mapper_to_month_info(data: MonthInfoMapper):
+    return MonthInfo(**data.model_dump())
