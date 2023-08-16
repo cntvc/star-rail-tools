@@ -157,7 +157,7 @@ class AccountManager:
             user.save_profile()
         logger.success(_lang.add_success, user.uid)
 
-    @exec_catch()
+    @exec_catch(level="warning")
     def create_by_cookie(self):
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)

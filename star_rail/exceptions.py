@@ -131,7 +131,8 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
 
 
 def exec_catch(
-    exec_type: typing.Union[HsrException, typing.Tuple[HsrException, ...]] = HsrException
+    exec_type: typing.Union[HsrException, typing.Tuple[HsrException, ...]] = HsrException,
+    level: typing.Literal["debug", "info", "warning", "error"] = "error",
 ):
     """捕获异常打印 msg 并返回 None"""
 
@@ -141,7 +142,14 @@ def exec_catch(
             try:
                 return func(*args, **kwargs)
             except exec_type as e:
-                logger.error(e.msg)
+                if level == "debug":
+                    logger.debug(e)
+                elif level == "info":
+                    logger.info(e)
+                elif level == "warning":
+                    logger.warning(e)
+                elif level == "error":
+                    logger.error(e)
                 logger.debug(traceback.format_exc())
                 return None
 
