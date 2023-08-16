@@ -1,6 +1,7 @@
 import functools
 
 from star_rail import exceptions as error
+from star_rail.config import ConfigClient, settings
 from star_rail.i18n import i18n
 from star_rail.module import AccountManager, GachaClient, MonthClient
 from star_rail.utils import functional
@@ -10,15 +11,16 @@ _lang = i18n.client
 __all__ = ["HSRClient"]
 
 
-class HSRClient(GachaClient, MonthClient):
+class HSRClient(GachaClient, MonthClient, ConfigClient):
     def __init__(self) -> None:
-        self.user_manager = AccountManager()
+        self.setting = settings
+        self.user = AccountManager().user
 
     def check_user(func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-            user = self.user_manager.user
-            if user is None:
+            self.user = AccountManager().user
+            if self.user is None:
                 print(functional.color_str(_lang.no_account, "yellow"))
                 return
             return func(self, *args, **kwargs)

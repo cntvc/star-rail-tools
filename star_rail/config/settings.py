@@ -4,10 +4,10 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from star_rail import constants
-from star_rail.utils.functional import color_str, load_json, save_json
+from star_rail.utils.functional import load_json, save_json
 from star_rail.utils.log import logger
 
-__all__ = ["settings", "get_config_status_desc"]
+__all__ = ["settings"]
 
 _config_path = Path(constants.CONFIG_PATH, "settings.json")
 
@@ -69,15 +69,3 @@ class Settings(BaseModel):
 
 
 settings = Settings()
-
-
-def get_config_status_desc(key):
-    assert hasattr(settings, key)
-    from star_rail.i18n import i18n
-
-    return "{}: {}".format(
-        i18n.config.settings.current_status,
-        color_str(i18n.common.open, "green")
-        if settings.get(key)
-        else color_str(i18n.common.close, "red"),
-    )

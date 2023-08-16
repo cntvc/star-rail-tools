@@ -4,7 +4,7 @@ import time
 
 from star_rail import __version__ as version
 from star_rail.client import HSRClient
-from star_rail.config import get_config_status_desc, settings
+from star_rail.config import settings
 from star_rail.core import DBClient, init_all_table
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module import AccountManager, updater
@@ -77,14 +77,14 @@ def init_menu(client: HSRClient):
                         options=[
                             MenuItem(
                                 title=i18n.common.open,
-                                options=lambda: settings.set_and_save("FLAG_CHECK_UPDATE", True),
+                                options=lambda: client.open_setting("FLAG_CHECK_UPDATE"),
                             ),
                             MenuItem(
                                 title=i18n.common.close,
-                                options=lambda: settings.set_and_save("FLAG_CHECK_UPDATE", False),
+                                options=lambda: client.close_setting("FLAG_CHECK_UPDATE"),
                             ),
                         ],
-                        tips=lambda: get_config_status_desc("FLAG_CHECK_UPDATE"),
+                        tips=lambda: client.get_config_status("FLAG_CHECK_UPDATE"),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.update_source,
