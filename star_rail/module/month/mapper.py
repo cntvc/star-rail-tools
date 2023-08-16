@@ -30,9 +30,8 @@ class MonthInfoMapper(DBModel):
             uid, where_month, limit
         )
         with DBClient() as db:
-            cursor = db.select(query_sql)
-        res = cursor.fetchall()
-        return convert(res, MonthInfoMapper)
+            row = db.select(query_sql).fetchall()
+        return convert(row, MonthInfoMapper)
 
 
 class MonthInfoRewardSourceMapper(DBModel):

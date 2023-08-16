@@ -196,7 +196,7 @@ class AccountManager:
         user_list = UserMapper.query_all()
         if user_list is None:
             return []
-        return sorted([user.uid for user in user_list])
+        return [user.uid for user in user_list]
 
     def get_status_desc(self):
         if self.user is not None:

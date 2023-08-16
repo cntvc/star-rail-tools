@@ -1,3 +1,6 @@
+import typing
+
+from star_rail.exceptions import ParamTypeError
 from star_rail.module.mihoyo.account import Account
 
 from .mapper import MonthInfoMapper, MonthInfoRewardSourceMapper
@@ -31,5 +34,10 @@ def reward_source_to_mapper(user: Account, month_info: ApiMonthInfo):
     ]
 
 
-def mapper_to_month_info(data: MonthInfoMapper):
-    return MonthInfo(**data.model_dump())
+def mapper_to_month_info(data: typing.Tuple[MonthInfoMapper, typing.List[MonthInfoMapper]]):
+    if isinstance(data, typing.List):
+        return [MonthInfo(**item.model_dump()) for item in data]
+    elif isinstance(data, MonthInfoMapper):
+        return MonthInfo(**data.model_dump())
+    else:
+        raise ParamTypeError("参数类型错误, type: {}", type(data))

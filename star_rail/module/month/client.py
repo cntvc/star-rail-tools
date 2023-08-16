@@ -54,10 +54,10 @@ class MonthClient:
         return month_info_table
 
     def show_month_info(self):
-        month_info_mapper = MonthInfoMapper.query(self.user.uid, None, 6)
+        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, 6)
         functional.clear_screen()
         print("UID:", functional.color_str("{}".format(self.user.uid), "green"))
-        print(self._gen_month_info_tables(converter.mapper_to_month_info(month_info_mapper)))
+        print(self._gen_month_info_tables(converter.mapper_to_month_info(month_info_mappers)))
 
     def refresh_month_info(self):
         cur_month_data = self.fetch_month_info()
