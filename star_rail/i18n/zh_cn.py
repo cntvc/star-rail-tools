@@ -81,7 +81,7 @@ zh_cn_lang_pack = {
     "main.menu.show_analyze_result": "查看分析结果",
     # main-menu-trailblaze_calendar
     "main.menu.trailblaze_calendar.home": "开拓月历",
-    "main.menu.trailblaze_calendar.fetch": "更新开拓月历",
+    "main.menu.trailblaze_calendar.fetch": "获取开拓月历",
     "main.menu.trailblaze_calendar.show_history": "查看历史记录",
     # main-menu-setting
     "main.menu.settings.home": "软件设置",

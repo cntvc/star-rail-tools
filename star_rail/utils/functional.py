@@ -74,7 +74,7 @@ def input_int(left: int, right: int, error_msg: str):
     input a integer, and the range of integers is in the interval [left, right]
     """
     while True:
-        index = input()
+        index = input().strip()
         if not index.isdigit():
             print(color_str(error_msg, "yellow"))
             continue
