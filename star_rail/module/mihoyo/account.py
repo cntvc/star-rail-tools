@@ -204,19 +204,23 @@ class AccountManager:
         return _lang.without_account
 
     def gen_account_menu(self):
-        uid_list = self.get_uid_list()
-        menu_list = [
-            # lambda 闭包捕获外部变量值 uid = uid
-            MenuItem(
-                title=_lang.menu.select_account.format(uid), options=lambda uid=uid: self.login(uid)
-            )
-            for uid in uid_list
-        ]
+        menu_list = []
         menu_list.append(
             MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid())
         )
         menu_list.append(
             MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie())
+        )
+        uid_list = self.get_uid_list()
+        menu_list.extend(
+            [
+                # lambda 闭包捕获外部变量值 uid = uid
+                MenuItem(
+                    title=_lang.menu.select_account.format(uid),
+                    options=lambda uid=uid: self.login(uid),
+                )
+                for uid in uid_list
+            ]
         )
         return menu_list
 
