@@ -229,7 +229,7 @@ def _input_uid():
         str: uid
     """
     while True:
-        uid = input(_lang.menu.input_uid)
+        uid = input(_lang.menu.input_uid).strip()
         if uid == "0":
             return None
         if not Account.verify_uid(uid):
