@@ -34,14 +34,6 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
             sql_fields.primary_key.add(name)
         sql_fields.cloumn.add(name)
 
-    if not sql_fields.primary_key:
-        # 因为从数据库映射到 pydantic.BaseModel ，在插入数据无法处理主键值
-        # 这里为每个模型自动添加一个字段为 id 作为主键
-        # 如果没设置主键，添加一个自增主键
-        id = "id"
-        sql_fields.cloumn.add(id)
-        sql_fields.primary_key.add(id)
-
     return sql_fields
 
 
