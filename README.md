@@ -24,41 +24,60 @@
 
 ### 0. 添加账号
 
-1. 添加账户 Cookie (也可以通过该途径手动更新账号 Cookie)
-首先登陆[米哈游通行证]()页面，打开F12，选择控制台，粘贴以下代码，弹出的对话框复制 cookie
-```javascript
-javascript:(function(){prompt(document.domain,document.cookie)})();
-```
+1. 手动输入游戏 UID 添加账号
 
-然后依次输入数字选择菜单项 "账号设置" -> "通过 Cookie 添加账号"，这将自动读取剪切板数据并获得相关游戏账号
+    依次输入数字选择菜单项 "账号设置" -> "输入游戏 UID 添加账号"
 
-> 其他方式获取 Cookie : https://hut.ao/zh/advanced/get-stoken-cookie-from-the-third-party.html
+    <details>
+    <summary>输入 UID 步骤示例</summary>
+    <p>
+
+    <p>
+      <img src="docs/image/input_uid.png" alt="input UID" height = 80% width = 80% align="middle">
+    </p>
+
+    </p>
+    </details>
+
+2. 添加或更新账号 Cookie
+
+    **Cookie 是非常重要的账号凭据，请误泄漏以免导致可能的账号安全风险问题**
+
+    首先登陆[米哈游通行证]()页面，打开F12，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
+    ```javascript
+    javascript:(function(){prompt(document.domain,document.cookie)})();
+    ```
+
+    然后依次输入数字选择菜单项 "账号设置" -> "通过 Cookie 添加账号"，这将自动读取剪切板数据并获得相关游戏账号
+
+    > 其他方式获取 Cookie : https://hut.ao/zh/advanced/get-stoken-cookie-from-the-third-party.html
 
 
-<details>
-  <summary>Cookie 获取示例</summary>
-<p>
+    <details>
+      <summary>Cookie 获取示例</summary>
+    <p>
 
-<p>
-  <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
-</p>
+    <p>
+      <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
+    </p>
 
-</p>
-</details>
+    </p>
+    </details>
+
 
 
 ### 1. 跃迁记录
 
 #### (1) 跃迁记录导出
 
-1. 设置账户：选择或添加星穹铁道账号 UID
-2. 打开游戏，在**抽卡记录页面**选择历史记录并翻页
+1. 设置账号：选择或添加星穹铁道账号 UID
+2. 打开游戏，在 "抽卡记录页面" 选择历史记录并翻页
 3. 切换到软件，依次选择菜单项 "跃迁记录" -> "通过游戏缓存导出"
 4. 完成导出后，会自动显示当前抽卡分析结果
 
 #### (2) 导入抽卡数据
 
-1. 设置账户：输入或选择星穹铁道账号 UID
+1. 设置账号：输入或选择星穹铁道账号 UID
 2. 将需要导入的数据放入 "import" 文件夹内，可一次放入多个文件。支持 [SRGF][SRGF] 格式的 json 文件
 3. 切换到软件，依次选择菜单项 "跃迁记录" -> "导入跃迁记录"
 4. 根据提示导入成功后，需要手动选择菜单项 "查看分析结果"
@@ -67,16 +86,14 @@ javascript:(function(){prompt(document.domain,document.cookie)})();
 
 #### 开拓月历导出
 
-1. 添加或更新账户 Cookie
+1. 添加或更新账号 Cookie
 2. 选择需要操作的 UID
 3. 依次选择菜单项 "开拓月历" -> "获取开拓月历" 功能，等待结果显示
 
 
 <details>
-  <summary>点击查看 <b>数据目录结构</b></summary>
+  <summary>点击查看 数据目录结构</summary>
   <p>
-
-
 
 ```cmd
   StarRailTools_1.0.0.exe # 主程序文件
