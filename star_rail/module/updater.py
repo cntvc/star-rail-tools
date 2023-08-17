@@ -63,7 +63,7 @@ class BaseUpdater(abc.ABC):
         # 保存当前版本文件名
         settings.OLD_EXE_NAME = os.path.basename(sys.argv[0])
         settings.FLAG_UPATED_COMPLETE = True
-        settings.save()
+        settings.save_config()
         subprocess.Popen(update_context.name, creationflags=subprocess.CREATE_NEW_CONSOLE)
         sys.exit()
 
@@ -177,15 +177,15 @@ _update_source: Dict[str, BaseUpdater] = {
     "Coding": UpdateSource.CODING.updater,
 }
 
-_updater = _update_source[settings.FLAG_UPDATE_SOURCE]
+_updater = _update_source[settings.UPDATE_SOURCE]
 
 
 def select_updater_source(source: UpdateSource):
     global _updater
     _updater = _update_source[source.name]
-    settings.FLAG_UPDATE_SOURCE = source.name
-    settings.save()
-    logger.info(_lang.select_update_source, source.name)
+    settings.UPDATE_SOURCE = source.name
+    settings.save_config()
+    logger.success(_lang.select_update_source, source.name)
 
 
 def upgrade():
@@ -200,7 +200,7 @@ def upgrade():
             logger.debug(e)
         settings.OLD_EXE_NAME = ""
         settings.FLAG_UPATED_COMPLETE = False
-        settings.save()
+        settings.save_config()
         changelog = get_changelog()
         if changelog:
             print(_lang.changelog)
@@ -251,3 +251,24 @@ def get_update_source_status():
     """获取当前更新源状态"""
     global _updater
     return "{}: {}".format(_lang.update_source_status, color_str(_updater.name, "green"))
+
+
+def open_auto_update():
+    settings.FLAG_AUTO_UPDATE = True
+    settings.save_config()
+    logger.success(i18n.config.settings.open_success)
+
+
+def close_auto_update():
+    settings.FLAG_AUTO_UPDATE = False
+    settings.save_config()
+    logger.success(i18n.config.settings.close_success)
+
+
+def get_auto_update_status():
+    return "{}: {}".format(
+        i18n.config.settings.current_status,
+        color_str(i18n.common.open, "green")
+        if settings.FLAG_AUTO_UPDATE
+        else color_str(i18n.common.close, "red"),
+    )

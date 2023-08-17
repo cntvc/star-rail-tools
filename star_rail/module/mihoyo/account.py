@@ -132,7 +132,7 @@ class AccountManager:
             # 本地文件设置了默认账户数据库却不存在该账号
             self.user = None
             settings.DEFAULT_UID = ""
-            settings.save()
+            settings.save_config()
 
     def login(self, user: Union[str, Account]):
         if isinstance(user, str):
@@ -145,7 +145,7 @@ class AccountManager:
         self.user.reload_profile()
         logger.success(_lang.login_account_success, self.user.uid)
         settings.DEFAULT_UID = self.user.uid
-        settings.save()
+        settings.save_config()
 
     def create_by_input_uid(self):
         uid = _input_uid()

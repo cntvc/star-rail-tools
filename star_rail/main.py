@@ -80,14 +80,14 @@ def init_menu(client: HSRClient):
                         options=[
                             MenuItem(
                                 title=i18n.common.open,
-                                options=lambda: client.open_setting("FLAG_CHECK_UPDATE"),
+                                options=updater.open_auto_update,
                             ),
                             MenuItem(
                                 title=i18n.common.close,
-                                options=lambda: client.close_setting("FLAG_CHECK_UPDATE"),
+                                options=updater.close_auto_update,
                             ),
                         ],
-                        tips=lambda: client.get_config_status("FLAG_CHECK_UPDATE"),
+                        tips=lambda: updater.get_auto_update_status(),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.update_source,
@@ -147,7 +147,7 @@ def run():
         platform.platform(),
         settings.model_dump(),
     )
-    if settings.FLAG_CHECK_UPDATE:
+    if settings.FLAG_AUTO_UPDATE:
         updater.upgrade()
     init_all_table(DBClient())
     client = HSRClient()

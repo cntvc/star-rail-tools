@@ -147,5 +147,6 @@ def set_locales(lang_type: LanguageType):
     )
     if user_input == "n":
         return
-    settings.set_and_save("LANGUAGE", lang_type.lang_name)
+    settings.LANGUAGE = lang_type.lang_name
+    settings.save_config()
     restart()
