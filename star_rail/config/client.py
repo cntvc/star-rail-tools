@@ -1,5 +1,6 @@
+from loguru import logger
+
 from star_rail.utils import functional
-from star_rail.utils.log import logger
 
 from .settings import Settings, settings
 

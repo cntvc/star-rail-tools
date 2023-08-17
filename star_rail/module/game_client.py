@@ -4,11 +4,12 @@ import os
 import re
 from pathlib import Path
 
+from loguru import logger
+
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
 from star_rail.module.mihoyo.account import Account
 from star_rail.module.mihoyo.types import GameBiz
-from star_rail.utils.log import logger
 
 MHY_LOG_ROOT_PATH = os.path.join(os.getenv("USERPROFILE"), "AppData", "LocalLow")
 

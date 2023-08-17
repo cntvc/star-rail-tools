@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union
 
 import pyperclip
+from loguru import logger
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from star_rail import constants
@@ -11,7 +12,6 @@ from star_rail.core import DBClient
 from star_rail.exceptions import ParamTypeError, exec_catch
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton, color_str
-from star_rail.utils.log import logger
 from star_rail.utils.menu import MenuItem
 
 from .api_client import PC_HEADER, Header, Salt, request

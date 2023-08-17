@@ -2,13 +2,13 @@ import os
 import sqlite3
 import typing
 
+from loguru import logger
 from pydantic import BaseModel
 
 from star_rail.constants import DATA_PATH
 from star_rail.exceptions import DBConnectionError, ParamTypeError
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton
-from star_rail.utils.log import logger
 
 from .base_model import DBModel
 

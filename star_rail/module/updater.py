@@ -11,6 +11,7 @@ import time
 from typing import Dict, Tuple
 
 import requests
+from loguru import logger
 from pydantic import BaseModel
 from tqdm import tqdm
 
@@ -19,7 +20,6 @@ from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
 from star_rail.utils.functional import color_str, input_yes_or_no, pause
-from star_rail.utils.log import logger
 from star_rail.utils.version import compare_versions
 
 __all__ = ["upgrade", "select_updater_source", "get_update_source_status"]

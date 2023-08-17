@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 
+from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
 from star_rail import constants
 from star_rail.utils.functional import load_json, save_json
-from star_rail.utils.log import logger
 
 __all__ = ["settings"]
 

@@ -1,6 +1,8 @@
 import platform
 import time
 
+from loguru import logger
+
 from star_rail import __version__ as version
 from star_rail.client import HSRClient
 from star_rail.config import settings
@@ -8,7 +10,7 @@ from star_rail.core import DBClient, init_all_table
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module import AccountManager, updater
 from star_rail.module.info import show_about
-from star_rail.utils.log import logger
+from star_rail.utils.log import init_logger
 from star_rail.utils.menu import Menu, MenuItem
 from star_rail.utils.time import get_format_time
 
@@ -154,4 +156,5 @@ def run():
 
 
 if __name__ == "__main__":
+    init_logger()
     run()

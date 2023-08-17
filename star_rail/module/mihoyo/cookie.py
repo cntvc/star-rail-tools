@@ -2,9 +2,8 @@ import typing
 from http import cookies
 from typing import Literal
 
+from loguru import logger
 from pydantic import BaseModel, model_validator
-
-from star_rail.utils.log import logger
 
 from .api_client import WEB_HEADER, request
 from .routes import COOKIE_TOKEN_BY_STOKEN_URL, STOKEN_BY_LOGINTICKET_URL

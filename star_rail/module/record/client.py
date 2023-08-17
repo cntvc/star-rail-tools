@@ -6,6 +6,7 @@ import typing
 import pydantic
 import xlsxwriter
 import yarl
+from loguru import logger
 from prettytable import PrettyTable
 
 from star_rail import constants
@@ -14,7 +15,6 @@ from star_rail.core import DBClient
 from star_rail.i18n import i18n
 from star_rail.module import Account, AccountManager
 from star_rail.utils import functional
-from star_rail.utils.log import logger
 from star_rail.utils.time import get_format_time
 
 from ..mihoyo import request
