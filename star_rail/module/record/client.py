@@ -369,7 +369,7 @@ class GachaClient:
             logger.success(_lang.import_file_success, file_path)
 
         if record_info is None:
-            logger.info(_lang.no_file_import)
+            logger.warning(_lang.no_file_import)
             return
 
         analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
