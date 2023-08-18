@@ -23,7 +23,7 @@ class TestSettingsModule(unittest.TestCase):
     def test_config_initialization(self):
         settings = Settings(self.config_path)
         self.assertTrue(settings.FLAG_AUTO_UPDATE)
-        self.assertFalse(settings.FLAG_UPATED_COMPLETE)
+        self.assertFalse(settings.FLAG_UPDATED_COMPLETE)
         self.assertEqual(settings.UPDATE_SOURCE, "Github")
 
     def test_save_config(self):

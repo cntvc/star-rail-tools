@@ -62,7 +62,7 @@ class BaseUpdater(abc.ABC):
         time.sleep(1)
         # 保存当前版本文件名
         settings.OLD_EXE_NAME = os.path.basename(sys.argv[0])
-        settings.FLAG_UPATED_COMPLETE = True
+        settings.FLAG_UPDATED_COMPLETE = True
         settings.save_config()
         subprocess.Popen(update_context.name, creationflags=subprocess.CREATE_NEW_CONSOLE)
         sys.exit()
@@ -190,7 +190,7 @@ def select_updater_source(source: UpdateSource):
 
 def upgrade():
     """根据软件保存的状态，显示更新日志或检测更新"""
-    if settings.FLAG_UPATED_COMPLETE is True:
+    if settings.FLAG_UPDATED_COMPLETE is True:
         logger.success(_lang.upgrade_success, version)
         old_exe_path = os.path.join(os.path.dirname(sys.argv[0]), settings.OLD_EXE_NAME)
         try:
@@ -199,7 +199,7 @@ def upgrade():
             logger.warning(_lang.delete_file_failed, old_exe_path)
             logger.debug(e)
         settings.OLD_EXE_NAME = ""
-        settings.FLAG_UPATED_COMPLETE = False
+        settings.FLAG_UPDATED_COMPLETE = False
         settings.save_config()
         changelog = get_changelog()
         if changelog:

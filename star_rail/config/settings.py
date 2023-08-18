@@ -15,7 +15,7 @@ class Settings(BaseModel):
     FLAG_AUTO_UPDATE: bool = True
     """自动更新"""
 
-    FLAG_UPATED_COMPLETE: bool = False
+    FLAG_UPDATED_COMPLETE: bool = False
 
     UPDATE_SOURCE: typing.Literal["Github", "Coding"] = "Github"
     """更新源"""
