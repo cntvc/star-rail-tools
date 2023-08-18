@@ -28,12 +28,9 @@ class CookieMapper(DBModel):
 
     @staticmethod
     def query_cookie(uid: str) -> typing.Optional["CookieMapper"]:
-        sql = """select * from cookie where uid = "{}"
-        """.format(
-            uid
-        )
+        sql = """select * from cookie where uid = ? ;"""
         with DBClient() as db:
-            row = db.select(sql).fetchone()
+            row = db.select(sql, uid).fetchone()
         return convert(row, CookieMapper)
 
 
@@ -51,18 +48,15 @@ class UserMapper(DBModel):
     @staticmethod
     def query_user(uid: str) -> typing.Optional["UserMapper"]:
         """根据id查询用户数据"""
-        sql = """select * from user where uid = "{}"
-        """.format(
-            uid
-        )
+        sql = """select * from user where uid = ? ;"""
         with DBClient() as db:
-            row = db.select(sql).fetchone()
+            row = db.select(sql, uid).fetchone()
         return convert(row, UserMapper)
 
     @staticmethod
     def query_all() -> typing.List["UserMapper"]:
         """查询所有用户，按照uid顺序返回"""
-        sql = """select * from user order by uid;"""
+        sql = """select * from user order by uid ;"""
         with DBClient() as db:
             row = db.select(sql).fetchall()
         return convert(row, UserMapper)

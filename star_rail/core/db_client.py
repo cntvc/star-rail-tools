@@ -74,8 +74,9 @@ class DBClient:
         """一次执行多个 sql 语句，以 `;` 分隔"""
         return self.conn.executescript(sql_script)
 
-    def select(self, sql_script):
-        return self._conn.cursor().execute(sql_script)
+    def select(self, sql_script, *args):
+        logger.debug("[SQL] [SELECT] : {}, [PARAM]: {}", sql_script, args)
+        return self._conn.cursor().execute(sql_script, args)
 
     def insert(self, item: DBModel, mode: typing.Literal["ignore", "update", "none"] = "none"):
         """插入一个 DBModel 对象"""

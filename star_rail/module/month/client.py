@@ -54,7 +54,8 @@ class MonthClient:
         return month_info_table
 
     def show_month_info(self):
-        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, 6)
+        default_time_range = 6
+        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, default_time_range)
         data = []
         if month_info_mappers:
             data = converter.mapper_to_month_info(month_info_mappers)

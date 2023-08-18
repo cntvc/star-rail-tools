@@ -14,10 +14,10 @@ class GachaRecordInfoMapper(DBModel):
 
     @classmethod
     def query(cls, uid: str):
-        sql = """select * from {} where uid = "{}"; """.format(cls.__table_name__, uid)
+        sql = """select * from record_info where uid = ?; """
         with DBClient() as db:
-            row = db.select(sql).fetchone()
-        return convert(row, GachaRecordInfoMapper)
+            row = db.select(sql, uid).fetchone()
+        return convert(row, cls)
 
 
 class GachaItemMapper(DBModel):
@@ -36,24 +36,18 @@ class GachaItemMapper(DBModel):
     item_type: str
 
     @classmethod
-    def query_all(cls, uid: str, gacha_type: str = "", begin_id: str = ""):
+    def query_all(cls, uid: str):
         """查询按id从小到大排序的结果"""
-        type_sql = """ and gacha_type = "{}" """.format(gacha_type) if gacha_type else ""
-        id_sql = """ and id > "{}" """.format(begin_id) if begin_id else ""
-        sql = """select * from {} where uid = "{}" {} {} ORDER BY id; """.format(
-            cls.__table_name__, uid, type_sql, id_sql
-        )
+
+        sql = """select * from record_item where uid = ? ORDER BY id; """
         with DBClient() as db:
-            row = db.select(sql).fetchall()
+            row = db.select(sql, uid).fetchall()
         return convert(row, cls)
 
     @classmethod
     def query_latest(cls, uid: str):
         """查询id最大的一条记录"""
-        sql = """SELECT * FROM record_item where uid = "{}" ORDER BY id DESC LIMIT 1;
-        """.format(
-            uid
-        )
+        sql = """SELECT * FROM record_item where uid = ? ORDER BY id DESC LIMIT 1;"""
         with DBClient() as db:
-            row = db.select(sql).fetchone()
+            row = db.select(sql, uid).fetchone()
         return convert(row, cls)

@@ -23,15 +23,24 @@ class MonthInfoMapper(DBModel):
         cls, uid: str, month: typing.Optional[str], limit: typing.Optional[int]
     ) -> typing.Union[typing.List["MonthInfoMapper"], typing.Optional["MonthInfoMapper"]]:
         """查询开拓月历记录"""
-        where_month = """and month = "{}" """.format(month) if month else ""
-        limit = """ DESC LIMIT {} """.format(limit) if limit else ""
-        query_sql = """SELECT * FROM month_info WHERE uid = "{}" {} ORDER BY month {}
-        """.format(
-            uid, where_month, limit
-        )
+        query_sql = """SELECT * FROM month_info WHERE uid = ? """
+
+        parameters = [uid]
+
+        if month:
+            query_sql += " and month = ? "
+            parameters.append(month)
+
+        query_sql += " ORDER BY month DESC "
+
+        if limit:
+            query_sql = query_sql + " limit ? "
+            parameters.append(limit)
+
         with DBClient() as db:
-            row = db.select(query_sql).fetchall()
-        return convert(row, MonthInfoMapper)
+            row = db.select(query_sql, parameters).fetchall()
+
+        return convert(row, cls)
 
 
 class MonthInfoRewardSourceMapper(DBModel):

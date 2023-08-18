@@ -118,10 +118,8 @@ class GachaRecordClient:
             db.insert_batch(converter.record_gacha_item_to_mapper(data), "ignore")
 
     @classmethod
-    def query_all(
-        cls, uid: str, gacha_type: str = "", begin_id: str = ""
-    ) -> typing.List[ApiGachaItem]:
-        data = GachaItemMapper.query_all(uid, gacha_type, begin_id)
+    def query_all(cls, uid: str) -> typing.List[ApiGachaItem]:
+        data = GachaItemMapper.query_all(uid)
         return converter.mapper_to_gacha_item(data) if data else None
 
     @classmethod
