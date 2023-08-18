@@ -7,6 +7,7 @@ import time
 import typing
 
 import requests
+import yarl
 
 from star_rail import constants
 from star_rail import exceptions as error
@@ -28,7 +29,7 @@ __all__ = [
 
 def request(
     method: typing.Literal["get", "post"],
-    url: str,
+    url: typing.Union[str, yarl.URL],
     params: typing.Dict[str, typing.Any] = None,
     cookies: typing.Dict[str, str] = None,
     headers: typing.Dict[str, str] = None,
@@ -50,7 +51,7 @@ def request(
             r = response.headers.get("content-type")
             if r != "application/json":
                 raise error.ApiException(
-                    msg="Recieved a response with an invalid content type:\n" + response.text
+                    msg="Received a response with an invalid content type:\n" + response.text
                 )
             data = response.json()
 
@@ -77,7 +78,7 @@ _DEFAULT_APP_VERSION = "2.50.1"
 class Salt(str, enum.Enum):
     """对应 APP 版本 为 2.50.1
 
-    数据来自于 https://github.com/UIGF-org/mihoyo-api-collect/issues/1
+    数据来自 https://github.com/UIGF-org/mihoyo-api-collect/issues/1
     """
 
     K2 = "A4lPYtN0KGRVwE5M5Fm0DqQiC5VVMVM3"
@@ -109,6 +110,7 @@ def gen_ds_v2(salt: Salt, query_param: dict = None, body: dict = None):
     """适用于 x-rpc-client_type = 5 (ClientType.PC)
 
     Args:
+        salt: salt
         query_param (dict, optional): api查询参数. Defaults to None.
         body (dict, optional): api请求体参数. Defaults to None.
 
@@ -185,7 +187,6 @@ class Header:
 
     def set_x_rpc_client_type(self, client_type: RpcClientType):
         self._headers["x-rpc-client_type"] = client_type.value
-        self._has_client_type = True
 
     def set_x_rpc_device_id(self, v):
         self._headers["x-rpc-device_id"] = v
@@ -218,7 +219,7 @@ class Header:
 WEB_HEADER = {
     "Accept": "application/json",
     "Origin": Origin.USER_MIHOYO,
-    "Refere": Referer.USER_MUHOYO,
+    "Referer": Referer.USER_MUHOYO,
     "User-Agent": UserAgent.PC_WIN,
     "x-rpc-client_type": RpcClientType.Web,
 }
@@ -228,7 +229,7 @@ WEB_HEADER = {
 ANDROID_HEADER = {
     "Accept": "application/json",
     "Origin": Origin.USER_MIHOYO,
-    "Refere": Referer.USER_MUHOYO,
+    "Referer": Referer.USER_MUHOYO,
     "User-Agent": UserAgent.ANDROID,
     "x-rpc-client_type": RpcClientType.ANDROID,
 }
@@ -238,7 +239,7 @@ ANDROID_HEADER = {
 PC_HEADER = {
     "Accept": "application/json",
     "Origin": Origin.USER_MIHOYO,
-    "Refere": Referer.USER_MUHOYO,
+    "Referer": Referer.USER_MUHOYO,
     "User-Agent": UserAgent.PC_WIN,
     "x-rpc-client_type": RpcClientType.PC,
 }

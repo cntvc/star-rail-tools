@@ -44,7 +44,7 @@ class DataError(HsrException):
     pass
 
 
-class FileNotFoundError(HsrException):
+class UnFoundFileError(HsrException):
     pass
 
 
@@ -62,10 +62,12 @@ class ApiException(HsrException):
 
     def __init__(
         self,
-        response: typing.Mapping[str, typing.Any] = {},
+        response=None,
         msg: typing.Optional[str] = None,
         *args,
     ) -> None:
+        if response is None:
+            response = {}
         self.retcode = response.get("retcode", self.retcode)
         self.original = response.get("message", "")
         self.msg = msg or self.msg.format(args) or self.original

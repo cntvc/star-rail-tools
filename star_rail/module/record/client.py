@@ -104,11 +104,7 @@ class GachaRecordClient:
 
     @classmethod
     def _update_url_param(cls, url: yarl.URL, gacha_type, size, page, end_id):
-        query_params = {}
-        query_params["size"] = size
-        query_params["gacha_type"] = gacha_type
-        query_params["page"] = page
-        query_params["end_id"] = end_id
+        query_params = {"size": size, "gacha_type": gacha_type, "page": page, "end_id": end_id}
         return url.update_query(query_params)
 
     @classmethod

@@ -64,8 +64,7 @@ class MonthClient:
 
     def refresh_month_info(self):
         cur_month_data = self.fetch_month_info()
-        datas = []
-        datas.append(cur_month_data)
+        datas = [cur_month_data]
         for month in cur_month_data.optional_month[1:]:
             cur_month_data = self.fetch_month_info(month)
             datas.append(cur_month_data)

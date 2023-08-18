@@ -25,7 +25,6 @@ _UID_RE = re.compile("^[1-9][0-9]{8}$")
 
 _lang = i18n.account
 
-
 __all__ = [
     "verify_uid_format",
     "Account",
@@ -204,13 +203,10 @@ class AccountManager:
         return _lang.without_account
 
     def gen_account_menu(self):
-        menu_list = []
-        menu_list.append(
-            MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid())
-        )
-        menu_list.append(
-            MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie())
-        )
+        menu_list = [
+            MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid()),
+            MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie()),
+        ]
         uid_list = self.get_uid_list()
         menu_list.extend(
             [

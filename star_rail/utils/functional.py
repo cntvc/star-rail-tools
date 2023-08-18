@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import typing
 from pathlib import Path
 
 __all__ = [
@@ -24,13 +25,13 @@ def touch(full_path: str):
         path.touch()
 
 
-def save_json(full_path: str, data):
+def save_json(full_path: typing.Union[str, Path], data):
     touch(full_path)
     with open(full_path, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, sort_keys=False, indent=4)
 
 
-def load_json(full_path: str) -> dict:
+def load_json(full_path: typing.Union[str, Path]) -> dict:
     with open(full_path, "r", encoding="UTF-8") as file:
         data = json.load(file)
     return data
@@ -71,7 +72,7 @@ def color_str(string: str, color: str = "none"):
 
 def input_int(left: int, right: int, error_msg: str):
     """
-    input a integer, and the range of integers is in the interval [left, right]
+    input an integer, and the range of integers is in the interval [left, right]
     """
     while True:
         index = input().strip()

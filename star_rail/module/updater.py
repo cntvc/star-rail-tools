@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import typing
 from typing import Dict, Tuple
 
 import requests
@@ -69,7 +70,7 @@ class BaseUpdater(abc.ABC):
 
     def _download(self, update_context: UpdateContext):
         """下载新版本文件到当前目录，名称 StarRailTools_{version}.exe"""
-        DEFAULT_CHUNK_SIZE = 1024
+        default_chunk_size = 1024
         temp_file = tempfile.NamedTemporaryFile(delete=False)
         file_path = temp_file.name
         with open(file_path, "wb") as f:
@@ -78,10 +79,10 @@ class BaseUpdater(abc.ABC):
             ) as r:
                 file_size = int(r.headers.get("content-length", 0))
                 with tqdm(total=file_size, unit="B", unit_scale=True, desc="StarRailTools") as pbar:
-                    for chunk in r.iter_content(chunk_size=DEFAULT_CHUNK_SIZE):
+                    for chunk in r.iter_content(chunk_size=default_chunk_size):
                         if chunk:
                             f.write(chunk)
-                            pbar.update(DEFAULT_CHUNK_SIZE)
+                            pbar.update(default_chunk_size)
         return file_path
 
 
@@ -131,7 +132,7 @@ class CodingUpdater(BaseUpdater):
         self._url = "https://cntvc.coding.net/api/team/cntvc/anonymity/artifacts/?pageSize=10"
         self._name = "Coding"
 
-    def check_update(self) -> Tuple[bool, UpdateContext]:
+    def check_update(self) -> Tuple[bool, typing.Optional[UpdateContext]]:
         logger.info(_lang.check_update)
         try:
             response = requests.get(self._url, timeout=constants.REQUEST_TIMEOUT)
@@ -233,10 +234,10 @@ def parse_changelog(release_data):
 
 
 def get_changelog():
-    RELEASE_API = f"https://api.github.com/repos/cntvc/star-rail-tools/releases/tags/{version}"
+    release_api = f"https://api.github.com/repos/cntvc/star-rail-tools/releases/tags/{version}"
 
     try:
-        response = requests.get(RELEASE_API, timeout=constants.REQUEST_TIMEOUT).content.decode(
+        response = requests.get(release_api, timeout=constants.REQUEST_TIMEOUT).content.decode(
             "utf-8"
         )
     except requests.exceptions as e:

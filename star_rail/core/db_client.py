@@ -19,11 +19,11 @@ class SqlFields(BaseModel):
     """创建数据库模型的数据"""
 
     table_name: str
-    cloumn: typing.Set[str] = set()
+    column: typing.Set[str] = set()
     primary_key: typing.Set[str] = set()
 
 
-def _parse_sql_fields(cls: DBModel) -> SqlFields:
+def _parse_sql_fields(cls: typing.Type[DBModel]) -> SqlFields:
     table_name = getattr(cls, "__table_name__", None)
     if table_name:
         sql_fields = SqlFields(table_name=table_name)
@@ -32,7 +32,7 @@ def _parse_sql_fields(cls: DBModel) -> SqlFields:
     for name, fields in cls.model_fields.items():
         if fields.json_schema_extra and fields.json_schema_extra.get("primary_key", None):
             sql_fields.primary_key.add(name)
-        sql_fields.cloumn.add(name)
+        sql_fields.column.add(name)
 
     return sql_fields
 
@@ -90,9 +90,9 @@ class DBClient:
         elif mode == "update":
             mode = " or replace "
 
-        colunms = ",".join(sql_field.cloumn)
-        placeholders = ",".join(["?" for _ in sql_field.cloumn])
-        values = [getattr(item, k) for k in sql_field.cloumn]
+        colunms = ",".join(sql_field.column)
+        placeholders = ",".join(["?" for _ in sql_field.column])
+        values = [getattr(item, k) for k in sql_field.column]
 
         sql = """insert {} into {} ({}) values ({})
         """.format(
@@ -120,11 +120,11 @@ class DBClient:
         elif mode == "update":
             mode = " or replace "
 
-        colunms = ",".join(sql_field.cloumn)
-        placeholders = ",".join(["?" for _ in sql_field.cloumn])
+        colunms = ",".join(sql_field.column)
+        placeholders = ",".join(["?" for _ in sql_field.column])
         values = []
         for item in items:
-            item_values = [getattr(item, k) for k in sql_field.cloumn]
+            item_values = [getattr(item, k) for k in sql_field.column]
             values.append(item_values)
 
         sql_temp = """
@@ -153,7 +153,7 @@ def init_all_table(db: DBClient):
         if sql_field is None:
             continue
         sql = """create table if not exists {} ({}, primary key ({}))""".format(
-            sql_field.table_name, ",".join(sql_field.cloumn), ",".join(sql_field.primary_key)
+            sql_field.table_name, ",".join(sql_field.column), ",".join(sql_field.primary_key)
         )
         db._cache[cls] = sql_field
         db.execute_sql(sql)
