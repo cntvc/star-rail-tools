@@ -20,7 +20,7 @@ LOG_PATH = os.path.join(APPDATA_PATH, "log")
 
 DATA_PATH = os.path.join(APPDATA_PATH, "data")
 
-IMPORT_DATA_PATH = os.path.join(ROOT_PATH, "import")
+IMPORT_DATA_PATH = os.path.join(ROOT_PATH, "Import")
 
 ####################################################################
 # constants
