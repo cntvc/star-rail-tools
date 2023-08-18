@@ -6,7 +6,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from star_rail.constants import DATA_PATH
-from star_rail.exceptions import DBConnectionError, ParamTypeError
+from star_rail.exceptions import DataBaseConnectionError, ParamTypeError
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton
 
@@ -50,7 +50,7 @@ class DBClient:
         try:
             self._conn = sqlite3.connect(self._db_path)
         except sqlite3.Error:
-            raise DBConnectionError
+            raise DataBaseConnectionError
         self._conn.row_factory = sqlite3.Row
 
     def __enter__(self):

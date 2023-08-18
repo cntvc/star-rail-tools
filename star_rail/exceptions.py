@@ -26,10 +26,18 @@ class ParamTypeError(HsrException):
     """参数类型错误"""
 
 
-class DBConnectionError(HsrException):
+class DataBaseError(HsrException):
+    """数据库错误"""
+
+
+class DataBaseConnectionError(DataBaseError):
     """数据库连接错误"""
 
     msg = i18n.error.db_conn_error
+
+
+class DataBaseExecuteError(DataBaseError):
+    msg = "数据库执行错误"
 
 
 class DataError(HsrException):
@@ -60,7 +68,7 @@ class ApiException(HsrException):
     ) -> None:
         self.retcode = response.get("retcode", self.retcode)
         self.original = response.get("message", "")
-        self.msg = msg or self.msg or self.original
+        self.msg = msg or self.msg.format(args) or self.original
 
         super().__init__(self.msg)
 
@@ -126,8 +134,8 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
             raise AuthkeyExceptionError(data)
 
     if retcode in _ERRORS:
-        exctype = _ERRORS[retcode]
-        raise exctype(data)
+        exc_type = _ERRORS[retcode]
+        raise exc_type(data)
 
     raise ApiException(data)
 
