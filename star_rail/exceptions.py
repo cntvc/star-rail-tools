@@ -109,7 +109,7 @@ class AuthkeyTimeoutError(AuthkeyExceptionError):
     msg = i18n.error.invalid_authkey_error
 
 
-_ERRORS: typing.Dict[int, typing.Type[HsrException]] = {
+_ERRORS: typing.Dict[int, typing.Type[ApiException]] = {
     -100: InvalidCookieError,
     10001: InvalidCookieError,  # game record error
 }
