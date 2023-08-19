@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.utils import functional
 
 __all__ = [
     "DataBaseModel",
@@ -54,15 +53,15 @@ class ModelAnnotation(BaseModel):
     primary_key: typing.Set[str] = set()
 
     @classmethod
-    def parse(cls, sub_cls: typing.Type[_T]) -> "ModelAnnotation":
-        table_name = getattr(sub_cls, "__table_name__")
+    def parse(cls, model_cls: typing.Type[_T]):
+        table_name = getattr(model_cls, "__table_name__")
         # __table_name__ BaseModel 中存在默认值 ''，使用 not 判断
         if not table_name:
-            raise error.DataBaseModelError
+            raise error.DataBaseModelError("数据库模型错误，model: {}", model_cls)
 
         model_anno = ModelAnnotation(table_name=table_name)
 
-        for name, fields in sub_cls.model_fields.items():
+        for name, fields in model_cls.model_fields.items():
             if fields.json_schema_extra and fields.json_schema_extra.get("primary_key", None):
                 model_anno.primary_key.add(name)
             model_anno.column.add(name)
@@ -70,18 +69,11 @@ class ModelAnnotation(BaseModel):
         return model_anno
 
 
-@functional.Singleton()
 class DataBaseClient:
     def __init__(self, db_path: str = _default_db_path) -> None:
         self.db_path = db_path
         self.cache: typing.Dict[_T, ModelAnnotation] = dict()
-
-        try:
-            self.conn: sqlite3.Connection = sqlite3.connect(self.db_path)
-        except sqlite3.Error:
-            raise error.DataBaseConnectionError
-
-        self.conn.row_factory = sqlite3.Row
+        self.conn: sqlite3.Connection = None
 
         if db_path == ":memory:":
             pass
@@ -90,12 +82,21 @@ class DataBaseClient:
 
         logger.debug("database file path : {}", self.db_path)
 
+    def connection(self):
+        try:
+            self.conn: sqlite3.Connection = sqlite3.connect(self.db_path)
+        except sqlite3.Error:
+            raise error.DataBaseConnectionError
+
+        self.conn.row_factory = sqlite3.Row
+
     def __enter__(self):
+        self.connection()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.commit()
-
+        logger.debug("close db conn")
+        self.close_all()
         if exc_type:
             self.conn.rollback()
             raise error.DataBaseExecuteError
@@ -174,8 +175,8 @@ class DataBaseClient:
 
     def create_all(self):
         """创建已注册的所有表"""
-        for sub_cls in DataBaseModel.__subclass_table__:
-            model_anno = self.parse_model(sub_cls)
+        for model_cls in DataBaseModel.__subclass_table__:
+            model_anno = self.parse_model(model_cls)
 
             if model_anno is None:
                 continue
@@ -183,7 +184,7 @@ class DataBaseClient:
                 model_anno.table_name, ",".join(model_anno.column), ",".join(model_anno.primary_key)
             )
             logger.debug("[SQL] [CREATE] : {}", sql)
-            self.cache[sub_cls] = model_anno
+            self.cache[model_cls] = model_anno
             self.conn.cursor().execute(sql)
             self.commit()
 

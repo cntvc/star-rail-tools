@@ -149,8 +149,8 @@ def run():
     )
     if settings.FLAG_AUTO_UPDATE:
         updater.upgrade()
-    db = DataBaseClient()
-    db.create_all()
+    with DataBaseClient() as db:
+        db.create_all()
     client = HSRClient()
     menu = init_menu(client)
     menu.run()
