@@ -86,4 +86,4 @@ jobs:
     - name: Install dependencies
       run: poetry install --with test --without dev,release
     - name: Run pytest
-      run: poetry run pytest ${{ env.TEST_CODE }}
+      run: poetry run pytest --cov=${{ env.SRC_CODE }}  ${{ env.TEST_CODE }} --no-cov-on-fail
