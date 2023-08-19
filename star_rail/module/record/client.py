@@ -11,7 +11,7 @@ from prettytable import PrettyTable
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.core import DBClient
+from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.module import Account, AccountManager
 from star_rail.utils import functional
@@ -109,12 +109,12 @@ class GachaRecordClient:
 
     @classmethod
     def save_record_info(cls, info: GachaRecordInfo):
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert(converter.record_info_to_mapper(info), "ignore")
 
     @classmethod
     def save_record_gacha_item(cls, data: typing.List[ApiGachaItem]):
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert_batch(converter.record_gacha_item_to_mapper(data), "ignore")
 
     @classmethod

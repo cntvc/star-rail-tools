@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError, field_validator, model_validato
 
 from star_rail import constants
 from star_rail.config import settings
-from star_rail.core import DBClient
+from star_rail.database import DataBaseClient
 from star_rail.exceptions import ParamTypeError, exec_catch
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton, color_str
@@ -80,7 +80,7 @@ class Account(BaseModel):
 
         """保存到 user 表和 cookie 表"""
         user_mapper = converter.user_to_mapper(self)
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert(user_mapper, "update")
             db.insert(converter.user_to_cookie_mapper(self), "update")
 
