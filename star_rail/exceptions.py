@@ -30,6 +30,10 @@ class DataBaseError(HsrException):
     """数据库错误"""
 
 
+class DataBaseModelError(DataBaseError):
+    msg = "数据库模型错误"
+
+
 class DataBaseConnectionError(DataBaseError):
     """数据库连接错误"""
 

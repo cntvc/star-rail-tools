@@ -1,15 +1,15 @@
 import typing
 
-from star_rail.core import DBClient, DBModel, Field_Ex, convert
+from star_rail.database import DataBaseClient, DataBaseField, DataBaseModel, model_convert_list
 
 
-class MonthInfoMapper(DBModel):
+class MonthInfoMapper(DataBaseModel):
     __table_name__ = "month_info"
 
-    uid: str = Field_Ex(primary_key=True)
+    uid: str = DataBaseField(primary_key=True)
     """用户id"""
 
-    month: str = Field_Ex(primary_key=True)
+    month: str = DataBaseField(primary_key=True)
     """月份"""
 
     hcoin: int
@@ -37,22 +37,22 @@ class MonthInfoMapper(DBModel):
             query_sql = query_sql + " limit ? "
             parameters.append(limit)
 
-        with DBClient() as db:
-            row = db.select(query_sql, parameters).fetchall()
+        with DataBaseClient() as db:
+            row = db.select(query_sql, *parameters).fetchall()
 
-        return convert(row, cls)
+        return model_convert_list(row, cls)
 
 
-class MonthInfoRewardSourceMapper(DBModel):
+class MonthInfoRewardSourceMapper(DataBaseModel):
     """开拓月历星穹来源"""
 
     __table_name__ = "month_reward_source"
 
-    uid: str = Field_Ex(primary_key=True)
+    uid: str = DataBaseField(primary_key=True)
 
-    month: str = Field_Ex(primary_key=True)
+    month: str = DataBaseField(primary_key=True)
 
-    action: str = Field_Ex(primary_key=True)
+    action: str = DataBaseField(primary_key=True)
 
     num: int
 

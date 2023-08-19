@@ -6,7 +6,7 @@ from loguru import logger
 from star_rail import __version__ as version
 from star_rail.client import HSRClient
 from star_rail.config import settings
-from star_rail.core import DBClient, init_all_table
+from star_rail.database import DataBaseClient
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module import AccountManager, updater
 from star_rail.module.info import show_about
@@ -149,7 +149,8 @@ def run():
     )
     if settings.FLAG_AUTO_UPDATE:
         updater.upgrade()
-    init_all_table(DBClient())
+    db = DataBaseClient()
+    db.create_all()
     client = HSRClient()
     menu = init_menu(client)
     menu.run()
