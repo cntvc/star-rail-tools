@@ -1,6 +1,5 @@
 import abc
 import enum
-import json
 import os
 import re
 import shutil
@@ -8,9 +7,10 @@ import subprocess
 import sys
 import tempfile
 import time
-from typing import Dict, Tuple
+import typing
 
 import requests
+from loguru import logger
 from pydantic import BaseModel
 from tqdm import tqdm
 
@@ -19,37 +19,36 @@ from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
 from star_rail.utils.functional import color_str, input_yes_or_no, pause
-from star_rail.utils.log import logger
 from star_rail.utils.version import compare_versions
 
-__all__ = ["upgrade", "select_updater_source", "get_update_source_status"]
+__all__ = ["UpdateManager", "UpdateSource"]
 
 _lang = i18n.updater
 
 
-class UpdateContext(BaseModel):
+class _UpdateContext(BaseModel):
     version: str = ""
-    name: str = ""  # 文件名
+    """版本号"""
+    name: str = ""
+    """文件名"""
     download_url: str = ""
+    """下载链接"""
 
 
 class BaseUpdater(abc.ABC):
-    def __init__(self, url="", name="") -> None:
-        self._url = url
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
+    url: str
+    """更新检测链接"""
+    name: str
+    """更新源名"""
 
     @abc.abstractmethod
-    def check_update(self) -> Tuple[bool, UpdateContext]:
+    def check_update(self) -> typing.Tuple[bool, typing.Optional[_UpdateContext]]:
         """
         Returns:
-            Tuple[bool, UpdateContext]: [检测更新的操作结果，新版本内容]
+            typing.Tuple[bool, typing.Optional[_UpdateContext]]: [检测更新的操作结果，新版本内容]
         """
 
-    def upgrade(self, update_context: UpdateContext):
+    def upgrade(self, update_context: _UpdateContext):
         try:
             temp_file = self._download(update_context)
         except requests.RequestException as e:
@@ -62,14 +61,14 @@ class BaseUpdater(abc.ABC):
         time.sleep(1)
         # 保存当前版本文件名
         settings.OLD_EXE_NAME = os.path.basename(sys.argv[0])
-        settings.FLAG_UPATED_COMPLETE = True
-        settings.save()
+        settings.FLAG_UPDATED_COMPLETE = True
+        settings.save_config()
         subprocess.Popen(update_context.name, creationflags=subprocess.CREATE_NEW_CONSOLE)
         sys.exit()
 
-    def _download(self, update_context: UpdateContext):
-        """下载新版本文件到当前目录，名称 StarRailTools_{version}.exe"""
-        DEFAULT_CHUNK_SIZE = 1024
+    def _download(self, update_context: _UpdateContext):
+        """下载新版本文件并写入到临时文件"""
+        default_chunk_size = 1024
         temp_file = tempfile.NamedTemporaryFile(delete=False)
         file_path = temp_file.name
         with open(file_path, "wb") as f:
@@ -78,10 +77,10 @@ class BaseUpdater(abc.ABC):
             ) as r:
                 file_size = int(r.headers.get("content-length", 0))
                 with tqdm(total=file_size, unit="B", unit_scale=True, desc="StarRailTools") as pbar:
-                    for chunk in r.iter_content(chunk_size=DEFAULT_CHUNK_SIZE):
+                    for chunk in r.iter_content(chunk_size=default_chunk_size):
                         if chunk:
                             f.write(chunk)
-                            pbar.update(DEFAULT_CHUNK_SIZE)
+                            pbar.update(default_chunk_size)
         return file_path
 
 
@@ -89,8 +88,8 @@ class GithubUpdater(BaseUpdater):
     """Github 更新源"""
 
     def __init__(self) -> None:
-        self._url = "https://api.github.com/repos/cntvc/star-rail-tools/releases/latest"
-        self._name = "Github"
+        self.url = "https://api.github.com/repos/cntvc/star-rail-tools/releases/latest"
+        self.name = "Github"
 
     def check_update(self):
         """
@@ -101,8 +100,7 @@ class GithubUpdater(BaseUpdater):
         """
         logger.info(_lang.check_update)
         try:
-            response = requests.get(self._url, timeout=constants.REQUEST_TIMEOUT)
-            data = json.loads(response.content.decode())
+            data = requests.get(self.url, timeout=constants.REQUEST_TIMEOUT).json()
         except requests.RequestException as e:
             logger.warning(_lang.check_update_net_error)
             logger.debug(e)
@@ -118,7 +116,7 @@ class GithubUpdater(BaseUpdater):
 
         download_url = data["assets"][0]["browser_download_url"]
         name = data["assets"][0]["name"]
-        return True, UpdateContext(name=name, version=latest_version, download_url=download_url)
+        return True, _UpdateContext(name=name, version=latest_version, download_url=download_url)
 
 
 class CodingUpdater(BaseUpdater):
@@ -128,18 +126,18 @@ class CodingUpdater(BaseUpdater):
     """
 
     def __init__(self) -> None:
-        self._url = "https://cntvc.coding.net/api/team/cntvc/anonymity/artifacts/?pageSize=10"
-        self._name = "Coding"
+        self.url = "https://cntvc.coding.net/api/team/cntvc/anonymity/artifacts/?pageSize=10"
+        self.name = "Coding"
 
-    def check_update(self) -> Tuple[bool, UpdateContext]:
+    def check_update(self) -> typing.Tuple[bool, typing.Optional[_UpdateContext]]:
         logger.info(_lang.check_update)
         try:
-            response = requests.get(self._url, timeout=constants.REQUEST_TIMEOUT)
-            data = json.loads(response.content.decode())
+            data = requests.get(self.url, timeout=constants.REQUEST_TIMEOUT).json()
         except requests.RequestException as e:
             logger.warning(_lang.check_update_net_error)
             logger.debug(e)
             return False, None
+
         artifact = data["data"]["list"][0]
         latest_version = artifact["latestVersionName"]
         if compare_versions(latest_version, version) != 1:
@@ -154,7 +152,7 @@ class CodingUpdater(BaseUpdater):
         download_url = "{}/{}/{}/{}?version={}".format(
             registry_url, project_name, repo_name, name, latest_version
         )
-        return True, UpdateContext(
+        return True, _UpdateContext(
             name=latest_version_name, version=latest_version, download_url=download_url
         )
 
@@ -172,82 +170,98 @@ class UpdateSource(enum.Enum):
         return self.value[1]
 
 
-_update_source: Dict[str, BaseUpdater] = {
-    "Github": UpdateSource.GITHUB.updater,
-    "Coding": UpdateSource.CODING.updater,
-}
+class UpdateManager:
+    def __init__(self) -> None:
+        self._update_source: typing.Dict[str, BaseUpdater] = {
+            "Github": UpdateSource.GITHUB.updater,
+            "Coding": UpdateSource.CODING.updater,
+        }
+        self._updater = self._update_source[settings.UPDATE_SOURCE]
 
-_updater = _update_source[settings.FLAG_UPDATE_SOURCE]
+    @staticmethod
+    def select_updater_source(source: UpdateSource):
+        settings.UPDATE_SOURCE = source.name
+        settings.save_config()
+        logger.success(_lang.select_update_source, source.name)
 
+    def upgrade(self):
+        """根据软件保存的状态，显示更新日志或检测更新"""
+        if settings.FLAG_UPDATED_COMPLETE is True:
+            logger.success(_lang.upgrade_success, version)
+            old_exe_path = os.path.join(os.path.dirname(sys.argv[0]), settings.OLD_EXE_NAME)
+            try:
+                os.remove(old_exe_path)
+            except IOError as e:
+                logger.warning(_lang.delete_file_failed, old_exe_path)
+                logger.debug(e)
+            settings.OLD_EXE_NAME = ""
+            settings.FLAG_UPDATED_COMPLETE = False
+            settings.save_config()
+            changelog = self.get_changelog()
+            if changelog:
+                print(_lang.changelog)
+                print("=" * constants.MENU_BANNER_LENGTH)
+                print(changelog)
+                print("=" * constants.MENU_BANNER_LENGTH)
+            pause()
+            return
 
-def select_updater_source(source: UpdateSource):
-    global _updater
-    _updater = _update_source[source.name]
-    settings.FLAG_UPDATE_SOURCE = source.name
-    settings.save()
-    logger.info(_lang.select_update_source, source.name)
-
-
-def upgrade():
-    """根据软件保存的状态，显示更新日志或检测更新"""
-    if settings.FLAG_UPATED_COMPLETE is True:
-        logger.success(_lang.upgrade_success, version)
-        old_exe_path = os.path.join(os.path.dirname(sys.argv[0]), settings.OLD_EXE_NAME)
-        try:
-            os.remove(old_exe_path)
-        except IOError as e:
-            logger.warning(_lang.delete_file_failed, old_exe_path)
-            logger.debug(e)
-        settings.OLD_EXE_NAME = ""
-        settings.FLAG_UPATED_COMPLETE = False
-        settings.save()
-        changelog = get_changelog()
-        if changelog:
-            print(_lang.changelog)
-            print("=" * constants.MENU_BANNER_LENGTH)
-            print(changelog)
-            print("=" * constants.MENU_BANNER_LENGTH)
-        pause()
-        return
-
-    check_update_status, update_context = _updater.check_update()
-    if not check_update_status:
-        time.sleep(1)
-        return
-    user_input = input_yes_or_no(
-        prompt=_lang.update_option.format(update_context.version),
-        default="y",
-        error_msg=_lang.invalid_input,
-    )
-    if user_input == "n":
-        return
-    _updater.upgrade(update_context)
-
-
-def parse_changelog(release_data):
-    """移除更新日志中的链接等信息"""
-    changelog_raw = release_data["body"]
-    link_pattern = r"\[[^\]]+\]\([^)]+\)|https://[^ \n]+|\*\*Full Changelog[^ \n]+"
-    change_log = re.sub(link_pattern, "", changelog_raw)
-    return change_log.strip()
-
-
-def get_changelog():
-    RELEASE_API = f"https://api.github.com/repos/cntvc/star-rail-tools/releases/tags/{version}"
-
-    try:
-        response = requests.get(RELEASE_API, timeout=constants.REQUEST_TIMEOUT).content.decode(
-            "utf-8"
+        check_update_status, update_context = self._updater.check_update()
+        if not check_update_status:
+            time.sleep(1)
+            return
+        user_input = input_yes_or_no(
+            prompt=_lang.update_option.format(update_context.version),
+            default="y",
+            error_msg=_lang.invalid_input,
         )
-    except requests.exceptions as e:
-        logger.info(_lang.get_changelog_failed)
-        logger.debug(e)
-        return ""
-    data = json.loads(response)
-    return parse_changelog(data)
+        if user_input == "n":
+            return
+        self._updater.upgrade(update_context)
 
+    def parse_changelog(self, release_data):
+        """移除更新日志中的链接等信息"""
+        changelog_raw = release_data["body"]
+        link_pattern = r"\[[^\]]+\]\([^)]+\)|https://[^ \n]+|\*\*Full Changelog[^ \n]+"
+        change_log = re.sub(link_pattern, "", changelog_raw)
+        return change_log.strip()
 
-def get_update_source_status():
-    """获取当前更新源状态"""
-    global _updater
-    return "{}: {}".format(_lang.update_source_status, color_str(_updater.name, "green"))
+    def get_changelog(self):
+        release_api = f"https://api.github.com/repos/cntvc/star-rail-tools/releases/tags/{version}"
+
+        try:
+            data = requests.get(release_api, timeout=constants.REQUEST_TIMEOUT).json()
+        except requests.exceptions as e:
+            logger.info(_lang.get_changelog_failed)
+            logger.debug(e)
+            return ""
+
+        return self.parse_changelog(data)
+
+    @staticmethod
+    def get_update_source_status():
+        """获取当前更新源名称"""
+        return "{}: {}".format(
+            _lang.update_source_status, color_str(settings.UPDATE_SOURCE, "green")
+        )
+
+    @staticmethod
+    def open_auto_update():
+        settings.FLAG_AUTO_UPDATE = True
+        settings.save_config()
+        logger.success(i18n.config.settings.open_success)
+
+    @staticmethod
+    def close_auto_update():
+        settings.FLAG_AUTO_UPDATE = False
+        settings.save_config()
+        logger.success(i18n.config.settings.close_success)
+
+    @staticmethod
+    def get_auto_update_status():
+        return "{}: {}".format(
+            i18n.config.settings.current_status,
+            color_str(i18n.common.open, "green")
+            if settings.FLAG_AUTO_UPDATE
+            else color_str(i18n.common.close, "red"),
+        )

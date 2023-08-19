@@ -1,14 +1,16 @@
 import platform
 import time
 
+from loguru import logger
+
 from star_rail import __version__ as version
 from star_rail.client import HSRClient
 from star_rail.config import settings
-from star_rail.core import DBClient, init_all_table
+from star_rail.database import DataBaseClient
 from star_rail.i18n import LanguageType, i18n, set_locales
-from star_rail.module import AccountManager, updater
+from star_rail.module import AccountManager, UpdateManager, UpdateSource
 from star_rail.module.info import show_about
-from star_rail.utils.log import logger
+from star_rail.utils.log import init_logger
 from star_rail.utils.menu import Menu, MenuItem
 from star_rail.utils.time import get_format_time
 
@@ -78,32 +80,32 @@ def init_menu(client: HSRClient):
                         options=[
                             MenuItem(
                                 title=i18n.common.open,
-                                options=lambda: client.open_setting("FLAG_CHECK_UPDATE"),
+                                options=UpdateManager.open_auto_update,
                             ),
                             MenuItem(
                                 title=i18n.common.close,
-                                options=lambda: client.close_setting("FLAG_CHECK_UPDATE"),
+                                options=UpdateManager.close_auto_update,
                             ),
                         ],
-                        tips=lambda: client.get_config_status("FLAG_CHECK_UPDATE"),
+                        tips=lambda: UpdateManager.get_auto_update_status(),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.update_source,
                         options=[
                             MenuItem(
                                 title=_lang_menu.settings.update_source_coding,
-                                options=lambda: updater.select_updater_source(
-                                    updater.UpdateSource.CODING
+                                options=lambda: UpdateManager.select_updater_source(
+                                    UpdateSource.CODING
                                 ),
                             ),
                             MenuItem(
                                 title=_lang_menu.settings.update_source_github,
-                                options=lambda: updater.select_updater_source(
-                                    updater.UpdateSource.GITHUB
+                                options=lambda: UpdateManager.select_updater_source(
+                                    UpdateSource.GITHUB
                                 ),
                             ),
                         ],
-                        tips=lambda: updater.get_update_source_status(),
+                        tips=lambda: UpdateManager.get_update_source_status(),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.language,
@@ -145,13 +147,15 @@ def run():
         platform.platform(),
         settings.model_dump(),
     )
-    if settings.FLAG_CHECK_UPDATE:
-        updater.upgrade()
-    init_all_table(DBClient())
+    if settings.FLAG_AUTO_UPDATE:
+        UpdateManager().upgrade()
+    with DataBaseClient() as db:
+        db.create_all()
     client = HSRClient()
     menu = init_menu(client)
     menu.run()
 
 
 if __name__ == "__main__":
+    init_logger()
     run()

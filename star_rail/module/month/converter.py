@@ -35,7 +35,7 @@ def reward_source_to_mapper(user: Account, month_info: ApiMonthInfo):
     ]
 
 
-def mapper_to_month_info(data: typing.Tuple[MonthInfoMapper, typing.List[MonthInfoMapper]]):
+def mapper_to_month_info(data: typing.Union[MonthInfoMapper, typing.List[MonthInfoMapper]]):
     if isinstance(data, typing.List):
         return [MonthInfo(**item.model_dump()) for item in data]
     elif isinstance(data, MonthInfoMapper):

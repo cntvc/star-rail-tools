@@ -3,15 +3,15 @@ from pathlib import Path
 from typing import Union
 
 import pyperclip
+from loguru import logger
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from star_rail import constants
 from star_rail.config import settings
-from star_rail.core import DBClient
+from star_rail.database import DataBaseClient
 from star_rail.exceptions import ParamTypeError, exec_catch
 from star_rail.i18n import i18n
 from star_rail.utils.functional import Singleton, color_str
-from star_rail.utils.log import logger
 from star_rail.utils.menu import MenuItem
 
 from .api_client import PC_HEADER, Header, Salt, request
@@ -24,7 +24,6 @@ from .types import GameBiz, GameType, Region
 _UID_RE = re.compile("^[1-9][0-9]{8}$")
 
 _lang = i18n.account
-
 
 __all__ = [
     "verify_uid_format",
@@ -81,7 +80,7 @@ class Account(BaseModel):
 
         """保存到 user 表和 cookie 表"""
         user_mapper = converter.user_to_mapper(self)
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert(user_mapper, "update")
             db.insert(converter.user_to_cookie_mapper(self), "update")
 
@@ -132,7 +131,7 @@ class AccountManager:
             # 本地文件设置了默认账户数据库却不存在该账号
             self.user = None
             settings.DEFAULT_UID = ""
-            settings.save()
+            settings.save_config()
 
     def login(self, user: Union[str, Account]):
         if isinstance(user, str):
@@ -145,7 +144,7 @@ class AccountManager:
         self.user.reload_profile()
         logger.success(_lang.login_account_success, self.user.uid)
         settings.DEFAULT_UID = self.user.uid
-        settings.save()
+        settings.save_config()
 
     def create_by_input_uid(self):
         uid = _input_uid()
@@ -204,13 +203,10 @@ class AccountManager:
         return _lang.without_account
 
     def gen_account_menu(self):
-        menu_list = []
-        menu_list.append(
-            MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid())
-        )
-        menu_list.append(
-            MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie())
-        )
+        menu_list = [
+            MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid()),
+            MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie()),
+        ]
         uid_list = self.get_uid_list()
         menu_list.extend(
             [

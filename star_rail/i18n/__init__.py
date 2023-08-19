@@ -11,10 +11,10 @@ error eg:
     "como.next":"home next",
 }
 """
+from loguru import logger
 
 from star_rail.config import settings
 from star_rail.utils.functional import input_yes_or_no, restart
-from star_rail.utils.log import logger
 
 from .en_us import en_us_lang_pack
 from .zh_cn import zh_cn_lang_pack
@@ -25,6 +25,7 @@ class LazyLanguagePack:
 
     def __init__(self, raw_lang_pack: dict):
         if settings.LANGUAGE:
+            logger.debug("default language pack: {}", settings.LANGUAGE)
             raw_lang_pack = LanguageType.get_pack_by_name(settings.LANGUAGE, raw_lang_pack)
         self.raw_lang_pack = parse_lang_pack(raw_lang_pack)
         """原始语言包字典，多层级"""
@@ -71,7 +72,9 @@ class LanguageType(enum.Enum):
         return lang_type.lang_pack()
 
     @staticmethod
-    def get_pack_by_name(name: str, default: dict = {}):
+    def get_pack_by_name(name: str, default=None):
+        if default is None:
+            default = {}
         for lang in LanguageType:
             if name == lang.lang_name:
                 return lang.lang_pack
@@ -86,7 +89,7 @@ class LanguageType(enum.Enum):
         return self.value[0]
 
 
-def dict_to_namedtuple(name, dictionary):
+def dict_to_namedtuple(dict_name, dictionary):
     """
     将字典转换为命名元组
     """
@@ -97,7 +100,7 @@ def dict_to_namedtuple(name, dictionary):
                 d[key] = convert_dict_to_namedtuple(key, value)
         return namedtuple(name, d.keys())(**d)
 
-    return convert_dict_to_namedtuple(name, dictionary)
+    return convert_dict_to_namedtuple(dict_name, dictionary)
 
 
 def parse_lang_pack(dictionary: Dict[str, str]) -> Dict[str, Dict]:
@@ -146,5 +149,6 @@ def set_locales(lang_type: LanguageType):
     )
     if user_input == "n":
         return
-    settings.set_and_save("LANGUAGE", lang_type.lang_name)
+    settings.LANGUAGE = lang_type.lang_name
+    settings.save_config()
     restart()

@@ -80,10 +80,10 @@ def _match_api(api: typing.Optional[str]):
 
 def _replace_host_path(url: str):
     """替换链接的 host 路径"""
-    spliturl = url.split("?")
-    if "webstatic-sea.hoyoverse.com" in spliturl[0] or "api-os-takumi" in spliturl[0]:
-        spliturl[0] = GACHA_LOG_URL.get_url(GameBiz.GLOBAL)
+    split_url = url.split("?")
+    if "webstatic-sea.hoyoverse.com" in split_url[0] or "api-os-takumi" in split_url[0]:
+        split_url[0] = GACHA_LOG_URL.get_url(GameBiz.GLOBAL)
     else:
-        spliturl[0] = GACHA_LOG_URL.get_url(GameBiz.CN)
-    url = "?".join(spliturl)
+        split_url[0] = GACHA_LOG_URL.get_url(GameBiz.CN)
+    url = "?".join(split_url)
     return url

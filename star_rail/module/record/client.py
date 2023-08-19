@@ -6,15 +6,15 @@ import typing
 import pydantic
 import xlsxwriter
 import yarl
+from loguru import logger
 from prettytable import PrettyTable
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.core import DBClient
+from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.module import Account, AccountManager
 from star_rail.utils import functional
-from star_rail.utils.log import logger
 from star_rail.utils.time import get_format_time
 
 from ..mihoyo import request
@@ -104,28 +104,22 @@ class GachaRecordClient:
 
     @classmethod
     def _update_url_param(cls, url: yarl.URL, gacha_type, size, page, end_id):
-        query_params = {}
-        query_params["size"] = size
-        query_params["gacha_type"] = gacha_type
-        query_params["page"] = page
-        query_params["end_id"] = end_id
+        query_params = {"size": size, "gacha_type": gacha_type, "page": page, "end_id": end_id}
         return url.update_query(query_params)
 
     @classmethod
     def save_record_info(cls, info: GachaRecordInfo):
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert(converter.record_info_to_mapper(info), "ignore")
 
     @classmethod
     def save_record_gacha_item(cls, data: typing.List[ApiGachaItem]):
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert_batch(converter.record_gacha_item_to_mapper(data), "ignore")
 
     @classmethod
-    def query_all(
-        cls, uid: str, gacha_type: str = "", begin_id: str = ""
-    ) -> typing.List[ApiGachaItem]:
-        data = GachaItemMapper.query_all(uid, gacha_type, begin_id)
+    def query_all(cls, uid: str) -> typing.List[ApiGachaItem]:
+        data = GachaItemMapper.query_all(uid)
         return converter.mapper_to_gacha_item(data) if data else None
 
     @classmethod
@@ -369,7 +363,7 @@ class GachaClient:
             logger.success(_lang.import_file_success, file_path)
 
         if record_info is None:
-            logger.info(_lang.no_file_import)
+            logger.warning(_lang.no_file_import)
             return
 
         analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))

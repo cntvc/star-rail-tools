@@ -2,7 +2,7 @@ import typing
 
 from prettytable import PrettyTable
 
-from star_rail.core import DBClient
+from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.utils import functional
 
@@ -36,7 +36,7 @@ class MonthClient:
 
     def _save_or_update_month_info(self, month_info: ApiMonthInfo):
         month_info_mapper = converter.api_info_to_mapper(self.user, month_info)
-        with DBClient() as db:
+        with DataBaseClient() as db:
             db.insert(month_info_mapper, "update")
             db.insert_batch(converter.reward_source_to_mapper(self.user, month_info), "update")
 
@@ -54,7 +54,8 @@ class MonthClient:
         return month_info_table
 
     def show_month_info(self):
-        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, 6)
+        default_time_range = 6
+        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, default_time_range)
         data = []
         if month_info_mappers:
             data = converter.mapper_to_month_info(month_info_mappers)
@@ -64,8 +65,7 @@ class MonthClient:
 
     def refresh_month_info(self):
         cur_month_data = self.fetch_month_info()
-        datas = []
-        datas.append(cur_month_data)
+        datas = [cur_month_data]
         for month in cur_month_data.optional_month[1:]:
             cur_month_data = self.fetch_month_info(month)
             datas.append(cur_month_data)

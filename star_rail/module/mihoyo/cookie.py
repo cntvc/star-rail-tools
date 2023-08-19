@@ -2,9 +2,8 @@ import typing
 from http import cookies
 from typing import Literal
 
+from loguru import logger
 from pydantic import BaseModel, model_validator
-
-from star_rail.utils.log import logger
 
 from .api_client import WEB_HEADER, request
 from .routes import COOKIE_TOKEN_BY_STOKEN_URL, STOKEN_BY_LOGINTICKET_URL
@@ -43,8 +42,6 @@ class Cookie(BaseModel):
         self.account_id = mihoyo_uid
         return self
 
-    # TODO 校验stoken有效性
-    # TODO stoken刷新其他cookie的接口
     @staticmethod
     def parse(cookie_str: str):
         cookie_dict = parse_cookie(cookie_str)

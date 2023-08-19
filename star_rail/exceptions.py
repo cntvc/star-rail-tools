@@ -2,8 +2,9 @@ import functools
 import traceback
 import typing
 
+from loguru import logger
+
 from star_rail.i18n import i18n
-from star_rail.utils.log import logger
 
 
 class HsrException(Exception):
@@ -25,17 +26,29 @@ class ParamTypeError(HsrException):
     """参数类型错误"""
 
 
-class DBConnectionError(HsrException):
+class DataBaseError(HsrException):
+    """数据库错误"""
+
+
+class DataBaseModelError(DataBaseError):
+    msg = "数据库模型错误"
+
+
+class DataBaseConnectionError(DataBaseError):
     """数据库连接错误"""
 
     msg = i18n.error.db_conn_error
+
+
+class DataBaseExecuteError(DataBaseError):
+    msg = "数据库执行错误"
 
 
 class DataError(HsrException):
     pass
 
 
-class FileNotFoundError(HsrException):
+class UnFoundFileError(HsrException):
     pass
 
 
@@ -53,13 +66,15 @@ class ApiException(HsrException):
 
     def __init__(
         self,
-        response: typing.Mapping[str, typing.Any] = {},
+        response=None,
         msg: typing.Optional[str] = None,
         *args,
     ) -> None:
+        if response is None:
+            response = {}
         self.retcode = response.get("retcode", self.retcode)
         self.original = response.get("message", "")
-        self.msg = msg or self.msg or self.original
+        self.msg = msg or self.msg.format(args) or self.original
 
         super().__init__(self.msg)
 
@@ -98,7 +113,7 @@ class AuthkeyTimeoutError(AuthkeyExceptionError):
     msg = i18n.error.invalid_authkey_error
 
 
-_ERRORS: typing.Dict[int, typing.Type[HsrException]] = {
+_ERRORS: typing.Dict[int, typing.Type[ApiException]] = {
     -100: InvalidCookieError,
     10001: InvalidCookieError,  # game record error
 }
@@ -125,8 +140,8 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
             raise AuthkeyExceptionError(data)
 
     if retcode in _ERRORS:
-        exctype = _ERRORS[retcode]
-        raise exctype(data)
+        exc_type = _ERRORS[retcode]
+        raise exc_type(data)
 
     raise ApiException(data)
 

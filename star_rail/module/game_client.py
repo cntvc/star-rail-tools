@@ -4,11 +4,12 @@ import os
 import re
 from pathlib import Path
 
+from loguru import logger
+
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
 from star_rail.module.mihoyo.account import Account
 from star_rail.module.mihoyo.types import GameBiz
-from star_rail.utils.log import logger
 
 MHY_LOG_ROOT_PATH = os.path.join(os.getenv("USERPROFILE"), "AppData", "LocalLow")
 
@@ -34,7 +35,7 @@ class GameClient:
     def get_game_path(self):
         log_path = GameLogPath.get_by_user(self.user)
         if not log_path.exists():
-            raise error.FileNotFoundError(_lang.unfind_game_log_file)
+            raise error.UnFoundFileError(_lang.unfind_game_log_file)
 
         try:
             log_text = log_path.read_text(encoding="utf8")
@@ -49,11 +50,11 @@ class GameClient:
     def get_webcache_path(self):
         game_path = self.get_game_path()
         if not game_path:
-            raise error.FileNotFoundError(_lang.unfind_game_path)
+            raise error.UnFoundFileError(_lang.unfind_game_path)
         cache_root_path = os.path.join(game_path, "webCaches")
         data_2_files = glob.glob(os.path.join(cache_root_path, "*", "Cache/Cache_Data/data_2"))
         if not data_2_files:
-            raise error.FileNotFoundError(_lang.unfind_game_cache_file)
+            raise error.UnFoundFileError(_lang.unfind_game_cache_file)
         data_2_files = sorted(data_2_files, key=lambda file: os.path.getmtime(file), reverse=True)
 
         return data_2_files[0]

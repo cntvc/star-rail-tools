@@ -1,12 +1,18 @@
 import typing
 
-from star_rail.core import DBClient, DBModel, Field_Ex, convert
+from star_rail.database import (
+    DataBaseClient,
+    DataBaseField,
+    DataBaseModel,
+    model_convert_item,
+    model_convert_list,
+)
 
 
-class CookieMapper(DBModel):
+class CookieMapper(DataBaseModel):
     __table_name__ = "cookie"
 
-    uid: str = Field_Ex(primary_key=True)
+    uid: str = DataBaseField(primary_key=True)
 
     login_ticket: str = ""
 
@@ -28,19 +34,16 @@ class CookieMapper(DBModel):
 
     @staticmethod
     def query_cookie(uid: str) -> typing.Optional["CookieMapper"]:
-        sql = """select * from cookie where uid = "{}"
-        """.format(
-            uid
-        )
-        with DBClient() as db:
-            row = db.select(sql).fetchone()
-        return convert(row, CookieMapper)
+        sql = """select * from cookie where uid = ? ;"""
+        with DataBaseClient() as db:
+            row = db.select(sql, uid).fetchone()
+        return model_convert_item(row, CookieMapper)
 
 
-class UserMapper(DBModel):
+class UserMapper(DataBaseModel):
     __table_name__ = "user"
 
-    uid: str = Field_Ex(primary_key=True)
+    uid: str = DataBaseField(primary_key=True)
 
     gacha_url: str
 
@@ -51,18 +54,15 @@ class UserMapper(DBModel):
     @staticmethod
     def query_user(uid: str) -> typing.Optional["UserMapper"]:
         """根据id查询用户数据"""
-        sql = """select * from user where uid = "{}"
-        """.format(
-            uid
-        )
-        with DBClient() as db:
-            row = db.select(sql).fetchone()
-        return convert(row, UserMapper)
+        sql = """select * from user where uid = ? ;"""
+        with DataBaseClient() as db:
+            row = db.select(sql, uid).fetchone()
+        return model_convert_item(row, UserMapper)
 
     @staticmethod
     def query_all() -> typing.List["UserMapper"]:
         """查询所有用户，按照uid顺序返回"""
-        sql = """select * from user order by uid;"""
-        with DBClient() as db:
+        sql = """select * from user order by uid ;"""
+        with DataBaseClient() as db:
             row = db.select(sql).fetchall()
-        return convert(row, UserMapper)
+        return model_convert_list(row, UserMapper)
