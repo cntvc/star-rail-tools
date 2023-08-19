@@ -42,8 +42,6 @@ class Cookie(BaseModel):
         self.account_id = mihoyo_uid
         return self
 
-    # TODO 校验stoken有效性
-    # TODO stoken刷新其他cookie的接口
     @staticmethod
     def parse(cookie_str: str):
         cookie_dict = parse_cookie(cookie_str)
