@@ -56,10 +56,10 @@ GACHA_LOG_URL = InternationalRoute(
 
 # 账号Cookie相关
 
-STOKEN_BY_LOGINTICKET_URL = Route(
+MUTIL_TOKEN_BY_LOGINTICKET_URL = Route(
     "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket"
 )
-"""通过 login_ticket 获取 stoken """
+"""通过 login_ticket 获取多类型 cookie 值"""
 
 COOKIE_TOKEN_BY_STOKEN_URL = Route(
     "https://passport-api.mihoyo.com/account/auth/api/getCookieAccountInfoBySToken"

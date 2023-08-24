@@ -164,7 +164,7 @@ class AccountManager:
             logger.warning(_lang.invalid_cookie)
             return
         if cookie.verify_login_ticket() and not cookie.verify_stoken():
-            cookie.refresh_stoken_by_login_ticket()
+            cookie.refresh_mutil_by_login_ticket()
             cookie.refresh_cookie_token_by_stoken()
         roles = get_game_record_card(cookie)
         for role in roles.list:
