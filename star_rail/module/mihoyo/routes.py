@@ -61,10 +61,18 @@ MUTIL_TOKEN_BY_LOGINTICKET_URL = Route(
 )
 """通过 login_ticket 获取多类型 cookie 值"""
 
-COOKIE_TOKEN_BY_STOKEN_URL = Route(
-    "https://passport-api.mihoyo.com/account/auth/api/getCookieAccountInfoBySToken"
+COOKIE_TOKEN_BY_STOKEN_URL = InternationalRoute(
+    chinese="https://passport-api.mihoyo.com/account/auth/api/getCookieAccountInfoBySToken",
+    overseas="https://api-account-os.hoyoverse.com/account/auth/api/getCookieAccountInfoBySToken",
 )
 """通过 SToken 获取 cookie_token """
+
+
+LTOKEN_BY_STOKEN_URL = InternationalRoute(
+    chinese="https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken",
+    overseas="https://api-account-os.hoyoverse.com/account/auth/api/getLTokenBySToken",
+)
+"""SToken获取Ltoken"""
 
 
 # 米游社api

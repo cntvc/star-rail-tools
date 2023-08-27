@@ -5,6 +5,8 @@ from typing import Literal
 from loguru import logger
 from pydantic import BaseModel, model_validator
 
+from star_rail.module.mihoyo.types import GameBiz
+
 from .api_client import WEB_HEADER, request
 from .routes import COOKIE_TOKEN_BY_STOKEN_URL, MUTIL_TOKEN_BY_LOGINTICKET_URL
 
@@ -110,7 +112,7 @@ class Cookie(BaseModel):
     def refresh_cookie_token_by_stoken(self):
         data = request(
             "get",
-            COOKIE_TOKEN_BY_STOKEN_URL.get_url(),
+            COOKIE_TOKEN_BY_STOKEN_URL.get_url(GameBiz.get_by_uid(self.login_uid)),
             headers=WEB_HEADER,
             cookies=self.model_dump("web"),
             params={"uid": self.login_uid, "stoken": self.stoken},
