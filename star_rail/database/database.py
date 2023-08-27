@@ -73,7 +73,6 @@ class ModelAnnotation(BaseModel):
 class DataBaseClient:
     def __init__(self, db_path: str = _default_db_path) -> None:
         self.db_path = db_path
-        self.cache: typing.Dict[_T, ModelAnnotation] = dict()
         self.conn: sqlite3.Connection = None
 
         if db_path == ":memory:":
@@ -113,7 +112,7 @@ class DataBaseClient:
         return self.conn.cursor().execute(sql_script, args)
 
     def insert(self, item: _T, mode: typing.Literal["ignore", "update", "none"] = "none"):
-        cls_anno = self.parse_model(type(item))
+        cls_anno = ModelAnnotation.parse(type(item))
 
         if mode == "none":
             mode = ""
@@ -140,7 +139,7 @@ class DataBaseClient:
         if len(items) == 0:
             return
 
-        cls_anno = self.parse_model(type(items[0]))
+        cls_anno = ModelAnnotation.parse(type(items[0]))
 
         if mode == "none":
             mode = ""
@@ -163,14 +162,6 @@ class DataBaseClient:
         cur = self.conn.cursor().executemany(sql_temp, values)
         self.commit()
         return cur.rowcount
-
-    def parse_model(self, item_type: typing.Type[_T]) -> ModelAnnotation:
-        if item_type in self.cache:
-            return self.cache[item_type]
-        cls_anno = ModelAnnotation.parse(item_type)
-        if item_type not in self.cache:
-            self.cache[item_type] = cls_anno
-        return cls_anno
 
 
 DATABASE_USER_VERSION = 0
