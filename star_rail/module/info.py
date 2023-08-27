@@ -1,7 +1,7 @@
 from star_rail import __version__ as version
 from star_rail.constants import APP_NAME
 from star_rail.i18n import i18n
-from star_rail.utils.functional import clear_screen
+from star_rail.utils.console import clear_all
 
 _lang = i18n.info
 
@@ -20,7 +20,7 @@ def show_about():
         _AUTHOR,
         _EMAIL,
     ]
-    clear_screen()
+    clear_all()
     for item in description:
         print(item)
     print()

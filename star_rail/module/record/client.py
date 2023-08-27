@@ -14,7 +14,7 @@ from star_rail import exceptions as error
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.module import Account, AccountManager
-from star_rail.utils import functional
+from star_rail.utils import console, functional
 from star_rail.utils.time import get_format_time
 
 from ..mihoyo import request
@@ -235,8 +235,8 @@ class StatisticalTable:
         return rank5_detail_table
 
     def show(self):
-        functional.clear_screen()
-        print("UID:", functional.color_str("{}".format(self.analyze_result.uid), "green"))
+        console.clear_all()
+        print("UID:", console.color_str("{}".format(self.analyze_result.uid), "green"))
         print(_lang.analyze_update_time, self.analyze_result.update_time)
         print(self.gen_overview_table())
         print("", end="\n\n")

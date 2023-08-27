@@ -3,7 +3,7 @@ import functools
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
 from star_rail.module import AccountManager, GachaClient, MonthClient
-from star_rail.utils import functional
+from star_rail.utils import console
 
 _lang = i18n.client
 
@@ -19,7 +19,7 @@ class HSRClient(GachaClient, MonthClient):
         def wrapper(self, *args, **kwargs):
             self.user = AccountManager().user
             if self.user is None:
-                print(functional.color_str(_lang.no_account, "yellow"))
+                print(console.color_str(_lang.no_account, "yellow"))
                 return
             return func(self, *args, **kwargs)
 
@@ -34,7 +34,7 @@ class HSRClient(GachaClient, MonthClient):
         if GameBiz.get_by_uid(self.user.uid) == GameBiz.GLOBAL:
             raise error.HsrException("该功能尚未支持国际服账号")
         if not self.user.cookie.verify_cookie_token():
-            print(functional.color_str(_lang.empty_cookie, "yellow"))
+            print(console.color_str(_lang.empty_cookie, "yellow"))
             return
         super().refresh_month_info()
         super().show_month_info()

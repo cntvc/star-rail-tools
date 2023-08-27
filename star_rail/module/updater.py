@@ -18,7 +18,8 @@ from star_rail import __version__ as version
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
-from star_rail.utils.functional import color_str, input_yes_or_no, pause
+from star_rail.utils.console import color_str, pause
+from star_rail.utils.functional import input_yes_or_no
 from star_rail.utils.version import compare_versions
 
 __all__ = ["UpdateManager", "UpdateSource"]

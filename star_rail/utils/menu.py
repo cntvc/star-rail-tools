@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 from star_rail import constants
 from star_rail.i18n import i18n
-from star_rail.utils.functional import clear_screen, input_int, pause
+from star_rail.utils.console import clear_all, pause
+from star_rail.utils.functional import input_int
 
 _lang = i18n.utils.menu
 
@@ -29,7 +30,7 @@ class Menu:
         self.stack.append(menu)
 
     def display(self):
-        clear_screen()
+        clear_all()
         # 让标题打印在中间
         title = self.menu.title
         space_len = math.floor((constants.MENU_BANNER_LENGTH - len(title)) / 2)
