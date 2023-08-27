@@ -12,6 +12,7 @@ __all__ = [
     "DataBaseModel",
     "DataBaseField",
     "DataBaseClient",
+    "DBManager",
     "model_convert_item",
     "model_convert_list",
 ]
@@ -99,7 +100,6 @@ class DataBaseClient:
         self.close_all()
         if exc_type:
             self.conn.rollback()
-            raise error.DataBaseExecuteError
 
     def commit(self):
         self.conn.commit()
@@ -108,9 +108,8 @@ class DataBaseClient:
         self.conn.commit()
         self.conn.close()
 
-    def select(self, sql_script, *args):
-        """通过命名占位符查询"""
-        logger.debug("[SQL] [SELECT] : {}, [param]: {}", sql_script, args)
+    def execute(self, sql_script, *args):
+        logger.debug("[SQL] : {}, [param]: {}", sql_script, args)
         return self.conn.cursor().execute(sql_script, args)
 
     def insert(self, item: _T, mode: typing.Literal["ignore", "update", "none"] = "none"):
@@ -130,7 +129,7 @@ class DataBaseClient:
         sql = """insert {} into {} ({}) values ({}) ;""".format(
             mode, cls_anno.table_name, columns, placeholders
         )
-        logger.debug("[SQL] [INSERT] : {}", sql)
+        logger.debug("[SQL] : {}", sql)
         cur = self.conn.cursor().execute(sql, values)
         self.commit()
         return cur
@@ -160,10 +159,10 @@ class DataBaseClient:
         sql_temp = """ insert {} into {} ({}) values ({}) ;""".format(
             mode, cls_anno.table_name, columns, placeholders
         )
-        logger.debug("[SQL] [INSERT] : {}", sql_temp)
+        logger.debug("[SQL] : {}", sql_temp)
         cur = self.conn.cursor().executemany(sql_temp, values)
         self.commit()
-        return cur
+        return cur.rowcount
 
     def parse_model(self, item_type: typing.Type[_T]) -> ModelAnnotation:
         if item_type in self.cache:
@@ -173,20 +172,59 @@ class DataBaseClient:
             self.cache[item_type] = cls_anno
         return cls_anno
 
+
+DATABASE_USER_VERSION = 0
+"""软件中数据库版本"""
+
+
+class DBManager:
+    """数据库管理类"""
+
+    def __init__(self, db: DataBaseClient) -> None:
+        self.db = db
+
     def create_all(self):
         """创建已注册的所有表"""
-        for model_cls in DataBaseModel.__subclass_table__:
-            model_anno = self.parse_model(model_cls)
+        with self.db as db:
+            for model_cls in DataBaseModel.__subclass_table__:
+                model_anno = ModelAnnotation.parse(model_cls)
 
-            if model_anno is None:
-                continue
-            sql = """create table if not exists {} ({}, primary key ({}) );""".format(
-                model_anno.table_name, ",".join(model_anno.column), ",".join(model_anno.primary_key)
+                sql = """create table if not exists {} ({}, primary key ({}) );""".format(
+                    model_anno.table_name,
+                    ",".join(model_anno.column),
+                    ",".join(model_anno.primary_key),
+                )
+                db.execute(sql)
+                db.commit()
+
+    def set_user_version(self, version: int):
+        with self.db as db:
+            db.execute(f"pragma user_version = {version};")
+
+    def get_user_version(self):
+        with self.db as db:
+            cursor = db.execute("pragma user_version;")
+            version = cursor.fetchone()[0]
+        return version
+
+    def update_to_version(self):
+        """升级数据库版本"""
+        current_version = self.get_user_version()
+        while current_version < DATABASE_USER_VERSION:
+            current_version += 1
+            upgrade_func: typing.Callable = getattr(
+                self, f"_upgrade_to_version_{current_version}", None
             )
-            logger.debug("[SQL] [CREATE] : {}", sql)
-            self.cache[model_cls] = model_anno
-            self.conn.cursor().execute(sql)
-            self.commit()
+            if upgrade_func:
+                upgrade_func()
+                self.set_user_version(current_version)
+                logger.debug("Upgraded database to version {}", current_version)
+            else:
+                logger.debug("No upgrade function found for version {}", current_version)
+                pass
+
+    def _upgrade_to_version_1(self):
+        pass
 
 
 def model_convert_item(

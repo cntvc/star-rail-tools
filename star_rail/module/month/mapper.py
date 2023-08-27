@@ -38,7 +38,7 @@ class MonthInfoMapper(DataBaseModel):
             parameters.append(limit)
 
         with DataBaseClient() as db:
-            row = db.select(query_sql, *parameters).fetchall()
+            row = db.execute(query_sql, *parameters).fetchall()
 
         return model_convert_list(row, cls)
 

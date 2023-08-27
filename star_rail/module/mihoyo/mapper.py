@@ -36,7 +36,7 @@ class CookieMapper(DataBaseModel):
     def query_cookie(uid: str) -> typing.Optional["CookieMapper"]:
         sql = """select * from cookie where uid = ? ;"""
         with DataBaseClient() as db:
-            row = db.select(sql, uid).fetchone()
+            row = db.execute(sql, uid).fetchone()
         return model_convert_item(row, CookieMapper)
 
 
@@ -56,7 +56,7 @@ class UserMapper(DataBaseModel):
         """根据id查询用户数据"""
         sql = """select * from user where uid = ? ;"""
         with DataBaseClient() as db:
-            row = db.select(sql, uid).fetchone()
+            row = db.execute(sql, uid).fetchone()
         return model_convert_item(row, UserMapper)
 
     @staticmethod
@@ -64,5 +64,5 @@ class UserMapper(DataBaseModel):
         """查询所有用户，按照uid顺序返回"""
         sql = """select * from user order by uid ;"""
         with DataBaseClient() as db:
-            row = db.select(sql).fetchall()
+            row = db.execute(sql).fetchall()
         return model_convert_list(row, UserMapper)

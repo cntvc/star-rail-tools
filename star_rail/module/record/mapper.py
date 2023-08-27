@@ -22,7 +22,7 @@ class GachaRecordInfoMapper(DataBaseModel):
     def query(cls, uid: str):
         sql = """select * from record_info where uid = ?; """
         with DataBaseClient() as db:
-            row = db.select(sql, uid).fetchone()
+            row = db.execute(sql, uid).fetchone()
         return model_convert_item(row, cls)
 
 
@@ -47,7 +47,7 @@ class GachaItemMapper(DataBaseModel):
 
         sql = """select * from record_item where uid = ? ORDER BY id; """
         with DataBaseClient() as db:
-            row = db.select(sql, uid).fetchall()
+            row = db.execute(sql, uid).fetchall()
         return model_convert_list(row, cls)
 
     @classmethod
@@ -55,5 +55,5 @@ class GachaItemMapper(DataBaseModel):
         """查询id最大的一条记录"""
         sql = """SELECT * FROM record_item where uid = ? ORDER BY id DESC LIMIT 1;"""
         with DataBaseClient() as db:
-            row = db.select(sql, uid).fetchone()
+            row = db.execute(sql, uid).fetchone()
         return model_convert_item(row, cls)

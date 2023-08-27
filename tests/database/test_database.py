@@ -11,6 +11,7 @@ from star_rail.database.database import (
     DataBaseClient,
     DataBaseField,
     DataBaseModel,
+    DBManager,
     ModelAnnotation,
     model_convert_item,
     model_convert_list,
@@ -49,7 +50,7 @@ class TestDataBaseClient(unittest.TestCase):
         self.tmp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.tmp_dir, "test.db")
         self.client = DataBaseClient(self.db_path)
-        self.client.connection()
+        self.db_manager = DBManager(self.client)
 
     def tearDown(self) -> None:
         self.client.close_all()
@@ -62,14 +63,15 @@ class TestDataBaseClient(unittest.TestCase):
             name: str
             age: int
 
-        client = self.client
+        self.db_manager.create_all()
 
-        client.create_all()
+        client = self.client
+        client.connection()
 
         item = UserModel(id="1", name="Alice", age=25)
         client.insert(item, "ignore")
 
-        result = client.select("SELECT * FROM user where id = '1';").fetchone()
+        result = client.execute("SELECT * FROM user where id = '1';").fetchone()
         self.assertEqual(result["name"], "Alice")
         self.assertEqual(result["age"], 25)
 
@@ -87,13 +89,13 @@ class TestDataBaseClient(unittest.TestCase):
             UserModel(id="4", name="Snoopy", age=5),
         ]
 
+        self.db_manager.create_all()
         client = self.client
-        client.create_all()
-
+        client.connection()
         # 存在则忽略
         client.insert_batch(items[:3], mode="ignore")
 
-        results = client.select("SELECT * FROM user;").fetchall()
+        results = client.execute("SELECT * FROM user;").fetchall()
         self.assertEqual(len(results), 3)
         self.assertEqual(results[2]["name"], "Charlie")
 
@@ -101,7 +103,7 @@ class TestDataBaseClient(unittest.TestCase):
         # 存在则更新
         client.insert_batch(items, mode="update")
 
-        results = client.select("SELECT * FROM user;").fetchall()
+        results = client.execute("SELECT * FROM user;").fetchall()
         self.assertEqual(len(results), 4)
         for r in results:
             if r["id"] == "2":
@@ -114,8 +116,9 @@ class TestDataBaseClient(unittest.TestCase):
             name: str
             age: int
 
+        self.db_manager.create_all()
         client = self.client
-        client.create_all()
+        client.connection()
 
         items = [
             UserModel(id="1", name="Alice", age=78),
@@ -123,7 +126,7 @@ class TestDataBaseClient(unittest.TestCase):
         ]
         client.insert_batch(items, "update")
 
-        results = client.select("SELECT * FROM user;").fetchall()
+        results = client.execute("SELECT * FROM user;").fetchall()
         self.assertEqual(len(results), 2)
         self.assertEqual(results[0]["name"], "Alice")
         self.assertEqual(results[1]["name"], "Bob")
@@ -136,11 +139,11 @@ class TestDataBaseClient(unittest.TestCase):
         self.assertEqual(users[0].age, 78)
 
         # test convert item
-        row = client.select("select * from user where id = '1';").fetchone()
+        row = client.execute("select * from user where id = '1';").fetchone()
         user = model_convert_item(row, UserModel)
         self.assertTrue(isinstance(user, UserModel))
 
         # test convert item is None
-        row = client.select("select * from user where id = '4';").fetchone()
+        row = client.execute("select * from user where id = '4';").fetchone()
         user = model_convert_item(row, UserModel)
         self.assertIsNone(user)
