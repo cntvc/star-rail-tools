@@ -12,7 +12,6 @@ from star_rail.database import DataBaseClient
 from star_rail.exceptions import ParamTypeError, exec_catch
 from star_rail.i18n import i18n
 from star_rail.utils.console import color_str
-from star_rail.utils.functional import Singleton
 from star_rail.utils.menu import MenuItem
 
 from .api_client import PC_HEADER, Header, Salt, request
@@ -119,10 +118,15 @@ class Account(BaseModel):
     def verify_uid(v):
         return isinstance(v, str) and _UID_RE.fullmatch(v) is not None
 
+    def __ne__(self, other: "Account"):
+        return self.uid != other.uid
 
-@Singleton()
+
 class AccountManager:
-    def __init__(self) -> None:
+    def __init__(self):
+        self.user: Account = None
+
+    def init_default_user(self):
         if not settings.DEFAULT_UID:
             self.user = None
             return
@@ -198,7 +202,7 @@ class AccountManager:
             return []
         return [user.uid for user in user_list]
 
-    def get_status_desc(self):
+    def get_account_status_desc(self):
         if self.user is not None:
             return _lang.current_account.format(color_str(self.user.uid, color="green"))
         return _lang.without_account
@@ -211,9 +215,9 @@ class AccountManager:
         uid_list = self.get_uid_list()
         menu_list.extend(
             [
-                # lambda 闭包捕获外部变量值 uid = uid
                 MenuItem(
                     title=_lang.menu.select_account.format(uid),
+                    # lambda 闭包捕获外部变量值 uid = uid
                     options=lambda uid=uid: self.login(uid),
                 )
                 for uid in uid_list

@@ -13,7 +13,7 @@ from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
-from star_rail.module import Account, AccountManager
+from star_rail.module import Account
 from star_rail.utils import console, functional
 from star_rail.utils.time import get_format_time
 
@@ -296,10 +296,12 @@ class GachaClient:
             return
 
         record_info = GachaRecordClient.get_record_info(url)
+        if self.user.uid != record_info.uid:
+            logger.warning(_lang.diff_account)
+            return
 
-        user = Account(uid=record_info.uid, gacha_url=str(url))
-        user.save_profile()
-        AccountManager().login(user)
+        self.user.gacha_url = str(url)
+        self.user.save_profile()
 
         self._refresh_gacha_record(url, record_info)
         self.show_analyze_result()

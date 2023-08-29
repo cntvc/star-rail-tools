@@ -1,4 +1,5 @@
 import functools
+import typing
 
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
@@ -10,17 +11,31 @@ _lang = i18n.client
 __all__ = ["HSRClient"]
 
 
-class HSRClient(GachaClient, MonthClient):
+class HSRClient:
     def __init__(self) -> None:
-        self.user = AccountManager().user
+        self.account_manager = AccountManager()
+        self.account_manager.init_default_user()
 
-    def check_user(func):
+        self.user = self.account_manager.user
+        self.month_client = MonthClient(self.user)
+        self.gacha_client = GachaClient(self.user)
+
+    def check_user(func: typing.Callable):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-            self.user = AccountManager().user
+            self.user = self.account_manager.user
             if self.user is None:
                 print(console.color_str(_lang.no_account, "yellow"))
                 return
+
+            if (
+                self.month_client.user is None
+                or self.account_manager.user != self.month_client.user
+            ):
+                self.user = self.account_manager.user
+                self.month_client = MonthClient(self.user)
+                self.gacha_client = GachaClient(self.user)
+
             return func(self, *args, **kwargs)
 
         return wrapper
@@ -36,44 +51,51 @@ class HSRClient(GachaClient, MonthClient):
         if not self.user.cookie.verify_cookie_token():
             print(console.color_str(_lang.empty_cookie, "yellow"))
             return
-        super().refresh_month_info()
-        super().show_month_info()
+        self.month_client.refresh_month_info()
+        self.month_client.show_month_info()
 
     @error.exec_catch()
     @check_user
     def show_month_info(self):
-        super().show_month_info()
+        self.month_client.show_month_info()
 
     @error.exec_catch()
     @check_user
     def refresh_record_by_user_cache(self):
-        super().refresh_record_by_user_cache()
+        self.gacha_client.refresh_record_by_user_cache()
 
     @error.exec_catch()
     @check_user
     def refresh_record_by_game_cache(self):
-        super().refresh_record_by_game_cache()
+        self.gacha_client.refresh_record_by_game_cache()
 
     @error.exec_catch()
+    @check_user
     def refresh_record_by_clipboard(self):
-        super().refresh_record_by_clipboard()
+        self.gacha_client.refresh_record_by_clipboard()
 
     @error.exec_catch()
     @check_user
     def show_analyze_result(self):
-        super().show_analyze_result()
+        self.gacha_client.show_analyze_result()
 
     @error.exec_catch()
     @check_user
     def import_gacha_record(self):
-        super().import_gacha_record()
+        self.gacha_client.import_gacha_record()
 
     @error.exec_catch()
     @check_user
     def export_record_to_xlsx(self):
-        super().export_record_to_xlsx()
+        self.gacha_client.export_record_to_xlsx()
 
     @error.exec_catch()
     @check_user
     def export_record_to_srgf(self):
-        super().export_record_to_srgf()
+        self.gacha_client.export_record_to_srgf()
+
+    def gen_account_menu(self):
+        return self.account_manager.gen_account_menu()
+
+    def get_account_status_desc(self):
+        return self.account_manager.get_account_status_desc()

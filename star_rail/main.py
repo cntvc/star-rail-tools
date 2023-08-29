@@ -8,7 +8,7 @@ from star_rail.client import HSRClient
 from star_rail.config import settings
 from star_rail.database import DataBaseClient, DBManager
 from star_rail.i18n import LanguageType, i18n, set_locales
-from star_rail.module import AccountManager, UpdateManager, UpdateSource
+from star_rail.module import UpdateManager, UpdateSource
 from star_rail.module.info import show_about
 from star_rail.utils.log import init_logger
 from star_rail.utils.menu import Menu, MenuItem
@@ -23,8 +23,8 @@ def init_menu(client: HSRClient):
         options=[
             MenuItem(
                 title=_lang_menu.account_setting,
-                gen_menu=lambda: AccountManager().gen_account_menu(),
-                tips=lambda: AccountManager().get_status_desc(),
+                gen_menu=lambda: client.gen_account_menu(),
+                tips=lambda: client.get_account_status_desc(),
             ),
             MenuItem(
                 title=_lang_menu.gacha_record.home,
@@ -57,7 +57,7 @@ def init_menu(client: HSRClient):
                         options=client.show_analyze_result,
                     ),
                 ],
-                tips=lambda: AccountManager().get_status_desc(),
+                tips=lambda: client.get_account_status_desc(),
             ),
             MenuItem(
                 title=_lang_menu.trailblaze_calendar.home,
@@ -124,7 +124,7 @@ def init_menu(client: HSRClient):
             ),
             MenuItem(title=_lang_menu.about, options=show_about),
         ],
-        tips=lambda: AccountManager().get_status_desc(),
+        tips=lambda: client.get_account_status_desc(),
     )
     return Menu(main_menu)
 
