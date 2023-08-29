@@ -4,7 +4,7 @@ from prettytable import PrettyTable
 
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
-from star_rail.utils import functional
+from star_rail.utils import console
 
 from ..mihoyo import Account, request
 from ..mihoyo.routes import MONTH_INFO_URL
@@ -59,8 +59,8 @@ class MonthClient:
         data = []
         if month_info_mappers:
             data = converter.mapper_to_month_info(month_info_mappers)
-        functional.clear_screen()
-        print("UID:", functional.color_str("{}".format(self.user.uid), "green"))
+        console.clear_all()
+        print("UID:", console.color_str("{}".format(self.user.uid), "green"))
         print(self._gen_month_info_tables(data))
 
     def refresh_month_info(self):

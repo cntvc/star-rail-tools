@@ -13,8 +13,8 @@ from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
-from star_rail.module import Account, AccountManager
-from star_rail.utils import functional
+from star_rail.module import Account
+from star_rail.utils import console, functional
 from star_rail.utils.time import get_format_time
 
 from ..mihoyo import request
@@ -235,8 +235,8 @@ class StatisticalTable:
         return rank5_detail_table
 
     def show(self):
-        functional.clear_screen()
-        print("UID:", functional.color_str("{}".format(self.analyze_result.uid), "green"))
+        console.clear_all()
+        print("UID:", console.color_str("{}".format(self.analyze_result.uid), "green"))
         print(_lang.analyze_update_time, self.analyze_result.update_time)
         print(self.gen_overview_table())
         print("", end="\n\n")
@@ -296,10 +296,12 @@ class GachaClient:
             return
 
         record_info = GachaRecordClient.get_record_info(url)
+        if self.user.uid != record_info.uid:
+            logger.warning(_lang.diff_account)
+            return
 
-        user = Account(uid=record_info.uid, gacha_url=str(url))
-        user.save_profile()
-        AccountManager().login(user)
+        self.user.gacha_url = str(url)
+        self.user.save_profile()
 
         self._refresh_gacha_record(url, record_info)
         self.show_analyze_result()

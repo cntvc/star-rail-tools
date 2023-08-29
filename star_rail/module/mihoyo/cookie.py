@@ -5,8 +5,10 @@ from typing import Literal
 from loguru import logger
 from pydantic import BaseModel, model_validator
 
+from star_rail.module.mihoyo.types import GameBiz
+
 from .api_client import WEB_HEADER, request
-from .routes import COOKIE_TOKEN_BY_STOKEN_URL, STOKEN_BY_LOGINTICKET_URL
+from .routes import COOKIE_TOKEN_BY_STOKEN_URL, MUTIL_TOKEN_BY_LOGINTICKET_URL
 
 __all__ = ["Cookie"]
 
@@ -91,14 +93,14 @@ class Cookie(BaseModel):
     def __str__(self) -> str:
         return "; ".join([f"{key}={value}" for key, value in self.model_dump("all").items()])
 
-    def refresh_stoken_by_login_ticket(self):
+    def refresh_mutil_by_login_ticket(self):
         params = {
             "login_ticket": self.login_ticket,
             "token_types": 3,
             "uid": self.login_uid,
         }
         data = request(
-            "get", url=STOKEN_BY_LOGINTICKET_URL.get_url(), headers=WEB_HEADER, params=params
+            "get", url=MUTIL_TOKEN_BY_LOGINTICKET_URL.get_url(), headers=WEB_HEADER, params=params
         )
         data = data["list"]
         for item in data:
@@ -110,7 +112,7 @@ class Cookie(BaseModel):
     def refresh_cookie_token_by_stoken(self):
         data = request(
             "get",
-            COOKIE_TOKEN_BY_STOKEN_URL.get_url(),
+            COOKIE_TOKEN_BY_STOKEN_URL.get_url(GameBiz.get_by_uid(self.login_uid)),
             headers=WEB_HEADER,
             cookies=self.model_dump("web"),
             params={"uid": self.login_uid, "stoken": self.stoken},

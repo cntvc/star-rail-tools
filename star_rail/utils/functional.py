@@ -5,15 +5,13 @@ import sys
 import typing
 from pathlib import Path
 
+from .console import color_str
+
 __all__ = [
     "save_json",
     "load_json",
-    "clear_screen",
-    "pause",
-    "color_str",
     "input_int",
     "input_yes_or_no",
-    "dedupe",
     "restart",
 ]
 
@@ -35,39 +33,6 @@ def load_json(full_path: typing.Union[str, Path]) -> dict:
     with open(full_path, "r", encoding="UTF-8") as file:
         data = json.load(file)
     return data
-
-
-def clear_screen():
-    os.system("cls")
-
-
-def pause():
-    os.system("pause")
-
-
-def color_str(string: str, color: str = "none"):
-    """generate color str
-
-    Args:
-        string (str): string
-        color (str, optional): converted target color. Defaults to "none".
-            support color:[red, green, yellow, blue]
-
-    Returns:
-        str: colored characters in the command line
-    """
-    color_list = {
-        "red": "\033[1;31;40m",
-        "green": "\033[1;32;40m",
-        "yellow": "\033[1;33;40m",
-        "blue": "\033[1;34;40m",
-        "none": "\033[0m",
-    }
-    color_code = color_list.get(color, None)
-    if color_code:
-        return "{}{}\033[0m".format(color_code, string)
-    else:
-        return string
 
 
 def input_int(left: int, right: int, error_msg: str):

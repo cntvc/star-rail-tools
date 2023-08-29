@@ -40,10 +40,6 @@ class DataBaseConnectionError(DataBaseError):
     msg = i18n.error.db_conn_error
 
 
-class DataBaseExecuteError(DataBaseError):
-    msg = "数据库执行错误"
-
-
 class DataError(HsrException):
     pass
 
