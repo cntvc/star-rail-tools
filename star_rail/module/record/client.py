@@ -8,6 +8,7 @@ import xlsxwriter
 import yarl
 from loguru import logger
 from prettytable import PrettyTable
+from rich.progress import BarColumn, Progress, TextColumn
 
 from star_rail import constants
 from star_rail import exceptions as error
@@ -81,24 +82,34 @@ class GachaRecordClient:
         max_size = 20
         end_id = 0
         cnt = 1
-        while True:
-            print(_lang.fetch_msg.format(gacha_name, ".." * (cnt % 3 + 1)), end="\r")
-            data = request(
-                "get",
-                GachaRecordClient._update_url_param(
-                    self.url, gacha_type_id, max_size, page, end_id
-                ),
-            )
-            gacha_data = ApiGachaData(**data)
-            if not gacha_data.list:
-                break
-            page = page + 1
-            end_id = gacha_data.list[-1].id
-            gacha_list.extend(gacha_data.list)
-            # 防止请求过快
-            time.sleep(0.3)
-            cnt = cnt + 1
-        print(_lang.fetch_finish.format(gacha_name, len(gacha_list)))
+        progress = Progress(
+            TextColumn("[bold]{task.fields[gacha_name]}", justify="right"),
+            BarColumn(bar_width=30),
+            _lang.fetch_msg,
+            transient=True,
+        )
+        task = progress.add_task("Fetching...", gacha_name=gacha_name, page=page, total=None)
+        progress.start()
+        try:
+            while True:
+                data = request(
+                    "get",
+                    GachaRecordClient._update_url_param(
+                        self.url, gacha_type_id, max_size, page, end_id
+                    ),
+                )
+                gacha_data = ApiGachaData(**data)
+                if not gacha_data.list:
+                    break
+                page = page + 1
+                end_id = gacha_data.list[-1].id
+                gacha_list.extend(gacha_data.list)
+                # 防止请求过快
+                time.sleep(0.3)
+                cnt = cnt + 1
+                progress.update(task, completed=page, page=page)
+        finally:
+            progress.stop()
         logger.debug("fetch {} finish, total count : {}", gacha_name, len(gacha_list))
         return gacha_list
 

@@ -21,8 +21,7 @@ en_us_lang_pack = {
     "account.menu.invalid_uid_format": "Please enter a valid UID format",
     # module/record/client
     "record.client.fetch_record": "Fetching records",
-    "record.client.fetch_msg": "\033[KFetching {} banner data {}",
-    "record.client.fetch_finish": "\033[KFetch of {} finished, {} data entries in total",
+    "record.client.fetch_msg": "Page {task.fields[page]}",
     "record.client.analyze_update_time": "Analyzing update time: ",
     "record.client.invalid_gacha_url": "No valid gacha link found",
     "record.client.record_info_data_error": "Error in account storage data, record_info_uid: {}",
