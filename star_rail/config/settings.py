@@ -27,6 +27,9 @@ class Settings(BaseModel):
 
     LANGUAGE: str = ""
 
+    SALT: str = ""
+    """加密 salt"""
+
     model_config = ConfigDict(extra="ignore")
 
     config_path: str = Field(exclude=True)
