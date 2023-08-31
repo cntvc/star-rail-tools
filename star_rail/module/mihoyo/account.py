@@ -139,8 +139,11 @@ class Account(BaseModel):
     def verify_uid(v):
         return isinstance(v, str) and _UID_RE.fullmatch(v) is not None
 
+    def __eq__(self, other: "Account"):
+        return self.uid == other.uid and self.cookie == other.cookie
+
     def __ne__(self, other: "Account"):
-        return self.uid != other.uid
+        return self.uid != other.uid or self.cookie != other.cookie
 
 
 class AccountManager:
