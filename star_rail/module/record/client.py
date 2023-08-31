@@ -7,8 +7,11 @@ import pydantic
 import xlsxwriter
 import yarl
 from loguru import logger
-from prettytable import PrettyTable
+from rich import box
+from rich.console import Console
 from rich.progress import BarColumn, Progress, TextColumn
+from rich.style import Style
+from rich.table import Table
 
 from star_rail import constants
 from star_rail import exceptions as error
@@ -197,25 +200,27 @@ class Analyzer:
 
 
 class StatisticalTable:
+    title_style = Style(color="blue", bold=True, frame=True)
+    header_style = Style(color="blue", frame=True)
+
     def __init__(self, data: AnalyzeResult) -> None:
         self.analyze_result = data
         self.analyze_result.data = sorted(
             self.analyze_result.data, key=lambda item: item.gacha_type
         )
 
-    def gen_overview_table(self):
-        overview_table = PrettyTable()
-        overview_table.align = "l"
-        overview_table.title = i18n.table.total.title
-        overview_table.add_column(
-            i18n.table.total.project,
-            [
-                i18n.table.total.total_cnt,
-                i18n.table.total.star5_cnt,
-                i18n.table.total.star5_avg_cnt,
-                i18n.table.total.pity_cnt,
-            ],
+    def overview_table(self):
+        table = Table(
+            title=i18n.table.total.title,
+            box=box.ASCII2,
+            header_style=self.header_style,
+            title_style=self.title_style,
         )
+        table.add_column("卡池")
+        table.add_column(i18n.table.total.total_cnt)
+        table.add_column(i18n.table.total.star5_cnt)
+        table.add_column(i18n.table.total.star5_avg_cnt)
+        table.add_column(i18n.table.total.pity_cnt)
 
         for item in self.analyze_result.data:
             total_count = item.total_count
@@ -225,33 +230,49 @@ class StatisticalTable:
             if rank5_count:
                 rank5_average = (total_count - pity_count) / rank5_count
                 rank5_average = round(rank5_average, 2)
-            overview_table.add_column(
+            table.add_row(
                 GACHA_TYPE_DICT[item.gacha_type],
-                [total_count, rank5_count, rank5_average, pity_count],
+                str(total_count),
+                str(rank5_count),
+                str(rank5_average),
+                str(pity_count),
             )
-        return overview_table
+        return table
 
     def gen_detail_table(self):
         max_rank5_len = max([len(item.list) for item in self.analyze_result.data])
-        rank5_detail_table = PrettyTable()
-        rank5_detail_table.title = i18n.table.star5.title
-        rank5_detail_table.align = "l"
+        table = Table(
+            title=i18n.table.star5.title,
+            box=box.ASCII2,
+            header_style=self.header_style,
+            title_style=self.title_style,
+        )
+        for gacha_name in GACHA_TYPE_DICT.values():
+            table.add_column(gacha_name, justify="left", overflow="ellipsis")
+
+        rank5_data = {}
         for item in self.analyze_result.data:
             rank5_detail = [
                 item.name + " : " + item.number + i18n.table.star5.pull_count for item in item.list
             ]
             # 表格不支持可变长度，因此在末尾追加空字符串使列表长度一致
             rank5_detail += [""] * (max_rank5_len - len(rank5_detail))
-            rank5_detail_table.add_column(GACHA_TYPE_DICT[item.gacha_type], rank5_detail)
-        return rank5_detail_table
+            rank5_data[item.gacha_type] = rank5_detail
+
+        for i in range(max_rank5_len):
+            data = [rank5_data[gacha_type][i] for gacha_type in GACHA_TYPE_DICT.keys()]
+
+            table.add_row(*data)
+        return table
 
     def show(self):
         console.clear_all()
         print("UID:", console.color_str("{}".format(self.analyze_result.uid), "green"))
-        print(_lang.analyze_update_time, self.analyze_result.update_time)
-        print(self.gen_overview_table())
+        print(_lang.analyze_update_time, self.analyze_result.update_time, end="\n\n")
+        _console = Console()
+        _console.print(self.overview_table())
         print("", end="\n\n")
-        print(self.gen_detail_table())
+        _console.print(self.gen_detail_table())
 
 
 class GachaClient:
