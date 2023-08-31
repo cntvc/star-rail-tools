@@ -95,6 +95,7 @@ class Account(BaseModel):
         return cookie
 
     def save_profile(self):
+        logger.debug("save user profile")
         from ..mihoyo import converter
 
         """保存到 user 表和 cookie 表"""
@@ -111,6 +112,7 @@ class Account(BaseModel):
             失败: None
             成功: True
         """
+        logger.debug("load user profile")
         from ..mihoyo import converter
 
         user_mapper = UserMapper.query_user(self.uid)
@@ -128,7 +130,6 @@ class Account(BaseModel):
                 continue
             v = getattr(local_user, k)
             setattr(self, k, v)
-
         return True
 
     def model_dump(self):
@@ -147,6 +148,7 @@ class AccountManager:
         self.user: Account = None
 
     def init_default_user(self):
+        logger.debug("init default user")
         if not settings.DEFAULT_UID:
             self.user = None
             return
@@ -172,6 +174,7 @@ class AccountManager:
         settings.save_config()
 
     def create_by_input_uid(self):
+        logger.debug("create user by input uid")
         uid = _input_uid()
         if uid is None:
             return
@@ -183,6 +186,7 @@ class AccountManager:
 
     @exec_catch(level="warning")
     def create_by_cookie(self):
+        logger.debug("create user by cookie")
         if not settings.SALT:
             settings.SALT = AES128.generate_salt()
             settings.save_config()

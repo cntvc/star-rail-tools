@@ -1,6 +1,7 @@
 import time
 import typing
 
+from loguru import logger
 from rich import box
 from rich.console import Console
 from rich.style import Style
@@ -86,6 +87,7 @@ class MonthClient:
         Console().print(self._gen_month_info_tables(data))
 
     def refresh_month_info(self):
+        logger.debug("refresh month info")
         try:
             cur_month_data = self.fetch_month_info()
         except error.InvalidCookieError:

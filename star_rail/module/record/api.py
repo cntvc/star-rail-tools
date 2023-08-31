@@ -6,6 +6,8 @@ import typing
 
 import yarl
 
+from star_rail.utils import functional
+
 from ...utils.log import logger
 from ..game_client import GameClient
 from ..mihoyo.account import Account, GameBiz
@@ -13,12 +15,14 @@ from ..mihoyo.routes import GACHA_LOG_URL
 
 
 def get_from_user_cache(user: Account):
+    logger.debug("get url from user cache")
     if not user.gacha_url:
         return None
     return yarl.URL(user.gacha_url)
 
 
 def get_from_game_cache(user: Account):
+    logger.debug("get url from game web cache")
     tmp_file_path = os.path.join(tempfile.gettempdir(), "data_2")
     webcache_path = GameClient(user).get_webcache_path()
     _copy_file_with_powershell(webcache_path, tmp_file_path)
@@ -55,9 +59,11 @@ def _copy_file_with_powershell(source_path, destination_path):
 
 
 def get_from_clipboard():
+    logger.debug("get url from clipboard")
     import pyperclip
 
     text = pyperclip.paste()
+    logger.debug(functional.desensitize_url(text, "authkey"))
     url = _match_api(text)
     if not url:
         return None
