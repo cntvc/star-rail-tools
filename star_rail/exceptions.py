@@ -26,6 +26,10 @@ class ParamTypeError(HsrException):
     """参数类型错误"""
 
 
+class SaltNotFoundError(HsrException):
+    """Salt 丢失"""
+
+
 class DataBaseError(HsrException):
     """数据库错误"""
 

@@ -9,10 +9,11 @@ from pydantic import BaseModel, ValidationError, field_validator, model_validato
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.database import DataBaseClient
-from star_rail.exceptions import ParamTypeError, exec_catch
+from star_rail.exceptions import ParamTypeError, SaltNotFoundError, exec_catch
 from star_rail.i18n import i18n
 from star_rail.utils.console import color_str
 from star_rail.utils.menu import MenuItem
+from star_rail.utils.secutity import AES128, AES_PREFIX
 
 from .api_client import PC_HEADER, Header, Salt, request
 from .cookie import Cookie
@@ -75,14 +76,33 @@ class Account(BaseModel):
     def _init_region(self):
         self.region = Region.get_by_uid(self.uid).value
 
+    def _encrypt_cookie(self):
+        if not settings.SALT:
+            return self.cookie.model_dump()
+        aes128 = AES128(settings.SALT)
+        cookie = self.cookie.model_dump()
+        cookie = {k: aes128.encrypt(v) for k, v in cookie.items()}
+        return cookie
+
+    def _decrypt_cookie(self, cookie: Cookie):
+        if not settings.SALT:
+            if cookie.stoken.startswith(AES_PREFIX):
+                raise SaltNotFoundError
+            return cookie
+        aes128 = AES128(settings.SALT)
+        for k in cookie.model_fields.keys():
+            setattr(cookie, k, aes128.decrypt(getattr(cookie, k)))
+        return cookie
+
     def save_profile(self):
         from ..mihoyo import converter
 
         """保存到 user 表和 cookie 表"""
         user_mapper = converter.user_to_mapper(self)
+        cookie_mapper = CookieMapper(uid=self.uid, **self._encrypt_cookie())
         with DataBaseClient() as db:
             db.insert(user_mapper, "update")
-            db.insert(converter.user_to_cookie_mapper(self), "update")
+            db.insert(cookie_mapper, "update")
 
     def reload_profile(self):
         """重新加载用户数据
@@ -101,7 +121,7 @@ class Account(BaseModel):
         user_ck = CookieMapper.query_cookie(self.uid)
         if user_ck:
             local_cookie = converter.cookie_mapper_to_cookie(user_ck)
-            local_user.cookie = local_cookie
+            local_user.cookie = self._decrypt_cookie(local_cookie)
 
         for k in local_user.model_fields_set:
             if k not in self._serialize_include_keys:
@@ -163,6 +183,9 @@ class AccountManager:
 
     @exec_catch(level="warning")
     def create_by_cookie(self):
+        if not settings.SALT:
+            settings.SALT = AES128.generate_salt()
+            settings.save_config()
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
         if cookie is None:
@@ -177,8 +200,7 @@ class AccountManager:
                 continue
 
             user = Account(uid=role.game_role_id)
-            # 尝试加载本地数据后，更新 cookie 并保存
-            user.reload_profile()
+
             user.cookie = cookie
             user.save_profile()
 
