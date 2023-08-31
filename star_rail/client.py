@@ -101,7 +101,7 @@ class HSRClient:
         return self.account_manager.get_account_status_desc()
 
     def set_gacha_record_display_mode(self, mode: typing.Literal["table", "tree"]):
-        return StatisticalResult.set_display_mode(mode)
+        StatisticalResult.set_display_mode(mode)
 
     def get_gacha_record_desc(self):
         return StatisticalResult.get_show_display_desc()

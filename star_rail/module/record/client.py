@@ -272,13 +272,13 @@ class StatisticalResult:
 
     def create_detail_tree(self):
         """以单元素形式平铺"""
-        tree = Tree(i18n.table.star5.title)
+        tree = Tree("[bold cadet_blue]" + i18n.table.star5.title)
         for item in self.analyze_result.data:
             rank5_detail = [
                 Panel(item.name + " : " + item.number + i18n.table.star5.pull_count, expand=True)
                 for item in item.list
             ]
-            tree.add(GACHA_TYPE_DICT[item.gacha_type]).add(Columns(rank5_detail))
+            tree.add("[cadet_blue]" + GACHA_TYPE_DICT[item.gacha_type]).add(Columns(rank5_detail))
         return tree
 
     def display(self):
@@ -300,6 +300,7 @@ class StatisticalResult:
     @staticmethod
     def set_display_mode(mode: typing.Literal["table", "tree"]):
         settings.GACHA_RECORD_DESC_MOD = mode
+        settings.save_config()
         logger.success(i18n.config.settings.update_success)
 
     @staticmethod
