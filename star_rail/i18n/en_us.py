@@ -63,6 +63,7 @@ en_us_lang_pack = {
     "utils.menu.exit": "0. Exit",
     "utils.menu.input_number": "Please enter a number to select a menu option:",
     "utils.menu.invalid_input": "This is an invalid input. Please try again.",
+    "utils.menu.cancel_operation": "Cancel operation.",
     # client
     "client.no_account": "No account found",
     "client.empty_cookie": "No cookies found, please set cookies and retry",
