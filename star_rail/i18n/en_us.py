@@ -4,6 +4,7 @@ en_us_lang_pack = {
     "config.settings.current_status": "Current Status",
     "config.settings.open_success": "Opened successfully",
     "config.settings.close_success": "Closed successfully",
+    "config.settings.update_success": "Settings updated successfully",
     # i18n
     "i18n.update_lang.tips": "The language changes will take effect after restarting. Do you want to continue? y/N",
     "i18n.update_lang.invalid_input": "Please enter a valid option. Only 'y' or 'N' are allowed.",
@@ -34,6 +35,8 @@ en_us_lang_pack = {
     "record.client.import_file_success": "File {} imported successfully",
     "record.client.no_file_import": "No valid data file recognized",
     "record.client.export_file_success": "Export successful, file is located at {} ",
+    "record.client.show_mode_table": 'Current mode is "Table"',
+    "record.client.show_mode_tree": 'Current mode is "Column Grid"',
     # module/game_client
     "game_client.unfind_game_log_file": "Game log file not found",
     "game_client.unfind_game_path": "Game path not found",
@@ -92,6 +95,9 @@ en_us_lang_pack = {
     "main.menu.settings.update_source": "Set Update Source",
     "main.menu.settings.update_source_coding": "Coding (Recommended for users in China)",
     "main.menu.settings.update_source_github": "Github",
+    "main.menu.settings.record_desc_mode": "Gacha Record Display Mode",
+    "main.menu.settings.record_desc_mode_table": "Display as Table",
+    "main.menu.settings.record_desc_mode_tree": "Display as Column Grid",
     "main.menu.settings.language": "Switch Language",
     "main.menu.about": "About...",
     # 分析结果总览表
@@ -127,6 +133,7 @@ en_us_lang_pack = {
     "light_cone_event_warp": "light cone event warp",
     # 异常
     "error.param_type_error": "Parameter type error, type: {}",
+    "error.param_value_error": "Parameter value error, value: {}",
     "error.db_conn_error": "Database connection error",
     "error.request_error": "Network connection exception",
     "error.invalid_cookie_error": "Invalid Cookie",

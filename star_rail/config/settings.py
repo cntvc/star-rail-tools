@@ -30,6 +30,9 @@ class Settings(BaseModel):
     SALT: str = ""
     """加密 salt"""
 
+    GACHA_RECORD_DESC_MOD: typing.Literal["table", "tree"] = "table"
+    """抽卡记录详情的显示模式"""
+
     model_config = ConfigDict(extra="ignore")
 
     config_path: str = Field(exclude=True)

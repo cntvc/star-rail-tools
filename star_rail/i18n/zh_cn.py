@@ -4,6 +4,7 @@ zh_cn_lang_pack = {
     "config.settings.current_status": "当前状态",
     "config.settings.open_success": "开启成功",
     "config.settings.close_success": "关闭成功",
+    "config.settings.update_success": "设置修改成功",
     # i18n
     "i18n.update_lang.tips": "重启后使语言更改生效，是否继续？ y/N",
     "i18n.update_lang.invalid_input": "请输入有效的选项，只能输入 'y' 或 'N'。",
@@ -34,6 +35,8 @@ zh_cn_lang_pack = {
     "record.client.import_file_success": "成功导入文件 {}",
     "record.client.no_file_import": "未识别到有效数据文件",
     "record.client.export_file_success": "导出成功，文件位于 {} ",
+    "record.client.show_mode_table": '当前模式为 "表格"',
+    "record.client.show_mode_tree": '当前模式为 "列平铺"',
     # module/game_client
     "game_client.unfind_game_log_file": "未找到游戏日志文件",
     "game_client.unfind_game_path": "未找到游戏路径",
@@ -92,6 +95,9 @@ zh_cn_lang_pack = {
     "main.menu.settings.update_source": "设置更新源",
     "main.menu.settings.update_source_coding": "Coding （国内推荐",
     "main.menu.settings.update_source_github": "Github",
+    "main.menu.settings.record_desc_mode": "抽卡数据展示方式",
+    "main.menu.settings.record_desc_mode_table": "表格",
+    "main.menu.settings.record_desc_mode_tree": "列平铺",
     "main.menu.settings.language": "切换语言",
     "main.menu.about": "关于...",
     # 分析结果总览表
@@ -127,6 +133,7 @@ zh_cn_lang_pack = {
     "light_cone_event_warp": "光锥活动跃迁",
     # 异常
     "error.param_type_error": "参数类型错误，type: {}",
+    "error.param_value_error": "参数值错误，value: {}",
     "error.db_conn_error": "数据库连接错误",
     "error.request_error": "网络连接异常",
     "error.invalid_cookie_error": "Cookie 无效",

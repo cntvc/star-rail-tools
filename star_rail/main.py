@@ -108,6 +108,20 @@ def init_menu(client: HSRClient):
                         tips=lambda: UpdateManager.get_update_source_status(),
                     ),
                     MenuItem(
+                        title=_lang_menu.settings.record_desc_mode,
+                        options=[
+                            MenuItem(
+                                title=_lang_menu.settings.record_desc_mode_table,
+                                options=lambda: client.set_gacha_record_display_mode("table"),
+                            ),
+                            MenuItem(
+                                title=_lang_menu.settings.record_desc_mode_tree,
+                                options=lambda: client.set_gacha_record_display_mode("tree"),
+                            ),
+                        ],
+                        tips=lambda: client.get_gacha_record_desc(),
+                    ),
+                    MenuItem(
                         title=_lang_menu.settings.language,
                         options=[
                             MenuItem(
