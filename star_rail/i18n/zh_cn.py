@@ -63,6 +63,7 @@ zh_cn_lang_pack = {
     "utils.menu.exit": "0.退出",
     "utils.menu.input_number": "请输入数字选择菜单项:",
     "utils.menu.invalid_input": "无效输入，请重试",
+    "utils.menu.cancel_operation": "取消操作",
     # client
     "client.no_account": "请设置账户后重试",
     "client.empty_cookie": "未找到 cookie，请设置 cookie 后重试",

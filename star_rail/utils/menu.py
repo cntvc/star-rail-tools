@@ -1,6 +1,7 @@
 import math
 from typing import Callable, List, Union
 
+from loguru import logger
 from pydantic import BaseModel
 
 from star_rail import constants
@@ -86,6 +87,10 @@ class Menu:
                 self.stack.append(next_menu)
                 self.run()
             elif isinstance(next_menu_options, Callable):
-                next_menu_options()
+                try:
+                    next_menu_options()
+                except KeyboardInterrupt:
+                    print(_lang.cancel_operation)
+                    logger.debug("cancel option : [{}]", next_menu_options.__name__)
                 pause()
                 self.display()
