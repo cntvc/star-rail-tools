@@ -1,6 +1,9 @@
 import typing
 
-from prettytable import PrettyTable
+from rich import box
+from rich.console import Console
+from rich.style import Style
+from rich.table import Table
 
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
@@ -41,17 +44,23 @@ class MonthClient:
             db.insert_batch(converter.reward_source_to_mapper(self.user, month_info), "update")
 
     def _gen_month_info_tables(self, month_infos: typing.List[MonthInfo]):
-        month_info_table = PrettyTable()
-
-        month_info_table.align = "l"
-        month_info_table.title = i18n.table.trailblaze_calendar.title
-        month_info_table.add_column(
-            i18n.table.trailblaze_calendar.month,
-            [i18n.table.trailblaze_calendar.hcoin, i18n.table.trailblaze_calendar.rails_pass],
+        table = Table(
+            title=i18n.table.trailblaze_calendar.title,
+            box=box.ASCII2,
+            title_style=Style(color="blue", bold=True),
         )
-        for item in month_infos:
-            month_info_table.add_column(item.month, [item.hcoin, item.rails_pass])
-        return month_info_table
+
+        table.add_column(i18n.table.trailblaze_calendar.month)
+        for info in month_infos:
+            table.add_column(info.month)
+        table.add_row(
+            i18n.table.trailblaze_calendar.hcoin, *[str(info.hcoin) for info in month_infos]
+        )
+        table.add_row(
+            i18n.table.trailblaze_calendar.rails_pass,
+            *[str(info.rails_pass) for info in month_infos]
+        )
+        return table
 
     def show_month_info(self):
         default_time_range = 6
@@ -60,8 +69,8 @@ class MonthClient:
         if month_info_mappers:
             data = converter.mapper_to_month_info(month_info_mappers)
         console.clear_all()
-        print("UID:", console.color_str("{}".format(self.user.uid), "green"))
-        print(self._gen_month_info_tables(data))
+        print("UID:", console.color_str("{}".format(self.user.uid), "green"), end="\n\n")
+        Console().print(self._gen_month_info_tables(data))
 
     def refresh_month_info(self):
         cur_month_data = self.fetch_month_info()
