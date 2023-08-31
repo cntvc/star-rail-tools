@@ -3,7 +3,7 @@ import typing
 
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
-from star_rail.module import AccountManager, GachaClient, MonthClient
+from star_rail.module import AccountManager, GachaClient, MonthClient, StatisticalResult
 from star_rail.utils import console
 
 _lang = i18n.client
@@ -99,3 +99,9 @@ class HSRClient:
 
     def get_account_status_desc(self):
         return self.account_manager.get_account_status_desc()
+
+    def set_gacha_record_display_mode(self, mode: typing.Literal["table", "tree"]):
+        return StatisticalResult.set_display_mode(mode)
+
+    def get_gacha_record_desc(self):
+        return StatisticalResult.get_show_display_desc()

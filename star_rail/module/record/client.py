@@ -8,13 +8,17 @@ import xlsxwriter
 import yarl
 from loguru import logger
 from rich import box
+from rich.columns import Columns
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TextColumn
 from rich.style import Style
 from rich.table import Table
+from rich.tree import Tree
 
 from star_rail import constants
 from star_rail import exceptions as error
+from star_rail.config import settings
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.module import Account
@@ -36,7 +40,7 @@ from .model import (
 from .srgf import convert_to_gacha_record, convert_to_srgf
 from .types import GACHA_TYPE_DICT, GACHA_TYPE_IDS, GachaType
 
-__all__ = ["GachaClient"]
+__all__ = ["GachaClient", "StatisticalResult"]
 
 _lang = i18n.record.client
 
@@ -199,7 +203,7 @@ class Analyzer:
         functional.save_json(self.user.gacha_log_analyze_path, self.result.model_dump())
 
 
-class StatisticalTable:
+class StatisticalResult:
     title_style = Style(color="cadet_blue", bold=True)
     header_style = Style(color="cadet_blue")
 
@@ -240,6 +244,7 @@ class StatisticalTable:
         return table
 
     def create_detail_table(self):
+        """以表格形式竖列显示"""
         max_rank5_len = max([len(item.list) for item in self.analyze_result.data])
         table = Table(
             title=i18n.table.star5.title,
@@ -265,14 +270,49 @@ class StatisticalTable:
             table.add_row(*data)
         return table
 
-    def show(self):
+    def create_detail_tree(self):
+        """以单元素形式平铺"""
+        tree = Tree(i18n.table.star5.title)
+        for item in self.analyze_result.data:
+            rank5_detail = [
+                Panel(item.name + " : " + item.number + i18n.table.star5.pull_count, expand=True)
+                for item in item.list
+            ]
+            tree.add(GACHA_TYPE_DICT[item.gacha_type]).add(Columns(rank5_detail))
+        return tree
+
+    def display(self):
         console.clear_all()
         print("UID:", console.color_str("{}".format(self.analyze_result.uid), "green"))
         print(_lang.analyze_update_time, self.analyze_result.update_time, end="\n\n")
         _console = Console()
         _console.print(self.create_overview_table())
         print("", end="\n\n")
-        _console.print(self.create_detail_table())
+        if settings.GACHA_RECORD_DESC_MOD == "tree":
+            _console.print(self.create_detail_tree())
+        elif settings.GACHA_RECORD_DESC_MOD == "table":
+            _console.print(self.create_detail_table())
+        else:
+            raise error.ParamValueError(
+                i18n.error.param_value_error, settings.GACHA_RECORD_DESC_MOD
+            )
+
+    @staticmethod
+    def set_display_mode(mode: typing.Literal["table", "tree"]):
+        settings.GACHA_RECORD_DESC_MOD = mode
+        logger.success(i18n.config.settings.update_success)
+
+    @staticmethod
+    def get_show_display_desc():
+        """获取当前显示模式描述"""
+        if settings.GACHA_RECORD_DESC_MOD == "table":
+            return _lang.show_mode_table
+        elif settings.GACHA_RECORD_DESC_MOD == "tree":
+            return _lang.show_mode_tree
+        else:
+            raise error.ParamValueError(
+                i18n.error.param_value_error, settings.GACHA_RECORD_DESC_MOD
+            )
 
 
 class GachaClient:
@@ -360,7 +400,7 @@ class GachaClient:
     def show_analyze_result(self):
         if self.user.gacha_log_analyze_path.exists():
             result = AnalyzeResult(**functional.load_json(self.user.gacha_log_analyze_path))
-            StatisticalTable(result).show()
+            StatisticalResult(result).display()
         else:
             record_info_mapper = GachaRecordInfoMapper.query(self.user.uid)
             if not record_info_mapper:
@@ -369,7 +409,7 @@ class GachaClient:
             record_info = converter.mapper_to_record_info(record_info_mapper)
             analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
             analyzer.save_result()
-            StatisticalTable(analyzer.result).show()
+            StatisticalResult(analyzer.result).display()
 
     def import_gacha_record(self):
         import_data_path = constants.IMPORT_DATA_PATH
