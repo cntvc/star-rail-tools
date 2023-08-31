@@ -62,6 +62,7 @@ class GachaRecordClient:
                 data["uid"] = gacha_data.list[0].uid
                 data["lang"] = gacha_data.list[0].lang
                 break
+        logger.debug(data)
         return GachaRecordInfo(**data)
 
     @classmethod
@@ -330,6 +331,7 @@ class GachaClient:
             logger.warning(_lang.invalid_gacha_url)
             return
 
+        logger.debug(functional.desensitize_url(str(url), "authkey"))
         record_info = GachaRecordClient.get_record_info(url)
         if record_info.uid != self.user.uid:
             raise error.DataError(_lang.record_info_data_error, record_info.uid)
@@ -342,11 +344,10 @@ class GachaClient:
         if url is None:
             logger.warning(_lang.invalid_gacha_url)
             return
-
         if not GachaRecordClient.verify_url(url):
             logger.warning(_lang.invalid_gacha_url)
             return
-
+        logger.debug(functional.desensitize_url(str(url), "authkey"))
         record_info = GachaRecordClient.get_record_info(url)
         if self.user.uid != record_info.uid:
             logger.warning(_lang.diff_account)
@@ -368,6 +369,7 @@ class GachaClient:
             logger.warning(_lang.invalid_gacha_url)
             return
 
+        logger.debug(functional.desensitize_url(str(url), "authkey"))
         record_info = GachaRecordClient.get_record_info(url)
         if self.user.uid != record_info.uid:
             logger.warning(_lang.diff_account)
@@ -413,6 +415,7 @@ class GachaClient:
             StatisticalResult(analyzer.result).display()
 
     def import_gacha_record(self):
+        logger.debug("import gacha record")
         import_data_path = constants.IMPORT_DATA_PATH
         file_list = [
             name

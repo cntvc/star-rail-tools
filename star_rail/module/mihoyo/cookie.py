@@ -94,6 +94,7 @@ class Cookie(BaseModel):
         return "; ".join([f"{key}={value}" for key, value in self.model_dump("all").items()])
 
     def refresh_mutil_by_login_ticket(self):
+        logger.debug("refresh mutil cookie, uid: ", self.login_uid)
         params = {
             "login_ticket": self.login_ticket,
             "token_types": 3,
@@ -110,6 +111,7 @@ class Cookie(BaseModel):
                 self.ltoken = item["token"]
 
     def refresh_cookie_token_by_stoken(self):
+        logger.debug("refresh cookie_token, uid: ", self.login_uid)
         data = request(
             "get",
             COOKIE_TOKEN_BY_STOKEN_URL.get_url(GameBiz.get_by_uid(self.login_uid)),
