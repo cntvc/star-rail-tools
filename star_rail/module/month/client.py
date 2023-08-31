@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.style import Style
 from rich.table import Table
 
+from star_rail import exceptions as error
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.utils import console
@@ -83,7 +84,14 @@ class MonthClient:
         Console().print(self._gen_month_info_tables(data))
 
     def refresh_month_info(self):
-        cur_month_data = self.fetch_month_info()
+        try:
+            cur_month_data = self.fetch_month_info()
+        except error.InvalidCookieError:
+            # Cookie token 无效时，主动刷新一次，如果仍然无效，表示 Stoken 失效或者被风控
+            self.user.cookie.refresh_cookie_token_by_stoken()
+            self.user.save_profile()
+            cur_month_data = self.fetch_month_info()
+
         datas = [cur_month_data]
         for month in cur_month_data.optional_month[1:]:
             cur_month_data = self.fetch_month_info(month)
