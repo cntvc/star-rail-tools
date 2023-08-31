@@ -121,6 +121,24 @@ class Cookie(BaseModel):
         )
         self.cookie_token = data["cookie_token"]
 
+    def __eq__(self, other: "Cookie"):
+        return (
+            self.login_uid == other.login_uid
+            and self.login_ticket == other.login_ticket
+            and self.cookie_token == other.cookie_token
+            and self.ltoken == other.ltoken
+            and self.stoken == other.stoken
+        )
+
+    def __ne__(self, other: "Cookie"):
+        return (
+            self.login_uid != other.login_uid
+            or self.login_ticket != other.login_ticket
+            or self.cookie_token != other.cookie_token
+            or self.ltoken != other.ltoken
+            or self.stoken != other.stoken
+        )
+
 
 def parse_cookie(cookie: str) -> typing.Dict[str, str]:
     """cookie字符串解析为字典"""

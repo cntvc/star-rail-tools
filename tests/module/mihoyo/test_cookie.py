@@ -18,3 +18,22 @@ class TestCookie(unittest.TestCase):
         cookie = Cookie(**ck_dict)
         self.assertIsNotNone(cookie)
         self.assertFalse(cookie.verify_login_ticket())
+
+    def test_cookie_ne(self):
+        ck_dict_1 = {
+            "ltuid": "123",
+            "login_uid": "acxx",
+        }
+        ck_dict_2 = {
+            "ltuid": "123",
+            "login_uid": "acxx",
+        }
+        ck_dict_3 = {
+            "ltuid": "1234",
+            "login_uid": "acxx",
+        }
+        ck_1 = Cookie(**ck_dict_1)
+        ck_2 = Cookie(**ck_dict_2)
+        ck_3 = Cookie(**ck_dict_3)
+        self.assertEqual(ck_1, ck_2)
+        self.assertNotEqual(ck_1, ck_3)
