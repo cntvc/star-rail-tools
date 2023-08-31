@@ -96,7 +96,7 @@ zh_cn_lang_pack = {
     "main.menu.about": "关于...",
     # 分析结果总览表
     "table.total.title": "统计结果",
-    "table.total.project": "项目",
+    "table.total.gacha": "卡池",
     "table.total.total_cnt": "抽卡总数",
     "table.total.star5_cnt": "5星总次数",
     "table.total.star5_avg_cnt": "5星平均抽数",

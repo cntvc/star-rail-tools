@@ -200,8 +200,8 @@ class Analyzer:
 
 
 class StatisticalTable:
-    title_style = Style(color="blue", bold=True, frame=True)
-    header_style = Style(color="blue", frame=True)
+    title_style = Style(color="cadet_blue", bold=True)
+    header_style = Style(color="cadet_blue")
 
     def __init__(self, data: AnalyzeResult) -> None:
         self.analyze_result = data
@@ -209,14 +209,14 @@ class StatisticalTable:
             self.analyze_result.data, key=lambda item: item.gacha_type
         )
 
-    def overview_table(self):
+    def create_overview_table(self):
         table = Table(
             title=i18n.table.total.title,
             box=box.ASCII2,
             header_style=self.header_style,
             title_style=self.title_style,
         )
-        table.add_column("卡池")
+        table.add_column(i18n.table.total.gacha)
         table.add_column(i18n.table.total.total_cnt)
         table.add_column(i18n.table.total.star5_cnt)
         table.add_column(i18n.table.total.star5_avg_cnt)
@@ -239,7 +239,7 @@ class StatisticalTable:
             )
         return table
 
-    def gen_detail_table(self):
+    def create_detail_table(self):
         max_rank5_len = max([len(item.list) for item in self.analyze_result.data])
         table = Table(
             title=i18n.table.star5.title,
@@ -270,9 +270,9 @@ class StatisticalTable:
         print("UID:", console.color_str("{}".format(self.analyze_result.uid), "green"))
         print(_lang.analyze_update_time, self.analyze_result.update_time, end="\n\n")
         _console = Console()
-        _console.print(self.overview_table())
+        _console.print(self.create_overview_table())
         print("", end="\n\n")
-        _console.print(self.gen_detail_table())
+        _console.print(self.create_detail_table())
 
 
 class GachaClient:

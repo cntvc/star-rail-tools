@@ -96,7 +96,7 @@ en_us_lang_pack = {
     "main.menu.about": "About...",
     # 分析结果总览表
     "table.total.title": "Analysis Results",
-    "table.total.project": "Project",
+    "table.total.gacha": "Gacha",
     "table.total.total_cnt": "Total Count",
     "table.total.star5_cnt": "Total 5-Star Count",
     "table.total.star5_avg_cnt": "Average 5-Star Count",

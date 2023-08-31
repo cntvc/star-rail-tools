@@ -51,12 +51,14 @@ class MonthClient:
         table = Table(
             title=i18n.table.trailblaze_calendar.title,
             box=box.ASCII2,
-            title_style=Style(color="blue", bold=True),
+            title_style=Style(color="cadet_blue", bold=True),
         )
 
-        table.add_column(i18n.table.trailblaze_calendar.month)
+        table.add_column(
+            i18n.table.trailblaze_calendar.month, header_style=Style(color="cadet_blue")
+        )
         for info in month_infos:
-            table.add_column(info.month)
+            table.add_column(info.month, header_style=Style(color="cadet_blue"))
         table.add_row(
             i18n.table.trailblaze_calendar.hcoin, *[str(info.hcoin) for info in month_infos]
         )
