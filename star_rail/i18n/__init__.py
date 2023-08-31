@@ -25,6 +25,7 @@ class LazyLanguagePack:
 
     def __init__(self, raw_lang_pack: dict):
         if settings.LANGUAGE:
+            # FIXME 在英文时，setting使用未初始化的 logger
             logger.debug("default language pack: {}", settings.LANGUAGE)
             raw_lang_pack = LanguageType.get_pack_by_name(settings.LANGUAGE, raw_lang_pack)
         self.raw_lang_pack = parse_lang_pack(raw_lang_pack)
