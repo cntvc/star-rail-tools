@@ -1,6 +1,30 @@
 import typing
 
-from star_rail.database import DataBaseClient, DataBaseField, DataBaseModel, model_convert_list
+from star_rail.database import (
+    DataBaseClient,
+    DataBaseField,
+    DataBaseModel,
+    model_convert_item,
+    model_convert_list,
+)
+
+
+class MonthInfoRecordMapper(DataBaseModel):
+    __table_name__ = "month_info_record"
+
+    uid: str = DataBaseField(primary_key=True)
+    """用户id"""
+
+    update_time: str
+    """更新时间"""
+
+    @staticmethod
+    def query(uid: str):
+        """查询用户开拓月历记录"""
+        sql = """select * from month_info_record where uid = ?;"""
+        with DataBaseClient() as db:
+            row = db.execute(sql, uid).fetchone()
+        return model_convert_item(row, MonthInfoRecordMapper)
 
 
 class MonthInfoMapper(DataBaseModel):
