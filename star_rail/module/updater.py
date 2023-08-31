@@ -5,14 +5,21 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 import typing
+from pathlib import Path
 
 import requests
 from loguru import logger
 from pydantic import BaseModel
-from tqdm import tqdm
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    TextColumn,
+    TimeRemainingColumn,
+    TransferSpeedColumn,
+)
 
 from star_rail import __version__ as version
 from star_rail import constants
@@ -50,11 +57,21 @@ class BaseUpdater(abc.ABC):
         """
 
     def upgrade(self, update_context: _UpdateContext):
+        temp_file = Path(constants.TEMP_PATH, update_context.name)
+        temp_file.touch()
+        logger.debug("temp file: {}", temp_file)
         try:
-            temp_file = self._download(update_context)
+            self._download(temp_file, update_context)
         except requests.RequestException as e:
             logger.warning(_lang.download_failed)
             logger.debug(e)
+            os.remove(temp_file)
+            return
+        except KeyboardInterrupt:
+            logger.warning(_lang.download_canceled)
+            os.remove(temp_file)
+            # 显示取消下载的提示信息 1s
+            time.sleep(1)
             return
 
         shutil.move(temp_file, update_context.name)
@@ -67,22 +84,34 @@ class BaseUpdater(abc.ABC):
         subprocess.Popen(update_context.name, creationflags=subprocess.CREATE_NEW_CONSOLE)
         sys.exit()
 
-    def _download(self, update_context: _UpdateContext):
-        """下载新版本文件并写入到临时文件"""
+    def _download(self, file_path: str, update_context: _UpdateContext):
+        """下载新版本文件"""
         default_chunk_size = 1024
-        temp_file = tempfile.NamedTemporaryFile(delete=False)
-        file_path = temp_file.name
-        with open(file_path, "wb") as f:
-            with requests.get(
-                update_context.download_url, stream=True, timeout=constants.REQUEST_TIMEOUT
-            ) as r:
-                file_size = int(r.headers.get("content-length", 0))
-                with tqdm(total=file_size, unit="B", unit_scale=True, desc="StarRailTools") as pbar:
-                    for chunk in r.iter_content(chunk_size=default_chunk_size):
-                        if chunk:
-                            f.write(chunk)
-                            pbar.update(default_chunk_size)
-        return file_path
+
+        with requests.get(
+            update_context.download_url, stream=True, timeout=constants.REQUEST_TIMEOUT
+        ) as r:
+            file_size = int(r.headers.get("content-length", 0))
+            progress = Progress(
+                TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+                BarColumn(bar_width=None),
+                "[progress.percentage]{task.percentage:>3.1f}%",
+                "•",
+                DownloadColumn(),
+                "•",
+                TransferSpeedColumn(),
+                "•",
+                TimeRemainingColumn(),
+            )
+            task = progress.add_task(
+                description="StarRailTools...", total=file_size, filename=update_context.name
+            )
+
+            with open(file_path, "wb") as f, progress:
+                for chunk in r.iter_content(chunk_size=default_chunk_size):
+                    if chunk:
+                        f.write(chunk)
+                        progress.update(task, advance=len(chunk))
 
 
 class GithubUpdater(BaseUpdater):

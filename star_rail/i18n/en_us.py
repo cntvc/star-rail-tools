@@ -47,6 +47,7 @@ en_us_lang_pack = {
     "updater.invalid_input": "Please enter a valid option. Only 'y' or 'N' are allowed.",
     "updater.download_failed": "Failed to download the new version file. Please check the network connection status.",
     "updater.download_success": "New version download completed: {}, the software will automatically restart shortly.",
+    "updater.download_canceled": "Download canceled.",
     "updater.check_update": "Checking for software updates...",
     "updater.check_update_net_error": "Failed to check for updates. Please check the network connection status.",
     "updater.check_update_has_no_info": "Failed to check for updates. No version information obtained.",
