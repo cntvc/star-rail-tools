@@ -93,7 +93,7 @@ class BaseUpdater(abc.ABC):
         ) as r:
             file_size = int(r.headers.get("content-length", 0))
             progress = Progress(
-                TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+                TextColumn("[bold cadet_blue]{task.fields[filename]}", justify="right"),
                 BarColumn(bar_width=None),
                 "[progress.percentage]{task.percentage:>3.1f}%",
                 "•",
