@@ -19,6 +19,8 @@ zh_cn_lang_pack = {
     "account.menu.add_by_cookie": "通过 Cookie 添加账号",
     "account.menu.input_uid": "请输入用户UID, 输入 0 取消新建用户\n",
     "account.menu.invalid_uid_format": "请输入正确格式的UID",
+    # module/month/client
+    "month.client.update_time": "数据更新时间: ",
     # module/record/client
     "record.client.fetch_record": "正在查询记录",
     "record.client.fetch_msg": "第 {task.fields[page]} 页",

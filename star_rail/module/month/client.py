@@ -1,3 +1,4 @@
+import time
 import typing
 
 from rich import box
@@ -12,7 +13,7 @@ from star_rail.utils import console
 from ..mihoyo import Account, request
 from ..mihoyo.routes import MONTH_INFO_URL
 from ..month import converter
-from .mapper import MonthInfoMapper
+from .mapper import MonthInfoMapper, MonthInfoRecordMapper
 from .model import ApiMonthInfo, MonthInfo
 
 
@@ -40,6 +41,8 @@ class MonthClient:
     def _save_or_update_month_info(self, month_info: ApiMonthInfo):
         month_info_mapper = converter.api_info_to_mapper(self.user, month_info)
         with DataBaseClient() as db:
+            current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            db.insert(MonthInfoRecordMapper(uid=self.user.uid, update_time=current_time), "update")
             db.insert(month_info_mapper, "update")
             db.insert_batch(converter.reward_source_to_mapper(self.user, month_info), "update")
 
@@ -63,13 +66,20 @@ class MonthClient:
         return table
 
     def show_month_info(self):
-        default_time_range = 6
-        month_info_mappers = MonthInfoMapper.query(self.user.uid, None, default_time_range)
         data = []
-        if month_info_mappers:
-            data = converter.mapper_to_month_info(month_info_mappers)
+        month_info_record = MonthInfoRecordMapper.query(self.user.uid)
+        if month_info_record:
+            month_info_mappers = MonthInfoMapper.query(self.user.uid, None, 6)
+
+            if month_info_mappers:
+                data = converter.mapper_to_month_info(month_info_mappers)
         console.clear_all()
-        print("UID:", console.color_str("{}".format(self.user.uid), "green"), end="\n\n")
+        print("UID:", console.color_str("{}".format(self.user.uid), "green"))
+        print(
+            i18n.month.client.update_time,
+            month_info_record.update_time if month_info_record else "",
+            end="\n\n",
+        )
         Console().print(self._gen_month_info_tables(data))
 
     def refresh_month_info(self):

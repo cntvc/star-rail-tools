@@ -19,6 +19,8 @@ en_us_lang_pack = {
     "account.menu.add_by_cookie": "Add account via Cookie",
     "account.menu.input_uid": "Please enter user UID, enter 0 to cancel creating a new user\n",
     "account.menu.invalid_uid_format": "Please enter a valid UID format",
+    # module/month/client
+    "month.client.update_time": "Data update time: ",
     # module/record/client
     "record.client.fetch_record": "Fetching records",
     "record.client.fetch_msg": "Page {task.fields[page]}",
