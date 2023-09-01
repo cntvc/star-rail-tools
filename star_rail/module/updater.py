@@ -229,10 +229,12 @@ class UpdateManager:
             settings.save_config()
             changelog = self.get_changelog()
             if changelog:
-                print(_lang.changelog)
-                print("=" * constants.MENU_BANNER_LENGTH)
-                print(changelog)
-                print("=" * constants.MENU_BANNER_LENGTH)
+                from rich.console import Console
+                from rich.markdown import Markdown
+
+                console = Console()
+                console.print(_lang.changelog)
+                console.print(Markdown(changelog))
             pause()
             return
 
@@ -253,7 +255,9 @@ class UpdateManager:
         """移除更新日志中的链接等信息"""
         changelog_raw = release_data["body"]
         link_pattern = r"\[[^\]]+\]\([^)]+\)|https://[^ \n]+|\*\*Full Changelog[^ \n]+"
-        change_log = re.sub(link_pattern, "", changelog_raw)
+        img_pattern = r"!\[[^\]]+\]\([^)]+\)|<img[^>]+>"
+        combined_pattern = rf"{link_pattern}|{img_pattern}"
+        change_log = re.sub(combined_pattern, "", changelog_raw)
         return change_log.strip()
 
     def get_changelog(self):
