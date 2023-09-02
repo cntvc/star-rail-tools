@@ -73,8 +73,8 @@ class BaseUpdater(abc.ABC):
             # 显示取消下载的提示信息 1s
             time.sleep(1)
             return
-
-        shutil.move(temp_file, update_context.name)
+        exe_dir = os.path.dirname(sys.argv[0])
+        shutil.move(temp_file, os.path.join(exe_dir, update_context.name))
         logger.info(_lang.download_success, update_context.name)
         time.sleep(1)
         # 保存当前版本文件名
