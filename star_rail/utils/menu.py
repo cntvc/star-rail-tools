@@ -1,13 +1,13 @@
 import math
 from typing import Callable, List, Union
 
-from loguru import logger
 from pydantic import BaseModel
 
 from star_rail import constants
 from star_rail.i18n import i18n
 from star_rail.utils.console import clear_all, pause
 from star_rail.utils.functional import input_int
+from star_rail.utils.log import logger
 
 _lang = i18n.utils.menu
 

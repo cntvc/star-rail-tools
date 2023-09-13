@@ -2,11 +2,11 @@ import os
 import sqlite3
 import typing
 
-from loguru import logger
 from pydantic import BaseModel, Field
 
 from star_rail import constants
 from star_rail import exceptions as error
+from star_rail.utils.log import logger
 
 __all__ = [
     "DataBaseModel",

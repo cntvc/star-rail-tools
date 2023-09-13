@@ -1,7 +1,6 @@
 import time
 import typing
 
-from loguru import logger
 from rich import box
 from rich.console import Console
 from rich.style import Style
@@ -11,6 +10,7 @@ from star_rail import exceptions as error
 from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.utils import console
+from star_rail.utils.log import logger
 
 from ..mihoyo import Account, request
 from ..mihoyo.routes import MONTH_INFO_URL

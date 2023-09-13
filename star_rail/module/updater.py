@@ -10,7 +10,6 @@ import typing
 from pathlib import Path
 
 import requests
-from loguru import logger
 from pydantic import BaseModel
 from rich.progress import (
     BarColumn,
@@ -27,6 +26,7 @@ from star_rail.config import settings
 from star_rail.i18n import i18n
 from star_rail.utils.console import color_str, pause
 from star_rail.utils.functional import input_yes_or_no
+from star_rail.utils.log import logger
 from star_rail.utils.version import compare_versions
 
 __all__ = ["UpdateManager", "UpdateSource"]

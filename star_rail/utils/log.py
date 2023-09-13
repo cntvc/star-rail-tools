@@ -5,7 +5,7 @@ from loguru import logger
 
 from star_rail import constants
 
-__all__ = ["init_logger"]
+__all__ = ["logger"]
 
 
 def init_logger():
@@ -22,3 +22,6 @@ def init_logger():
         rotation="5MB",
         compression="tar.gz",
     )
+
+
+init_logger()

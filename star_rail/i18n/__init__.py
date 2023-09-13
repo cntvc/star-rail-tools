@@ -11,10 +11,9 @@ error eg:
     "como.next":"home next",
 }
 """
-from loguru import logger
-
 from star_rail.config import settings
 from star_rail.utils.functional import input_yes_or_no, restart
+from star_rail.utils.log import logger
 
 from .en_us import en_us_lang_pack
 from .zh_cn import zh_cn_lang_pack
@@ -25,7 +24,6 @@ class LazyLanguagePack:
 
     def __init__(self, raw_lang_pack: dict):
         if settings.LANGUAGE:
-            # FIXME 在英文时，setting使用未初始化的 logger
             logger.debug("default language pack: {}", settings.LANGUAGE)
             raw_lang_pack = LanguageType.get_pack_by_name(settings.LANGUAGE, raw_lang_pack)
         self.raw_lang_pack = parse_lang_pack(raw_lang_pack)

@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Union
 
 import pyperclip
-from loguru import logger
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from star_rail import constants
@@ -12,6 +11,7 @@ from star_rail.database import DataBaseClient
 from star_rail.exceptions import ParamTypeError, SaltNotFoundError, exec_catch
 from star_rail.i18n import i18n
 from star_rail.utils.console import color_str
+from star_rail.utils.log import logger
 from star_rail.utils.menu import MenuItem
 from star_rail.utils.secutity import AES128, AES_PREFIX
 

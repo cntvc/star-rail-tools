@@ -6,7 +6,6 @@ import typing
 import pydantic
 import xlsxwriter
 import yarl
-from loguru import logger
 from rich import box
 from rich.columns import Columns
 from rich.console import Console
@@ -23,6 +22,7 @@ from star_rail.database import DataBaseClient
 from star_rail.i18n import i18n
 from star_rail.module import Account
 from star_rail.utils import console, functional
+from star_rail.utils.log import logger
 from star_rail.utils.time import get_format_time
 
 from ..mihoyo import request
