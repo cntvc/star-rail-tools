@@ -43,7 +43,7 @@
 
     **注意：Cookie 是非常重要的账号凭据，请误泄漏以免导致可能的账号安全问题**
 
-    首先登陆[米哈游通行证]()页面，打开F12，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
+    首先登陆[米哈游通行证](https://user.mihoyo.com/)页面，打开F12，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
     ```javascript
     javascript:(function(){prompt(document.domain,document.cookie)})();
     ```
