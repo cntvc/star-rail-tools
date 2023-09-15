@@ -131,6 +131,11 @@
 - 导出 Execl 代码参考 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
 - 适配国际服的代码参考 [**star-rail-warp-export**](https://github.com/biuuu/star-rail-warp-export)
 
+### JetBrains 开发工具
+特别感谢 [**JetBrains**](https://jb.gg/OpenSourceSupport) 为开源项目提供的开发许可证
+
+![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
+
 
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
