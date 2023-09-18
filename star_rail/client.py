@@ -40,7 +40,7 @@ class HSRClient:
 
         return wrapper
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def refresh_month_info(self):
         # TODO 支持国际服
@@ -54,42 +54,42 @@ class HSRClient:
         self.month_client.refresh_month_info()
         self.month_client.show_month_info()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def show_month_info(self):
         self.month_client.show_month_info()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def refresh_record_by_user_cache(self):
         self.gacha_client.refresh_record_by_user_cache()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def refresh_record_by_game_cache(self):
         self.gacha_client.refresh_record_by_game_cache()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def refresh_record_by_clipboard(self):
         self.gacha_client.refresh_record_by_clipboard()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def show_analyze_result(self):
         self.gacha_client.show_analyze_result()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def import_gacha_record(self):
         self.gacha_client.import_gacha_record()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def export_record_to_xlsx(self):
         self.gacha_client.export_record_to_xlsx()
 
-    @error.exec_catch()
+    @error.err_catch()
     @check_user
     def export_record_to_srgf(self):
         self.gacha_client.export_record_to_srgf()

@@ -145,7 +145,7 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
     raise ApiException(data)
 
 
-def exec_catch(
+def err_catch(
     exec_type: typing.Union[HsrException, typing.Tuple[HsrException, ...]] = HsrException,
     level: typing.Literal["debug", "info", "warning", "error"] = "error",
 ):

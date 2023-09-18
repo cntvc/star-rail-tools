@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError, field_validator, model_validato
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.database import DataBaseClient
-from star_rail.exceptions import ParamTypeError, SaltNotFoundError, exec_catch
+from star_rail.exceptions import ParamTypeError, SaltNotFoundError, err_catch
 from star_rail.i18n import i18n
 from star_rail.utils.console import color_str
 from star_rail.utils.log import logger
@@ -187,7 +187,7 @@ class AccountManager:
             user.save_profile()
         logger.success(_lang.add_account_success, user.uid)
 
-    @exec_catch(level="warning")
+    @err_catch(level="warning")
     def create_by_cookie(self):
         logger.debug("create user by cookie")
         if not settings.SALT:
