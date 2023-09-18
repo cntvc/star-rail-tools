@@ -50,9 +50,6 @@
 
     然后依次输入数字选择菜单项 "账号设置" -> "通过 Cookie 添加账号"，这将自动读取剪切板数据并获得相关游戏账号
 
-    > 其他方式获取 Cookie : https://hut.ao/zh/advanced/get-stoken-cookie-from-the-third-party.html
-
-
     <details>
       <summary>Cookie 获取示例</summary>
     <p>
