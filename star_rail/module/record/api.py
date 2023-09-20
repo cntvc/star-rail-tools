@@ -6,6 +6,7 @@ import typing
 
 import yarl
 
+from star_rail import exceptions as error
 from star_rail.utils import functional
 
 from ...utils.log import logger
@@ -53,8 +54,8 @@ def _copy_file_with_powershell(source_path, destination_path):
         subprocess.run(["powershell", powershell_command], check=True)
         logger.debug("copy cache file success")
     except subprocess.CalledProcessError:
-        logger.error("copy cache file failed")
-        return False
+        raise error.HsrException("copy cache file failed")
+
     return destination_path
 
 
