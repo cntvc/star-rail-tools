@@ -240,7 +240,7 @@ class UpdateManager:
 
         check_update_status, update_context = self._updater.check_update()
         if not check_update_status:
-            time.sleep(1)
+            pause()
             return
         user_input = input_yes_or_no(
             prompt=_lang.update_option.format(update_context.version),
