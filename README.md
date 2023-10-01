@@ -1,4 +1,4 @@
-[中文][zh_cn] | [English][en_us]
+中文 | [English][en_us]
 
 # 崩坏：星穹铁道小工具
 
@@ -138,5 +138,4 @@
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
 
 [SRGF]: https://uigf.org/zh/standards/SRGF.html
-[zh_cn]: README.md
 [en_us]: docs/README_EN.md

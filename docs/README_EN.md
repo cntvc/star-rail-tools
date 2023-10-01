@@ -1,4 +1,4 @@
-[中文][zh_cn] | [English][en_us]
+[中文][zh_cn] | English
 
 # Honkai: Star Rail Tools
 
@@ -78,5 +78,4 @@ For more details, please refer to [CONTRIBUTING](.github/CONTRIBUTING.md)
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
 
 [SRGF]: https://uigf.org/en/standards/SRGF.html
-[zh_cn]: ../README.md
-[en_us]: README_EN.md
+[zh_cn]: https://github.com/cntvc/star-rail-tools
