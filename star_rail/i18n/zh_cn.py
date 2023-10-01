@@ -98,6 +98,7 @@ zh_cn_lang_pack = {
     "main.menu.settings.record_desc_mode": "抽卡数据展示方式",
     "main.menu.settings.record_desc_mode_table": "表格",
     "main.menu.settings.record_desc_mode_tree": "列平铺",
+    "main.menu.settings.display_starter_warp": "显示新手池数据",
     "main.menu.settings.language": "切换语言",
     "main.menu.about": "关于...",
     # 分析结果总览表

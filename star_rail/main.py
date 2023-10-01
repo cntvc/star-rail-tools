@@ -117,7 +117,21 @@ def init_menu(client: HSRClient):
                                 options=lambda: client.set_gacha_record_display_mode("tree"),
                             ),
                         ],
-                        tips=lambda: client.get_gacha_record_desc(),
+                        tips=lambda: client.get_gacha_record_desc,
+                    ),
+                    MenuItem(
+                        title=_lang_menu.settings.display_starter_warp,
+                        options=[
+                            MenuItem(
+                                title=i18n.common.open,
+                                options=lambda: client.set_display_starter_warp_status(True),
+                            ),
+                            MenuItem(
+                                title=i18n.common.close,
+                                options=lambda: client.set_display_starter_warp_status(False),
+                            ),
+                        ],
+                        tips=lambda: client.get_display_starter_warp_desc(),
                     ),
                     MenuItem(
                         title=_lang_menu.settings.language,

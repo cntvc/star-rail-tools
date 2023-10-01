@@ -40,7 +40,7 @@ from .model import (
 from .srgf import convert_to_gacha_record, convert_to_srgf
 from .types import GACHA_TYPE_DICT, GACHA_TYPE_IDS, GachaType
 
-__all__ = ["GachaClient", "StatisticalResult"]
+__all__ = ["GachaClient"]
 
 _lang = i18n.record.client
 
@@ -204,7 +204,7 @@ class Analyzer:
         functional.save_json(self.user.gacha_log_analyze_path, self.result.model_dump())
 
 
-class StatisticalResult:
+class DataVisualization:
     title_style = Style(color="cadet_blue", bold=True)
     header_style = Style(color="cadet_blue")
 
@@ -213,6 +213,9 @@ class StatisticalResult:
         self.analyze_result.data = sorted(
             self.analyze_result.data, key=lambda item: item.gacha_type
         )
+        self.gacha_type_dict = GACHA_TYPE_DICT.copy()
+        if settings.DISPLAY_STARTER_WARP is False:
+            del self.gacha_type_dict[GachaType.STARTER_WARP.value]
 
     def create_overview_table(self):
         table = Table(
@@ -235,8 +238,11 @@ class StatisticalResult:
             if rank5_count:
                 rank5_average = (total_count - pity_count) / rank5_count
                 rank5_average = round(rank5_average, 2)
+            if item.gacha_type not in self.gacha_type_dict:
+                # 跳过新手池显示
+                continue
             table.add_row(
-                GACHA_TYPE_DICT[item.gacha_type],
+                self.gacha_type_dict[item.gacha_type],
                 str(total_count),
                 str(rank5_count),
                 str(rank5_average),
@@ -253,7 +259,7 @@ class StatisticalResult:
             header_style=self.header_style,
             title_style=self.title_style,
         )
-        for gacha_name in GACHA_TYPE_DICT.values():
+        for gacha_name in self.gacha_type_dict.values():
             table.add_column(gacha_name, justify="left", overflow="ellipsis")
 
         rank5_data = {}
@@ -266,7 +272,7 @@ class StatisticalResult:
             rank5_data[item.gacha_type] = rank5_detail
 
         for i in range(max_rank5_len):
-            data = [rank5_data[gacha_type][i] for gacha_type in GACHA_TYPE_DICT.keys()]
+            data = [rank5_data[gacha_type][i] for gacha_type in self.gacha_type_dict.keys()]
 
             table.add_row(*data)
         return table
@@ -279,7 +285,12 @@ class StatisticalResult:
                 Panel(item.name + " : " + item.number + i18n.table.star5.pull_count, expand=True)
                 for item in item.list
             ]
-            tree.add("[cadet_blue]" + GACHA_TYPE_DICT[item.gacha_type]).add(Columns(rank5_detail))
+            if item.gacha_type not in self.gacha_type_dict:
+                # 跳过新手池显示
+                continue
+            tree.add("[cadet_blue]" + self.gacha_type_dict[item.gacha_type]).add(
+                Columns(rank5_detail)
+            )
         return tree
 
     def display(self):
@@ -315,6 +326,21 @@ class StatisticalResult:
             raise error.ParamValueError(
                 i18n.error.param_value_error, settings.GACHA_RECORD_DESC_MOD
             )
+
+    @staticmethod
+    def set_display_starter_warp(status: bool):
+        settings.DISPLAY_STARTER_WARP = status
+        settings.save_config()
+        logger.success(i18n.config.settings.update_success)
+
+    @staticmethod
+    def get_display_starter_warp_desc():
+        return "{}: {}".format(
+            i18n.config.settings.current_status,
+            console.color_str(i18n.common.open, "green")
+            if settings.DISPLAY_STARTER_WARP
+            else console.color_str(i18n.common.close, "red"),
+        )
 
 
 class GachaClient:
@@ -403,7 +429,7 @@ class GachaClient:
     def show_analyze_result(self):
         if self.user.gacha_log_analyze_path.exists():
             result = AnalyzeResult(**functional.load_json(self.user.gacha_log_analyze_path))
-            StatisticalResult(result).display()
+            DataVisualization(result).display()
         else:
             record_info_mapper = GachaRecordInfoMapper.query(self.user.uid)
             if not record_info_mapper:
@@ -412,7 +438,7 @@ class GachaClient:
             record_info = converter.mapper_to_record_info(record_info_mapper)
             analyzer = Analyzer(self.user, record_info, GachaRecordClient.query_all(self.user.uid))
             analyzer.save_result()
-            StatisticalResult(analyzer.result).display()
+            DataVisualization(analyzer.result).display()
 
     def import_gacha_record(self):
         logger.debug("import gacha record")
@@ -563,3 +589,16 @@ class GachaClient:
 
         workbook.close()
         logger.debug("create xlsx file success")
+
+    def set_gacha_record_display_mode(self, mode: typing.Literal["table", "tree"]):
+        DataVisualization.set_display_mode(mode)
+
+    def get_gacha_record_visualization_desc(self):
+        """获取当前显示模式描述"""
+        return DataVisualization.get_show_display_desc()
+
+    def set_display_starter_warp(self, status: bool):
+        DataVisualization.set_display_starter_warp(status)
+
+    def get_display_starter_warp_desc(self):
+        return DataVisualization.get_display_starter_warp_desc()

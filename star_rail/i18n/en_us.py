@@ -98,6 +98,7 @@ en_us_lang_pack = {
     "main.menu.settings.record_desc_mode": "Gacha Record Display Mode",
     "main.menu.settings.record_desc_mode_table": "Display as Table",
     "main.menu.settings.record_desc_mode_tree": "Display as Column Grid",
+    "main.menu.settings.display_starter_warp": "Display Starter Warp Data",
     "main.menu.settings.language": "Switch Language",
     "main.menu.about": "About...",
     # 分析结果总览表

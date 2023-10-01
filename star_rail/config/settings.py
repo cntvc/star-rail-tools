@@ -33,6 +33,9 @@ class Settings(BaseModel):
     GACHA_RECORD_DESC_MOD: typing.Literal["table", "tree"] = "tree"
     """抽卡记录详情的显示模式"""
 
+    DISPLAY_STARTER_WARP: bool = False
+    """显示新手池"""
+
     model_config = ConfigDict(extra="ignore")
 
     config_path: str = Field(exclude=True)

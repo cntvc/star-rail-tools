@@ -3,7 +3,7 @@ import typing
 
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
-from star_rail.module import AccountManager, GachaClient, MonthClient, StatisticalResult
+from star_rail.module import AccountManager, GachaClient, MonthClient
 from star_rail.utils import console
 
 _lang = i18n.client
@@ -101,7 +101,13 @@ class HSRClient:
         return self.account_manager.get_account_status_desc()
 
     def set_gacha_record_display_mode(self, mode: typing.Literal["table", "tree"]):
-        StatisticalResult.set_display_mode(mode)
+        self.gacha_client.set_gacha_record_display_mode(mode)
 
     def get_gacha_record_desc(self):
-        return StatisticalResult.get_show_display_desc()
+        return self.gacha_client.get_gacha_record_visualization_desc()
+
+    def set_display_starter_warp_status(self, status: bool):
+        self.gacha_client.set_display_starter_warp(status)
+
+    def get_display_starter_warp_desc(self):
+        return self.gacha_client.get_display_starter_warp_desc()
