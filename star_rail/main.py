@@ -171,7 +171,7 @@ def run():
         version,
         get_format_time(time.time()),
         platform.platform(),
-        settings.model_dump(),
+        settings.dict(),
     )
     if settings.FLAG_AUTO_UPDATE:
         UpdateManager().upgrade()

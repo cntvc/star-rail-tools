@@ -57,7 +57,7 @@ class Settings(BaseModel):
             return
         self.update_config(load_json(path))
 
-    def model_dump(self):
+    def dict(self):
         d = super().model_dump()
         d["SALT"] = "***"
         return d
