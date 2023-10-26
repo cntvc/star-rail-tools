@@ -1,18 +1,14 @@
 import enum
+import os
+import subprocess
+import sys
 from collections import namedtuple
-from typing import Dict, List, Union
 
 __all__ = ["i18n", "set_locales", "LanguageType"]
 
-"""语言包无法支持同级别既为字符串又有下级的情况
-error eg:
-{
-    "como":"home",
-    "como.next":"home next",
-}
-"""
+
 from star_rail.config import settings
-from star_rail.utils.functional import input_yes_or_no, restart
+from star_rail.utils.functional import input_yes_or_no
 from star_rail.utils.log import logger
 
 from .en_us import en_us_lang_pack
@@ -42,11 +38,11 @@ class LazyLanguagePack:
         self._load_language_pack()
         return getattr(self._lang_pack, name)
 
-    def get_by_header(self, header: Union[str, List[str]]):
+    def get_by_header(self, header: str | list[str]):
         """根据成员层级获取对象
 
         Args:
-            header (Union[str, List[str]]): eg："a.b.c" | ["a", "b", "c"]
+            header (str | list[str]): eg："a.b.c" | ["a", "b", "c"]
 
         Returns:
             obj: self.a.b.c
@@ -102,7 +98,7 @@ def dict_to_namedtuple(dict_name, dictionary):
     return convert_dict_to_namedtuple(dict_name, dictionary)
 
 
-def parse_lang_pack(dictionary: Dict[str, str]) -> Dict[str, Dict]:
+def parse_lang_pack(dictionary: dict[str, str]) -> dict[str, dict]:
     """单层级字典->多层级
 
     {"a.b.c":"v"} -> {"a":{"b":{"c":"v"}}}
@@ -151,3 +147,10 @@ def set_locales(lang_type: LanguageType):
     settings.LANGUAGE = lang_type.lang_name
     settings.save_config()
     restart()
+
+
+def restart():
+    """重启应用"""
+    app_name = os.path.basename(sys.argv[0])
+    subprocess.Popen(app_name, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    sys.exit()

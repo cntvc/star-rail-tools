@@ -3,8 +3,8 @@ import typing
 
 from star_rail import exceptions as error
 from star_rail.i18n import i18n
-from star_rail.module import AccountManager, GachaClient, MonthClient
-from star_rail.utils import console
+from star_rail.module import AccountManager, GachaRecordClient, MonthClient
+from star_rail.utils import functional
 
 _lang = i18n.client
 
@@ -18,14 +18,14 @@ class HSRClient:
 
         self.user = self.account_manager.user
         self.month_client = MonthClient(self.user)
-        self.gacha_client = GachaClient(self.user)
+        self.gacha_client = GachaRecordClient(self.user)
 
     def check_user(func: typing.Callable):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             self.user = self.account_manager.user
             if self.user is None:
-                print(console.color_str(_lang.no_account, "yellow"))
+                print(functional.color_str(_lang.no_account, "yellow"))
                 return
 
             if (
@@ -34,7 +34,7 @@ class HSRClient:
             ):
                 self.user = self.account_manager.user
                 self.month_client = MonthClient(self.user)
-                self.gacha_client = GachaClient(self.user)
+                self.gacha_client = GachaRecordClient(self.user)
 
             return func(self, *args, **kwargs)
 
@@ -44,12 +44,12 @@ class HSRClient:
     @check_user
     def refresh_month_info(self):
         # TODO 支持国际服
-        from star_rail.module.mihoyo import GameBiz
+        from star_rail.module.types import GameBiz
 
         if GameBiz.get_by_uid(self.user.uid) == GameBiz.GLOBAL:
             raise error.HsrException("该功能尚未支持国际服账号")
         if not self.user.cookie.verify_cookie_token():
-            print(console.color_str(_lang.empty_cookie, "yellow"))
+            print(functional.color_str(_lang.empty_cookie, "yellow"))
             return
         self.month_client.refresh_month_info()
         self.month_client.show_month_info()
@@ -61,18 +61,13 @@ class HSRClient:
 
     @error.err_catch()
     @check_user
-    def refresh_record_by_user_cache(self):
-        self.gacha_client.refresh_record_by_user_cache()
-
-    @error.err_catch()
-    @check_user
     def refresh_record_by_game_cache(self):
-        self.gacha_client.refresh_record_by_game_cache()
+        self.gacha_client.refresh_gacha_record("web_cache")
 
     @error.err_catch()
     @check_user
     def refresh_record_by_clipboard(self):
-        self.gacha_client.refresh_record_by_clipboard()
+        self.gacha_client.refresh_gacha_record("clipboard")
 
     @error.err_catch()
     @check_user
@@ -95,7 +90,7 @@ class HSRClient:
         self.gacha_client.export_record_to_srgf()
 
     def gen_account_menu(self):
-        return self.account_manager.gen_account_menu()
+        return self.account_manager.create_account_menu()
 
     def get_account_status_desc(self):
         return self.account_manager.get_account_status_desc()

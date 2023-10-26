@@ -1,10 +1,8 @@
-import typing
-
 from pydantic import BaseModel
 
 
-class MonthInfoDayData(BaseModel):
-    """当日数据"""
+class _DayData(BaseModel):
+    """[API] 当日数据"""
 
     current_hcoin: int
     current_rails_pass: int
@@ -12,8 +10,8 @@ class MonthInfoDayData(BaseModel):
     last_rails_pass: int
 
 
-class MonthInfoRewardSource(BaseModel):
-    """开拓月历星穹来源"""
+class _RewardSource(BaseModel):
+    """[API] 开拓月历星穹来源"""
 
     action: str
     num: int
@@ -21,8 +19,8 @@ class MonthInfoRewardSource(BaseModel):
     action_name: str
 
 
-class ApiMonthInfoMonthData(BaseModel):
-    """月历数据"""
+class _MonthData(BaseModel):
+    """[API] 月历数据"""
 
     current_hcoin: int
     """当月获取总数"""
@@ -36,44 +34,32 @@ class ApiMonthInfoMonthData(BaseModel):
     """星穹增长率"""
     rails_rate: int
     """票数增长率"""
-    group_by: typing.List[MonthInfoRewardSource]
+    group_by: list[_RewardSource]
     """星穹来源"""
 
 
-class ApiMonthInfo(BaseModel):
+class MonthInfoData(BaseModel):
+    """[API] 开拓月历接口模型"""
+
     uid: str
     region: str
     login_flag: bool
-    optional_month: typing.List
+    optional_month: list
     """可查询月份"""
     month: str
     """当前月份"""
-    data_month: str  # 202306
-    month_data: ApiMonthInfoMonthData
-    day_data: MonthInfoDayData
-    version: str  # 1.2
+    data_month: str
+    month_data: _MonthData
+    day_data: _DayData
+    version: str
     start_month: str
     """起始月份"""
-    data_text: typing.Dict
-
-
-class ApiMonthDetailData(BaseModel):
-    action: str
-    action_name: str
-    num: int
-    time: str  # ? 2023-09-02 09:02:23
-
-
-class ApiMonthDetail(BaseModel):
-    current_page: int
-    data_month: str  # 202306
-    list: typing.List[ApiMonthDetailData]
-    region: str
-    total: int
-    uid: str
+    data_text: dict
 
 
 class MonthInfo(BaseModel):
+    """[DB] 开拓月历"""
+
     uid: str
     """用户id"""
 

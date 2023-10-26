@@ -1,9 +1,9 @@
-from typing import List
-
 from pydantic import BaseModel
 
 
 class GameRecordCard(BaseModel):
+    """[API] mihoyo 账户的游戏角色"""
+
     has_role: bool
     game_id: int
     game_role_id: str
@@ -21,4 +21,6 @@ class GameRecordCard(BaseModel):
 
 
 class UserGameRecordCards(BaseModel):
-    list: List[GameRecordCard]
+    """[API] mihoyo 账户的游戏角色列表"""
+
+    list: list[GameRecordCard]

@@ -8,7 +8,7 @@ class TestGithubUpdater(unittest.TestCase):
     def setUp(self):
         self.updater = GithubUpdater()
 
-    @patch("star_rail.module.updater.version", "1.0.2")
+    @patch("star_rail.module.updater.app_version", "1.0.2")
     def test_check_update_true(self):
         with patch("requests.get") as mock_get:
             mock_response = Mock()
@@ -27,7 +27,7 @@ class TestGithubUpdater(unittest.TestCase):
             self.assertEqual(update_context.version, "2.0.0")
             self.assertEqual(update_context.download_url, "https://example.com/download")
 
-    @patch("star_rail.module.updater.version", "2.0.2")
+    @patch("star_rail.module.updater.app_version", "2.0.2")
     def test_check_update_false(self):
         with patch("requests.get") as mock_get:
             mock_response = Mock()
@@ -50,7 +50,7 @@ class TestCodingUpdater(unittest.TestCase):
     def setUp(self):
         self.updater = CodingUpdater()
 
-    @patch("star_rail.module.updater.version", "1.0.2")
+    @patch("star_rail.module.updater.app_version", "1.0.2")
     def test_check_update(self):
         with patch("requests.get") as mock_get:
             mock_response = Mock()

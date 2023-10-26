@@ -20,12 +20,11 @@ from rich.progress import (
     TransferSpeedColumn,
 )
 
-from star_rail import __version__ as version
+from star_rail import __version__ as app_version
 from star_rail import constants
 from star_rail.config import settings
 from star_rail.i18n import i18n
-from star_rail.utils.console import color_str, pause
-from star_rail.utils.functional import input_yes_or_no
+from star_rail.utils.functional import color_str, input_yes_or_no, pause
 from star_rail.utils.log import logger
 from star_rail.utils.version import compare_versions
 
@@ -50,10 +49,10 @@ class BaseUpdater(abc.ABC):
     """更新源名"""
 
     @abc.abstractmethod
-    def check_update(self) -> typing.Tuple[bool, typing.Optional[_UpdateContext]]:
+    def check_update(self) -> tuple[bool, typing.Optional[_UpdateContext]]:
         """
         Returns:
-            typing.Tuple[bool, typing.Optional[_UpdateContext]]: [检测更新的操作结果，新版本内容]
+            tuple[bool, typing.Optional[_UpdateContext]]: [检测更新的操作结果，新版本内容]
         """
 
     def upgrade(self, update_context: _UpdateContext):
@@ -84,7 +83,7 @@ class BaseUpdater(abc.ABC):
         subprocess.Popen(update_context.name, creationflags=subprocess.CREATE_NEW_CONSOLE)
         sys.exit()
 
-    def _download(self, file_path: str, update_context: _UpdateContext):
+    def _download(self, file_path: str | Path, update_context: _UpdateContext):
         """下载新版本文件"""
         default_chunk_size = 1024
 
@@ -140,7 +139,7 @@ class GithubUpdater(BaseUpdater):
             return False, None
 
         latest_version = data["tag_name"]
-        if compare_versions(latest_version, version) != 1:
+        if compare_versions(latest_version, app_version) != 1:
             logger.success(_lang.is_latest_version)
             return False, None
 
@@ -159,7 +158,7 @@ class CodingUpdater(BaseUpdater):
         self.url = "https://cntvc.coding.net/api/team/cntvc/anonymity/artifacts/?pageSize=10"
         self.name = "Coding"
 
-    def check_update(self) -> typing.Tuple[bool, typing.Optional[_UpdateContext]]:
+    def check_update(self) -> tuple[bool, typing.Optional[_UpdateContext]]:
         logger.info(_lang.check_update)
         try:
             data = requests.get(self.url, timeout=constants.REQUEST_TIMEOUT).json()
@@ -170,7 +169,7 @@ class CodingUpdater(BaseUpdater):
 
         artifact = data["data"]["list"][0]
         latest_version = artifact["latestVersionName"]
-        if compare_versions(latest_version, version) != 1:
+        if compare_versions(latest_version, app_version) != 1:
             logger.success(_lang.is_latest_version)
             return False, None
 
@@ -202,7 +201,7 @@ class UpdateSource(enum.Enum):
 
 class UpdateManager:
     def __init__(self) -> None:
-        self._update_source: typing.Dict[str, BaseUpdater] = {
+        self._update_source: dict[str, BaseUpdater] = {
             "Github": UpdateSource.GITHUB.updater,
             "Coding": UpdateSource.CODING.updater,
         }
@@ -217,7 +216,7 @@ class UpdateManager:
     def upgrade(self):
         """根据软件保存的状态，显示更新日志或检测更新"""
         if settings.FLAG_UPDATED_COMPLETE is True:
-            logger.success(_lang.upgrade_success, version)
+            logger.success(_lang.upgrade_success, app_version)
             old_exe_path = os.path.join(os.path.dirname(sys.argv[0]), settings.OLD_EXE_NAME)
             try:
                 os.remove(old_exe_path)
@@ -261,7 +260,9 @@ class UpdateManager:
         return change_log.strip()
 
     def get_changelog(self):
-        release_api = f"https://api.github.com/repos/cntvc/star-rail-tools/releases/tags/{version}"
+        release_api = (
+            f"https://api.github.com/repos/cntvc/star-rail-tools/releases/tags/{app_version}"
+        )
 
         try:
             data = requests.get(release_api, timeout=constants.REQUEST_TIMEOUT).json()

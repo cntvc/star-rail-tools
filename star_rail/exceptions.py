@@ -2,11 +2,12 @@ import functools
 import traceback
 import typing
 
-from star_rail.i18n import i18n
 from star_rail.utils.log import logger
 
 
 class HsrException(Exception):
+    """Base Exception"""
+
     msg = ""
 
     def __init__(self, msg: str = None, *args) -> None:
@@ -17,37 +18,15 @@ class HsrException(Exception):
         return self.msg
 
 
-class ParamValueError(HsrException):
-    """参数值错误"""
-
-
-class ParamTypeError(HsrException):
-    """参数类型错误"""
-
-
-class SaltNotFoundError(HsrException):
-    """Salt 丢失"""
-
-
 class DataBaseError(HsrException):
-    """数据库错误"""
-
-
-class DataBaseModelError(DataBaseError):
-    msg = "数据库模型错误"
-
-
-class DataBaseConnectionError(DataBaseError):
-    """数据库连接错误"""
-
-    msg = i18n.error.db_conn_error
-
-
-class DataError(HsrException):
     pass
 
 
-class UnFoundFileError(HsrException):
+class EncryptError(HsrException):
+    pass
+
+
+class DecryptError(HsrException):
     pass
 
 
@@ -57,6 +36,8 @@ class UnFoundFileError(HsrException):
 
 
 class ApiException(HsrException):
+    """Network request exception"""
+
     retcode: int = 0
 
     original: str = ""
@@ -84,41 +65,41 @@ class ApiException(HsrException):
 
 
 class RequestError(ApiException):
-    msg = i18n.error.request_error
+    msg = "network error"
 
 
 class InvalidCookieError(ApiException):
     retcode = -100
-    msg = i18n.error.invalid_cookie_error
+    msg = "Invalid cookie value"
 
 
 class AuthkeyExceptionError(ApiException):
     """"""
 
-    msg = i18n.error.authkey_error
+    msg = ""
 
 
 class InvalidAuthkeyError(AuthkeyExceptionError):
     """Authkey is not valid."""
 
     retcode = -100
-    msg = i18n.error.invalid_authkey_error
+    msg = "InvalidAuthkey"
 
 
 class AuthkeyTimeoutError(AuthkeyExceptionError):
     """Authkey has timed out."""
 
     retcode = -101
-    msg = i18n.error.invalid_authkey_error
+    msg = "InvalidAuthkey"
 
 
-_ERRORS: typing.Dict[int, typing.Type[ApiException]] = {
+_ERRORS: dict[int, type[ApiException]] = {
     -100: InvalidCookieError,
     10001: InvalidCookieError,  # game record error
 }
 
 
-def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
+def raise_for_retcode(data: dict[str, typing.Any]) -> typing.NoReturn:
     """API请求的异常处理
 
     [跃迁记录]
@@ -146,8 +127,8 @@ def raise_for_retcode(data: typing.Dict[str, typing.Any]) -> typing.NoReturn:
 
 
 def err_catch(
-    exec_type: typing.Union[HsrException, typing.Tuple[HsrException, ...]] = HsrException,
-    level: typing.Literal["debug", "info", "warning", "error"] = "error",
+    exec_type: HsrException | typing.Tuple[HsrException, ...] = HsrException,
+    level: typing.Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "ERROR",
 ):
     """捕获异常打印 msg 并返回 None"""
 
@@ -157,14 +138,7 @@ def err_catch(
             try:
                 return func(*args, **kwargs)
             except exec_type as e:
-                if level == "debug":
-                    logger.debug(e)
-                elif level == "info":
-                    logger.info(e)
-                elif level == "warning":
-                    logger.warning(e)
-                elif level == "error":
-                    logger.error(e)
+                logger.log(level, e)
                 logger.debug(traceback.format_exc())
                 return None
 

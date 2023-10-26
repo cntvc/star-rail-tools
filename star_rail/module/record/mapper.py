@@ -20,13 +20,13 @@ class GachaRecordInfoMapper(DataBaseModel):
 
     @classmethod
     def query(cls, uid: str):
-        sql = """select * from record_info where uid = ?; """
+        sql = """select * from record_info where uid = ? ;"""
         with DataBaseClient() as db:
             row = db.execute(sql, uid).fetchone()
         return model_convert_item(row, cls)
 
 
-class GachaItemMapper(DataBaseModel):
+class RecordItemMapper(DataBaseModel):
     __table_name__ = "record_item"
 
     gacha_id: str
@@ -43,17 +43,17 @@ class GachaItemMapper(DataBaseModel):
 
     @classmethod
     def query_all(cls, uid: str):
-        """查询按id从小到大排序的结果"""
+        """查询按id从小到大排序的跃迁记录"""
 
-        sql = """select * from record_item where uid = ? ORDER BY id; """
+        sql = """select * from record_item where uid = ? ORDER BY id ;"""
         with DataBaseClient() as db:
             row = db.execute(sql, uid).fetchall()
         return model_convert_list(row, cls)
 
     @classmethod
     def query_latest(cls, uid: str):
-        """查询id最大的一条记录"""
-        sql = """SELECT * FROM record_item where uid = ? ORDER BY id DESC LIMIT 1;"""
+        """查询id最大的一条跃迁记录"""
+        sql = """SELECT * FROM record_item where uid = ? ORDER BY id DESC LIMIT 1 ;"""
         with DataBaseClient() as db:
             row = db.execute(sql, uid).fetchone()
         return model_convert_item(row, cls)

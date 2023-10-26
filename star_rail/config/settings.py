@@ -8,7 +8,7 @@ from star_rail.utils.functional import load_json, save_json
 
 __all__ = ["settings"]
 
-_config_path = os.path.join(constants.CONFIG_PATH, "settings.json")
+_default_config_path = os.path.join(constants.CONFIG_PATH, "settings.json")
 
 
 class Settings(BaseModel):
@@ -25,20 +25,20 @@ class Settings(BaseModel):
 
     DEFAULT_UID: str = ""
 
-    LANGUAGE: str = ""
-
     SALT: str = ""
     """加密 salt"""
 
-    GACHA_RECORD_DESC_MOD: typing.Literal["table", "tree"] = "tree"
-    """抽卡记录详情的显示模式"""
+    LANGUAGE: str = ""
 
     DISPLAY_STARTER_WARP: bool = False
     """显示新手池"""
 
-    model_config = ConfigDict(extra="ignore")
+    GACHA_RECORD_DESC_MOD: typing.Literal["table", "tree"] = "tree"
+    """抽卡记录详情的显示模式"""
 
     config_path: str = Field(exclude=True)
+
+    model_config = ConfigDict(extra="ignore")
 
     def __init__(self, config_path: str, **data):
         super().__init__(config_path=config_path, **data)
@@ -57,10 +57,14 @@ class Settings(BaseModel):
             return
         self.update_config(load_json(path))
 
-    def dict(self):
-        d = super().model_dump()
-        d["SALT"] = "***"
-        return d
+    def model_dump(self, mode: typing.Literal["log", "default"] = "default", *args, **kwargs):
+        if mode == "log":
+            """部分参数值会隐藏"""
+            config_dict = super().model_dump()
+            config_dict["SALT"] = "***"
+            return config_dict
+        elif mode == "default":
+            return super().model_dump()
 
 
-settings = Settings(config_path=_config_path)
+settings = Settings(config_path=_default_config_path)

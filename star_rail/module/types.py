@@ -1,6 +1,8 @@
 import enum
 
-from star_rail.exceptions import ParamValueError
+from star_rail import exceptions as error
+
+__all__ = ["GameBiz", "Region", "GameType"]
 
 
 class GameBiz(str, enum.Enum):
@@ -14,18 +16,15 @@ class GameBiz(str, enum.Enum):
         elif "1" <= uid[0] <= "5":
             return GameBiz.CN
         else:
-            # 不会触发
-            raise ParamValueError(f"Invalid UID value: {uid}")
+            raise error.HsrException("Param value error: {}", uid)
 
 
 class Region(str, enum.Enum):
-    """Game server region"""
-
     CN_GF = "prod_gf_cn"
     CN_QD = "prod_qd_cn"
     ASIA = "prod_official_asia"
     USA = "prod_official_usa"
-    EUR = "prod_official_euro"
+    EURO = "prod_official_euro"
     CHT = "prod_official_cht"
 
     @staticmethod
@@ -35,7 +34,7 @@ class Region(str, enum.Enum):
             "2": Region.CN_GF,
             "5": Region.CN_QD,
             "6": Region.USA,
-            "7": Region.EUR,
+            "7": Region.EURO,
             "8": Region.ASIA,
             "9": Region.CHT,
         }

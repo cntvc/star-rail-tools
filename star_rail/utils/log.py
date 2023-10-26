@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import TypedDict
 
 from loguru import logger
 
@@ -13,14 +12,14 @@ __all__ = ["logger"]
 """
 
 
-def database_filter_for_default(record: TypedDict):
+def database_filter_for_default(record):  # loguru.Record
     """数据库模块过滤器：只保留error级别及以上的记录"""
     if record["module"] == "database":
         return record["level"].no >= logger.level("ERROR").no
     return True
 
 
-def database_filter_for_db(record: TypedDict):
+def database_filter_for_db(record):  # loguru.Record
     """数据库模块中，只保留低于error级别的记录"""
     return record["module"] == "database" and record["level"].no < logger.level("ERROR").no
 
@@ -28,8 +27,10 @@ def database_filter_for_db(record: TypedDict):
 # 移除默认的日志输出
 logger.remove()
 
+
 # 控制台输出
 logger.add(sink=sys.stdout, format="<level>{message}</level>", level="INFO", colorize=True)
+
 
 # 默认的文件输出
 logger.add(

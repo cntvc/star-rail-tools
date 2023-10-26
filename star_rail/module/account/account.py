@@ -1,36 +1,29 @@
 import re
 from pathlib import Path
-from typing import Union
 
 import pyperclip
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from star_rail import constants
+from star_rail import exceptions as error
 from star_rail.config import settings
 from star_rail.database import DataBaseClient
-from star_rail.exceptions import ParamTypeError, SaltNotFoundError, err_catch
 from star_rail.i18n import i18n
-from star_rail.utils.console import color_str
+from star_rail.utils.functional import color_str
 from star_rail.utils.log import logger
 from star_rail.utils.menu import MenuItem
-from star_rail.utils.secutity import AES128, AES_PREFIX
+from star_rail.utils.security import AES128
 
-from .api_client import PC_HEADER, Header, Salt, request
+from ..api_helper import DefaultHeader, Header, Salt, request
+from ..routes import GAME_RECORD_CARD_URL
+from ..types import GameBiz, GameType, Region
 from .cookie import Cookie
 from .mapper import CookieMapper, UserMapper
 from .model import GameRecordCard, UserGameRecordCards
-from .routes import GAME_RECORD_CARD_URL
-from .types import GameBiz, GameType, Region
 
-_UID_RE = re.compile("^[1-9][0-9]{8}$")
+__all__ = ["Account", "AccountManager"]
 
 _lang = i18n.account
-
-__all__ = [
-    "verify_uid_format",
-    "Account",
-    "AccountManager",
-]
 
 
 def verify_uid_format(v):
@@ -39,8 +32,12 @@ def verify_uid_format(v):
     raise ValidationError(f"Invalid uid format: {v}")
 
 
+_UID_RE = re.compile("^[1-9][0-9]{8}$")
+
+
 class Account(BaseModel):
-    uid: str  # 星铁账户
+    uid: str
+    """星铁账户 UID"""
     cookie: Cookie = Cookie()
     gacha_url: str = ""
 
@@ -48,8 +45,8 @@ class Account(BaseModel):
     region: str = ""
     game_biz: str = ""
 
-    gacha_log_xlsx_path: Path = ""
-    gacha_log_analyze_path: Path = ""
+    gacha_record_xlsx_path: Path = ""
+    gacha_record_analyze_path: Path = ""
     srgf_path: Path = ""
 
     def __init__(self, uid: str, **data):
@@ -66,9 +63,13 @@ class Account(BaseModel):
         self._init_region()
 
     def _init_datafile_path(self):
-        self.gacha_log_xlsx_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_{self.uid}.xlsx")
-        self.gacha_log_analyze_path = Path(constants.TEMP_PATH, f"GachaAnalyze_{self.uid}.json")
-        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaLog_SRGF_{self.uid}.json")
+        self.gacha_record_xlsx_path = Path(
+            constants.ROOT_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
+        )
+        self.gacha_record_analyze_path = Path(
+            constants.TEMP_PATH, f"GachaRecordAnalyze_{self.uid}.json"
+        )
+        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
 
     def _init_game_biz(self):
         self.game_biz = GameBiz.get_by_uid(self.uid).value
@@ -76,18 +77,21 @@ class Account(BaseModel):
     def _init_region(self):
         self.region = Region.get_by_uid(self.uid).value
 
-    def _encrypt_cookie(self):
+    def _encrypt_cookie(self) -> dict[str, str]:
         if not settings.SALT:
-            return self.cookie.model_dump()
+            raise error.EncryptError("Empty salt value")
+        # 未设置 Cookie 时无需加密
+        if self.cookie.is_empty():
+            return {}
         aes128 = AES128(settings.SALT)
         cookie = self.cookie.model_dump()
-        cookie = {k: aes128.encrypt(v) for k, v in cookie.items()}
-        return cookie
+        return {k: aes128.encrypt(v) for k, v in cookie.items()}
 
-    def _decrypt_cookie(self, cookie: Cookie):
+    def _decrypt_cookie(self, cookie: Cookie) -> Cookie:
         if not settings.SALT:
-            if cookie.stoken.startswith(AES_PREFIX):
-                raise SaltNotFoundError
+            raise error.DecryptError("Empty salt value")
+        # 未设置 Cookie 时无需解密
+        if cookie.is_empty():
             return cookie
         aes128 = AES128(settings.SALT)
         for k in cookie.model_fields.keys():
@@ -95,35 +99,58 @@ class Account(BaseModel):
         return cookie
 
     def save_profile(self):
+        """保存数据到 user 表和 cookie 表"""
         logger.debug("save user profile")
-        from ..mihoyo import converter
 
-        """保存到 user 表和 cookie 表"""
+        from . import converter as converter
+
         user_mapper = converter.user_to_mapper(self)
-        cookie_mapper = CookieMapper(uid=self.uid, **self._encrypt_cookie())
+        # 如果配置文件中 Salt 值不存在，表示为旧版本升级或者配置文件被删除等其他原因，那么自动生成一个并保存
+        if not settings.SALT:
+            salt = AES128.generate_salt()
+            settings.SALT = salt
+            settings.save_config()
+
+        encrypt_cookie = self._encrypt_cookie()
+        cookie_mapper = CookieMapper(uid=self.uid, **encrypt_cookie)
         with DataBaseClient() as db:
             db.insert(user_mapper, "update")
             db.insert(cookie_mapper, "update")
 
-    def reload_profile(self):
-        """重新加载用户数据
+    def reload_profile(self) -> bool:
+        """重新加载用户数据"""
+        from . import converter as converter
 
-        Return:
-            失败: None
-            成功: True
-        """
         logger.debug("load user profile")
-        from ..mihoyo import converter
 
         user_mapper = UserMapper.query_user(self.uid)
         if user_mapper is None:
-            return
-
+            return False
         local_user = converter.user_mapper_to_user(user_mapper)
-        user_ck = CookieMapper.query_cookie(self.uid)
-        if user_ck:
-            local_cookie = converter.cookie_mapper_to_cookie(user_ck)
+        local_user_cookie_mapper = CookieMapper.query_cookie(self.uid)
+        local_cookie = converter.cookie_mapper_to_cookie(local_user_cookie_mapper)
+
+        """
+        加载账户基本数据时，使用配置文件中的 salt 对 cookie 解密
+        如果解密错误，表示 salt 无效或出现其他错误，重置配置文件的 salt 和数据库 cookie
+
+        如果配置文件中 Salt 值不存在，表示为旧版本升级或者配置文件被删除等其他原因，那么自动生成一个并保存
+        """
+        if not settings.SALT:
+            salt = AES128.generate_salt()
+            settings.SALT = salt
+            settings.save_config()
+
+        try:
             local_user.cookie = self._decrypt_cookie(local_cookie)
+        except error.DecryptError:
+            logger.debug("Decrypt cookie failed, reset data")
+            settings.SALT = ""
+            settings.save_config()
+            empty_cookie_mapper = converter.cookie_to_cookie_mapper(self, Cookie())
+            with DataBaseClient() as db:
+                db.insert(empty_cookie_mapper, "update")
+            local_user.cookie = Cookie()
 
         for k in local_user.model_fields_set:
             if k not in self._serialize_include_keys:
@@ -132,7 +159,7 @@ class Account(BaseModel):
             setattr(self, k, v)
         return True
 
-    def model_dump(self):
+    def model_dump(self, *args, **kwargs):
         return super().model_dump(include=self._serialize_include_keys)
 
     @staticmethod
@@ -157,19 +184,19 @@ class AccountManager:
             return
         self.user = Account(settings.DEFAULT_UID)
         result = self.user.reload_profile()
-        if not result:
+        if result is False:
             # 本地文件设置了默认账户数据库却不存在该账号
             self.user = None
             settings.DEFAULT_UID = ""
             settings.save_config()
 
-    def login(self, user: Union[str, Account]):
+    def login(self, user: str | Account):
         if isinstance(user, str):
             self.user = Account(user)
         elif isinstance(user, Account):
             self.user = user
         else:
-            raise ParamTypeError(i18n.error.param_type_error, type(user))
+            raise error.HsrException(i18n.error.param_type_error, type(user))
 
         self.user.reload_profile()
         logger.success(_lang.login_account_success, self.user.uid)
@@ -187,7 +214,7 @@ class AccountManager:
             user.save_profile()
         logger.success(_lang.add_account_success, user.uid)
 
-    @err_catch(level="warning")
+    @error.err_catch(level="WARNING")
     def create_by_cookie(self):
         logger.debug("create user by cookie")
         if not settings.SALT:
@@ -199,8 +226,8 @@ class AccountManager:
             logger.warning(_lang.invalid_cookie)
             return
         if cookie.verify_login_ticket() and not cookie.verify_stoken():
-            cookie.refresh_mutil_by_login_ticket()
-            cookie.refresh_cookie_token_by_stoken()
+            cookie.refresh_multi_token()
+        cookie.refresh_cookie_token()
         roles = get_game_record_card(cookie)
         for role in roles.list:
             if not self.is_hsr_role(role):
@@ -211,7 +238,7 @@ class AccountManager:
             user.cookie = cookie
             user.save_profile()
 
-            # 如果与当前登陆的账号一致，直接更新数据
+            # 如果与当前登陆的账号一致，更新内存数据
             if self.user is not None and self.user.uid == user.uid:
                 self.user = user
                 logger.success(_lang.update_cookie_success, user.uid)
@@ -236,7 +263,7 @@ class AccountManager:
             return _lang.current_account.format(color_str(self.user.uid, color="green"))
         return _lang.without_account
 
-    def gen_account_menu(self):
+    def create_account_menu(self):
         menu_list = [
             MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid()),
             MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie()),
@@ -276,7 +303,7 @@ def get_game_record_card(cookie: Cookie):
     param = {"uid": cookie.account_id}
 
     header = Header()
-    header.update(PC_HEADER)
+    header.update(DefaultHeader.PC_HEADER)
     header.set_ds("v2", Salt.X4, param)
 
     data = request(
@@ -284,7 +311,7 @@ def get_game_record_card(cookie: Cookie):
         url=GAME_RECORD_CARD_URL.get_url(GameBiz.CN),
         headers=header.dict(),
         params=param,
-        cookies=cookie.model_dump("app"),
+        cookies=cookie.model_dump("all"),
     )
     logger.debug("get game record card")
     return UserGameRecordCards(**data)

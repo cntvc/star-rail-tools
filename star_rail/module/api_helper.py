@@ -1,10 +1,10 @@
-import enum
 import hashlib
 import json
 import random
 import string
 import time
 import typing
+from enum import Enum
 
 import requests
 import yarl
@@ -21,19 +21,17 @@ __all__ = [
     "Origin",
     "XRequestedWith",
     "Header",
-    "WEB_HEADER",
-    "ANDROID_HEADER",
-    "PC_HEADER",
+    "DefaultHeader",
 ]
 
 
 def request(
     method: typing.Literal["get", "post"],
-    url: typing.Union[str, yarl.URL],
-    params: typing.Dict[str, typing.Any] = None,
-    cookies: typing.Dict[str, str] = None,
-    headers: typing.Dict[str, str] = None,
-    body: typing.Dict[str, typing.Any] = None,
+    url: str | yarl.URL,
+    params: dict[str, str] = None,
+    cookies: dict[str, str] = None,
+    headers: dict[str, str] = None,
+    body: dict[str, str] = None,
     timeout=constants.REQUEST_TIMEOUT,
     **kwargs,
 ):
@@ -63,19 +61,16 @@ def request(
     error.raise_for_retcode(data)
 
 
-class RpcClientType(str, enum.Enum):
-    """x-rpc-client_type"""
-
-    IOS = "1"
-    ANDROID = "2"
-    Web = "4"
-    PC = "5"
+####################################################################
+# Header
+####################################################################
 
 
 _DEFAULT_APP_VERSION = "2.50.1"
+"""默认的米游社 APP 版本，与下面 Salt 值对应"""
 
 
-class Salt(str, enum.Enum):
+class Salt(str, Enum):
     """对应 APP 版本 为 2.50.1
 
     数据来自 https://github.com/UIGF-org/mihoyo-api-collect/issues/1
@@ -88,21 +83,36 @@ class Salt(str, enum.Enum):
     PROD = "JwYDpKvLj6MrMqqYU6jTKF17KNO2PXoS"
 
 
-def get_random_string(length):
+class RpcClientType(str, Enum):
+    """x-rpc-client_type"""
+
+    IOS = "1"
+    ANDROID = "2"
+    WEB = "4"
+    PC = "5"
+
+
+def _get_random_string(length):
     """生成只包含小写字母和数字的随机字符串"""
     return "".join(random.sample(string.ascii_lowercase + string.digits, length))
 
 
-def gen_random_int_str():
+def _gen_random_int_str():
     """生成长度为6的数字字符串"""
     return str(random.randint(100001, 200000))
+
+
+def _signature_with_md5(text: str):
+    md5 = hashlib.md5()
+    md5.update(text.encode())
+    return md5.hexdigest()
 
 
 def gen_ds_v1(salt: Salt):
     """适用于 x-rpc-client_type = 2 (ClientType.Android)"""
     t = str(int(time.time()))
-    r = get_random_string(6)
-    c = signature_with_md5(f"salt={salt.value}&t={t}&r={r}")
+    r = _get_random_string(6)
+    c = _signature_with_md5(f"salt={salt.value}&t={t}&r={r}")
     return f"{t},{r},{c}"
 
 
@@ -120,12 +130,12 @@ def gen_ds_v2(salt: Salt, query_param: dict = None, body: dict = None):
     query_str = "&".join(f"{k}={v}" for k, v in sorted(query_param.items()))
     body_str = json.dumps(body) if body else ""
     t = str(int(time.time()))
-    r = gen_random_int_str()
-    c = signature_with_md5(f"salt={salt.value}&t={t}&r={r}&b={body_str}&q={query_str}")
+    r = _gen_random_int_str()
+    c = _signature_with_md5(f"salt={salt.value}&t={t}&r={r}&b={body_str}&q={query_str}")
     return f"{t},{r},{c}"
 
 
-class UserAgent(str, enum.Enum):
+class UserAgent(str, Enum):
     PC_WIN = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.41"
@@ -143,7 +153,7 @@ class UserAgent(str, enum.Enum):
     )
 
 
-class Referer(str, enum.Enum):
+class Referer(str, Enum):
     APP_MIHOYO = "https://app.mihoyo.com"
 
     USER_MUHOYO = "https://user.mihoyo.com/"
@@ -153,14 +163,15 @@ class Referer(str, enum.Enum):
     WEB_STATIC_HOYOLAB = "https://webstatic-sea.hoyolab.com"
 
 
-class Origin(str, enum.Enum):
+class Origin(str, Enum):
     USER_MIHOYO = "https://user.mihoyo.com/"
 
     WEB_STATIC_MIHOYO = "https://webstatic.mihoyo.com/"
 
 
-class XRequestedWith(str, enum.Enum):
+class XRequestedWith(str, Enum):
     CN = "com.mihoyo.hyperion"
+
     OS = "com.mihoyo.hoyolab"
 
 
@@ -206,7 +217,7 @@ class Header:
         elif version == "v1":
             ds = gen_ds_v1(salt)
         else:
-            raise error.ParamValueError("unsupported version, [{}]", version)
+            raise error.HsrException("Unsupported version, [{}]", version)
         self._headers["DS"] = ds
 
     def update(self, h: dict):
@@ -216,42 +227,32 @@ class Header:
         return self._headers
 
 
-WEB_HEADER = {
-    "Accept": "application/json",
-    "Origin": Origin.USER_MIHOYO,
-    "Referer": Referer.USER_MUHOYO,
-    "User-Agent": UserAgent.PC_WIN,
-    "x-rpc-client_type": RpcClientType.Web,
-}
-"""Web 请求头预设"""
+class DefaultHeader:
+    """请求头预设"""
 
+    WEB_HEADER = {
+        "Accept": "application/json",
+        "Origin": Origin.USER_MIHOYO,
+        "Referer": Referer.USER_MUHOYO,
+        "User-Agent": UserAgent.PC_WIN,
+        "x-rpc-client_type": RpcClientType.WEB,
+    }
+    """Web 请求头预设"""
 
-ANDROID_HEADER = {
-    "Accept": "application/json",
-    "Origin": Origin.USER_MIHOYO,
-    "Referer": Referer.USER_MUHOYO,
-    "User-Agent": UserAgent.ANDROID,
-    "x-rpc-client_type": RpcClientType.ANDROID,
-}
-"""android 请求头预设"""
+    ANDROID_HEADER = {
+        "Accept": "application/json",
+        "Origin": Origin.USER_MIHOYO,
+        "Referer": Referer.USER_MUHOYO,
+        "User-Agent": UserAgent.ANDROID,
+        "x-rpc-client_type": RpcClientType.ANDROID,
+    }
+    """Android 请求头预设"""
 
-
-PC_HEADER = {
-    "Accept": "application/json",
-    "Origin": Origin.USER_MIHOYO,
-    "Referer": Referer.USER_MUHOYO,
-    "User-Agent": UserAgent.PC_WIN,
-    "x-rpc-client_type": RpcClientType.PC,
-}
-
-
-def signature_with_md5(text: str):
-    md5 = hashlib.md5()
-    md5.update(text.encode())
-    return md5.hexdigest()
-
-
-def generate_seed(length: int):
-    characters = "0123456789abcdef"
-    result = "".join(random.choices(characters, k=length))
-    return result
+    PC_HEADER = {
+        "Accept": "application/json",
+        "Origin": Origin.USER_MIHOYO,
+        "Referer": Referer.USER_MUHOYO,
+        "User-Agent": UserAgent.PC_WIN,
+        "x-rpc-client_type": RpcClientType.PC,
+    }
+    """PC 请求头预设"""
