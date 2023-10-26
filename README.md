@@ -107,7 +107,7 @@
   │   │   └── log_2023_08.log
   │   └── temp
   │       └── GachaAnalyze_101793414.json
-  └── import # 读取导入数据的目录
+  └── Import # 读取导入数据的目录
 ```
 
  </p>
