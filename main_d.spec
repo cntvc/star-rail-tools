@@ -3,9 +3,9 @@
 
 block_cipher = None
 
-exe_name = "StarRailTools"
+exe_name = "Launcher"
 
-dir_name = exe_name
+dir_name = "StarRailTools"
 
 src_root_dir = "star_rail"
 
