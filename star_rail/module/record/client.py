@@ -321,7 +321,6 @@ class GachaRecordClient:
             if srgf_data.info.uid != self.user.uid:
                 logger.info(_lang.diff_account_srgf_data, file_path)
                 continue
-            # FIXME 当 recode_item_list 为空时报错
             record_info, item_list = convert_to_gacha_record(srgf_data)
             GachaRecord.save_record_info(record_info)
             GachaRecord.save_record_item_list(item_list)
