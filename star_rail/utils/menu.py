@@ -1,12 +1,10 @@
 import math
-from typing import Callable, List, Union
+from typing import Callable
 
 from pydantic import BaseModel
 
-from star_rail import constants
 from star_rail.i18n import i18n
-from star_rail.utils.console import clear_all, pause
-from star_rail.utils.functional import input_int
+from star_rail.utils.functional import clear_all, input_int, pause
 from star_rail.utils.log import logger
 
 _lang = i18n.utils.menu
@@ -17,27 +15,29 @@ __all__ = ["MenuItem", "Menu"]
 class MenuItem(BaseModel):
     title: str
     gen_menu: Callable = None
-    """ 仅用于动态生成菜单选项列表的函数 -> List[MenuItem]"""
-    options: Union[Callable, List["MenuItem"]] = None
+    """ 仅用于动态生成菜单选项列表的函数 -> list[MenuItem]"""
+    options: Callable | list["MenuItem"] = None
     """菜单列表或功能函数"""
-    tips: Union[str, Callable] = None  # Callable -> str
+    tips: str | Callable = None  # Callable -> str
     """需要显示的额外信息"""
 
 
 class Menu:
+    MENU_BANNER_LENGTH = 40
+
     def __init__(self, menu: MenuItem) -> None:
         self.menu = menu
-        self.stack: List[MenuItem] = []
+        self.stack: list[MenuItem] = []
         self.stack.append(menu)
 
     def display(self):
         clear_all()
         # 让标题打印在中间
         title = self.menu.title
-        space_len = math.floor((constants.MENU_BANNER_LENGTH - len(title)) / 2)
+        space_len = math.floor((Menu.MENU_BANNER_LENGTH - len(title)) / 2)
         print(" " * space_len + title)
-        print("=" * constants.MENU_BANNER_LENGTH)
-        options: List[MenuItem] = self.menu.options
+        print("=" * Menu.MENU_BANNER_LENGTH)
+        options: list[MenuItem] = self.menu.options
         for index, option in enumerate(options):
             print("{}.{}".format(index + 1, option.title))
         print("")
@@ -45,7 +45,7 @@ class Menu:
             print(_lang.return_to_pre_menu)
         else:
             print(_lang.exit)
-        print("=" * constants.MENU_BANNER_LENGTH)
+        print("=" * Menu.MENU_BANNER_LENGTH)
 
         self._display_tips()
 
@@ -57,7 +57,7 @@ class Menu:
             print(tips())
         elif isinstance(tips, str):
             print(tips)
-        print("=" * constants.MENU_BANNER_LENGTH)
+        print("=" * Menu.MENU_BANNER_LENGTH)
 
     def run(self):
         while self.stack:
@@ -68,7 +68,7 @@ class Menu:
                 self.menu.options = self.menu.gen_menu()
 
             self.display()
-            cur_options: List[MenuItem] = self.menu.options
+            cur_options: list[MenuItem] = self.menu.options
             print(_lang.input_number)
             menu_index = input_int(0, len(cur_options), _lang.invalid_input)
 

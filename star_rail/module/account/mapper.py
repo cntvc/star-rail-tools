@@ -60,7 +60,7 @@ class UserMapper(DataBaseModel):
         return model_convert_item(row, UserMapper)
 
     @staticmethod
-    def query_all() -> typing.List["UserMapper"]:
+    def query_all() -> list["UserMapper"]:
         """查询所有用户，按照uid顺序返回"""
         sql = """select * from user order by uid ;"""
         with DataBaseClient() as db:

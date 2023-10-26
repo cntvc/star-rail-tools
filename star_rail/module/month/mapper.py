@@ -45,7 +45,7 @@ class MonthInfoMapper(DataBaseModel):
     @classmethod
     def query(
         cls, uid: str, month: typing.Optional[str], limit: typing.Optional[int]
-    ) -> typing.Union[typing.List["MonthInfoMapper"], typing.Optional["MonthInfoMapper"]]:
+    ) -> list["MonthInfoMapper"] | typing.Optional["MonthInfoMapper"]:
         """查询开拓月历记录"""
         query_sql = """SELECT * FROM month_info WHERE uid = ? """
 

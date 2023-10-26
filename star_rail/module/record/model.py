@@ -1,11 +1,4 @@
-import time
-import typing
-
-from pydantic import BaseModel, Field, field_validator
-
-from star_rail import __version__ as version
-from star_rail import constants
-from star_rail.utils.version import get_version
+from pydantic import BaseModel
 
 
 class BaseGachaItem(BaseModel):
@@ -28,7 +21,9 @@ class BaseGachaItem(BaseModel):
         return self.id < __value.id
 
 
-class ApiGachaItem(BaseGachaItem):
+class GachaItem(BaseGachaItem):
+    """[API, DB] 抽卡项"""
+
     count: str
     name: str
     rank_type: str
@@ -37,15 +32,19 @@ class ApiGachaItem(BaseGachaItem):
     item_type: str
 
 
-class ApiGachaData(BaseModel):
+class GachaRecordData(BaseModel):
+    """[API] 跃迁记录 API 结构"""
+
     page: int
     size: int
-    list: typing.List[ApiGachaItem]
+    list: list[GachaItem]
     region: str
     region_time_zone: int
 
 
 class GachaRecordInfo(BaseModel):
+    """[DB] 跃迁记录存档"""
+
     uid: str
 
     lang: str
@@ -59,81 +58,32 @@ class GachaRecordInfo(BaseModel):
 # SRGF
 ########################################################################
 
-SRGF_VERSION = (1, 0)
-
-
-def get_srgf_version(srgf_version):
-    return "v" + get_version(srgf_version)
-
-
-class SRGFInfo(BaseModel):
-    """SRGF v1.0 info"""
-
-    uid: str
-    lang: str
-    region_time_zone: int
-    export_timestamp: int = 0
-    export_time: str = "-"
-    export_app: str = "-"
-    export_app_version: str = "-"
-    srgf_version: str = Field(default=get_srgf_version(SRGF_VERSION))
-
-    from star_rail.module.mihoyo.account import verify_uid_format
-
-    _verify_uid_format = field_validator("uid", mode="before")(verify_uid_format)
-
-    @classmethod
-    def gen(cls, uid: str, lang: str, region_time_zone: int):
-        from star_rail.utils.time import convert_time_to_timezone, get_format_time
-
-        local_std_time = time.localtime(time.time())
-        origin_time = convert_time_to_timezone(local_std_time, region_time_zone)
-
-        export_app_version = version
-        return SRGFInfo(
-            uid=uid,
-            lang=lang,
-            region_time_zone=region_time_zone,
-            export_timestamp=int(time.mktime(origin_time)),
-            export_time=get_format_time(time.mktime(origin_time)),
-            export_app=constants.APP_NAME,
-            export_app_version=export_app_version,
-        )
-
-
-class SRGFRecordItem(BaseGachaItem):
-    count: str = "1"
-    name: str = "-"
-    rank_type: str = "-"
-    item_type: str = "-"
-
-
-class SRGFData(BaseModel):
-    info: SRGFInfo
-    list: typing.List[SRGFRecordItem]
-
 
 ########################################################################
-# Analyze
+# Analyzer
 ########################################################################
 
 
-class AnalyzeDataRecordItem(ApiGachaItem):
+class _AnalyzeRecordItem(GachaItem):
     # 添加索引表示抽数
-    number: str
+    index: str
 
 
-class AnalyzeData(BaseModel):
+class _RecordTypeResult(BaseModel):
     """分卡池的分析结果类"""
 
     gacha_type: str = ""
+    """抽卡类型"""
     pity_count: int = 0
+    """保底计数"""
     total_count: int = 0
-    list: typing.List[AnalyzeDataRecordItem] = []
+    """本类型的抽卡总数"""
+    rank_5: list[_AnalyzeRecordItem] = []
+    """5星物品详情"""
 
 
 class AnalyzeResult(BaseModel):
     uid: str = ""
     lang: str = ""
     update_time: str = ""
-    data: typing.List[AnalyzeData] = []
+    data: list[_RecordTypeResult] = []

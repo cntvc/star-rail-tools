@@ -1,30 +1,59 @@
+"""跃迁记录 API 来源"""
 import os
 import re
 import subprocess
-import tempfile
-import typing
+from typing import Optional
 
 import yarl
 
+from star_rail import constants
 from star_rail import exceptions as error
+from star_rail.module import Account, routes, types
+from star_rail.module.game_client import GameClient
 from star_rail.utils import functional
+from star_rail.utils.log import logger
 
-from ...utils.log import logger
-from ..game_client import GameClient
-from ..mihoyo.account import Account, GameBiz
-from ..mihoyo.routes import GACHA_LOG_URL
+__all__ = ["get_game_cache_url", "get_clipboard_url"]
 
 
-def get_from_user_cache(user: Account):
-    logger.debug("get url from user cache")
-    if not user.gacha_url:
+GACHA_RECORD_URL_RE = re.compile(
+    r"https://.+?&auth_appid=webview_gacha&.+?authkey=.+?&game_biz=hkrpg_(?:cn|global)"
+)
+
+
+def _match_api(api: Optional[str]) -> Optional[str]:
+    """从字符串匹配抽卡链接"""
+    if not api:
         return None
-    return yarl.URL(user.gacha_url)
+    match = GACHA_RECORD_URL_RE.search(api)
+    return match.group() if match else None
 
 
-def get_from_game_cache(user: Account):
+def _replace_url_path(url: str):
+    base_url = str(routes.GACHA_LOG_URL.get_url(types.GameBiz.CN))
+    split_url = url.split("?")
+    if "webstatic-sea.hoyoverse.com" in split_url[0] or "api-os-takumi" in split_url[0]:
+        base_url = str(routes.GACHA_LOG_URL.get_url(types.GameBiz.GLOBAL))
+
+    split_url[0] = base_url
+    return "?".join(split_url)
+
+
+def _copy_file_with_powershell(source_path, destination_path):
+    powershell_command = f"Copy-Item '{source_path}' '{destination_path}'"
+
+    try:
+        subprocess.run(["powershell", powershell_command], check=True)
+    except subprocess.CalledProcessError:
+        raise error.HsrException("Copy cache file failed")
+
+    return destination_path
+
+
+def get_game_cache_url(user: Account) -> Optional[yarl.URL]:
+    """获取游戏 Web 缓存中跃迁记录链接"""
     logger.debug("get url from game web cache")
-    tmp_file_path = os.path.join(tempfile.gettempdir(), "data_2")
+    tmp_file_path = os.path.join(constants.TEMP_PATH, "data_2")
     webcache_path = GameClient(user).get_webcache_path()
     _copy_file_with_powershell(webcache_path, tmp_file_path)
 
@@ -33,7 +62,7 @@ def get_from_game_cache(user: Account):
     os.remove(tmp_file_path)
 
     url = None
-    # reverse order traversal
+
     for result in results[::-1]:
         result = result.decode(errors="ignore")
         text = _match_api(result)
@@ -43,23 +72,12 @@ def get_from_game_cache(user: Account):
 
     if not url:
         return None
-    url = _replace_host_path(url)
+    url = _replace_url_path(url)
     return yarl.URL(url)
 
 
-def _copy_file_with_powershell(source_path, destination_path):
-    powershell_command = f"Copy-Item '{source_path}' '{destination_path}'"
-
-    try:
-        subprocess.run(["powershell", powershell_command], check=True)
-        logger.debug("copy cache file success")
-    except subprocess.CalledProcessError:
-        raise error.HsrException("copy cache file failed")
-
-    return destination_path
-
-
-def get_from_clipboard():
+def get_clipboard_url() -> Optional[yarl.URL]:
+    """获取剪切板中跃迁记录链接"""
     logger.debug("get url from clipboard")
     import pyperclip
 
@@ -68,29 +86,5 @@ def get_from_clipboard():
     url = _match_api(text)
     if not url:
         return None
-    url = _replace_host_path(url)
+    url = _replace_url_path(url)
     return yarl.URL(url)
-
-
-GACHA_LOG_API_RE = re.compile(
-    "https://.+?&auth_appid=webview_gacha&.+?authkey=.+?&game_biz=hkrpg_(?:cn|global)"
-)
-
-
-def _match_api(api: typing.Optional[str]):
-    """从字符串匹配抽卡链接"""
-    if not api:
-        return None
-    res = GACHA_LOG_API_RE.search(api)
-    return res.group() if res else None
-
-
-def _replace_host_path(url: str):
-    """替换链接的 host 路径"""
-    split_url = url.split("?")
-    if "webstatic-sea.hoyoverse.com" in split_url[0] or "api-os-takumi" in split_url[0]:
-        split_url[0] = GACHA_LOG_URL.get_url(GameBiz.GLOBAL)
-    else:
-        split_url[0] = GACHA_LOG_URL.get_url(GameBiz.CN)
-    url = "?".join(split_url)
-    return url

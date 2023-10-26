@@ -50,15 +50,15 @@ _T = typing.TypeVar("_T", bound=DataBaseModel)
 
 class ModelAnnotation(BaseModel):
     table_name: str
-    column: typing.Set[str] = set()
-    primary_key: typing.Set[str] = set()
+    column: set[str] = set()
+    primary_key: set[str] = set()
 
     @classmethod
-    def parse(cls, model_cls: typing.Type[_T]):
+    def parse(cls, model_cls: type[_T]):
         table_name = getattr(model_cls, "__table_name__")
         # __table_name__ BaseModel 中存在默认值 ''，使用 not 判断
         if not table_name:
-            raise error.DataBaseModelError("数据库模型错误，model: {}", model_cls)
+            raise error.DataBaseError("DataBase model error: {}", model_cls)
 
         model_anno = ModelAnnotation(table_name=table_name)
 
@@ -86,7 +86,7 @@ class DataBaseClient:
         try:
             self.conn: sqlite3.Connection = sqlite3.connect(self.db_path)
         except sqlite3.Error:
-            raise error.DataBaseConnectionError
+            raise error.DataBaseError("Database connection error")
 
         self.conn.row_factory = sqlite3.Row
 
@@ -134,7 +134,7 @@ class DataBaseClient:
         return cur
 
     def insert_batch(
-        self, items: typing.List[_T], mode: typing.Literal["ignore", "update", "none"] = "none"
+        self, items: list[_T], mode: typing.Literal["ignore", "update", "none"] = "none"
     ):
         if len(items) == 0:
             return
@@ -164,12 +164,11 @@ class DataBaseClient:
         return cur.rowcount
 
 
-DATABASE_USER_VERSION = 0
-"""软件中数据库版本"""
-
-
 class DBManager:
     """数据库管理类"""
+
+    DATABASE_USER_VERSION = 0
+    """软件中数据库版本"""
 
     def __init__(self, db: DataBaseClient) -> None:
         self.db = db
@@ -201,7 +200,7 @@ class DBManager:
     def update_to_version(self):
         """升级数据库版本"""
         current_version = self.get_user_version()
-        while current_version < DATABASE_USER_VERSION:
+        while current_version < DBManager.DATABASE_USER_VERSION:
             current_version += 1
             upgrade_func: typing.Callable = getattr(
                 self, f"_upgrade_to_version_{current_version}", None
@@ -218,9 +217,7 @@ class DBManager:
         pass
 
 
-def model_convert_item(
-    row: typing.Optional[sqlite3.Row], sub_cls: typing.Type[_T]
-) -> typing.Optional[_T]:
+def model_convert_item(row: typing.Optional[sqlite3.Row], sub_cls: type[_T]) -> typing.Optional[_T]:
     if row is None:
         return None
     data = {k: row[k] for k in row.keys()}
@@ -228,8 +225,8 @@ def model_convert_item(
 
 
 def model_convert_list(
-    row: typing.Optional[typing.List[sqlite3.Row]], sub_cls: typing.Type[_T]
-) -> typing.Optional[typing.List[_T]]:
+    row: typing.Optional[list[sqlite3.Row]], sub_cls: type[_T]
+) -> typing.Optional[list[_T]]:
     if row is None:
         return None
 

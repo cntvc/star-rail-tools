@@ -1,13 +1,13 @@
 import platform
 import time
 
-from star_rail import __version__ as version
+from star_rail import __version__ as app_version
 from star_rail.client import HSRClient
 from star_rail.config import settings
 from star_rail.database import DataBaseClient, DBManager
 from star_rail.i18n import LanguageType, i18n, set_locales
 from star_rail.module import UpdateManager, UpdateSource
-from star_rail.module.info import show_about
+from star_rail.module.about import show_about
 from star_rail.utils.log import logger
 from star_rail.utils.menu import Menu, MenuItem
 from star_rail.utils.time import get_format_time
@@ -34,10 +34,6 @@ def init_menu(client: HSRClient):
                     MenuItem(
                         title=_lang_menu.refresh_record_by_clipboard,
                         options=client.refresh_record_by_clipboard,
-                    ),
-                    MenuItem(
-                        title=_lang_menu.refresh_record_by_user_cache,
-                        options=client.refresh_record_by_user_cache,
                     ),
                     MenuItem(
                         title=_lang_menu.export_record_to_xlsx,
@@ -168,10 +164,10 @@ def run():
             "Config: {}\n"
             "===================="
         ),
-        version,
+        app_version,
         get_format_time(time.time()),
         platform.platform(),
-        settings.dict(),
+        settings.model_dump("log"),
     )
     if settings.FLAG_AUTO_UPDATE:
         UpdateManager().upgrade()

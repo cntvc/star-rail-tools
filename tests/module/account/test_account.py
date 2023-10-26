@@ -1,6 +1,6 @@
 import unittest
 
-from star_rail.module.mihoyo import Account
+from star_rail.module import Account
 
 
 class TestAccount(unittest.TestCase):

@@ -1,3 +1,3 @@
-from .client import MonthClient  # noqa
+from .client import *
 
 __all__ = ["MonthClient"]
