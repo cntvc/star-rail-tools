@@ -72,7 +72,7 @@ jobs:
 
   pytest:
     needs: [isort, flake8, black]
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
     - name: Install poetry

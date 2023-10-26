@@ -15,7 +15,7 @@ jobs:
       run:
         shell: powershell
 
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
 
@@ -39,15 +39,15 @@ jobs:
 
     - name: Generate package name
       run: |
-        echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> "$GITHUB_ENV"
-
-    - name: Archive folder
-      run: |
-        Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\"$file-name".zip
+        echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
 
     - name: Move and rename exe
       run: |
-        Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\"$file-name".exe
+        Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
+
+    - name: Archive folder
+      run: |
+        Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
 
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -57,13 +57,13 @@ jobs:
         name: ${{ env.PROJECT_NAME }} ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         files: |
-          "$file-name".exe
-          "$file-name".zip
+          ${{ env.file-name }}.exe
+          ${{ env.file-name }}.zip
         fail_on_unmatched_files: true
 
     - name: Upload to Coding.net
       if: ${{ ! github.event.release.prerelease }}
       run: |
         npm install coding-generic -g
-        Copy-Item -Path "$file-name".exe -Destination ${{ env.PROJECT_NAME }}.exe
+        Copy-Item -Path ${{ env.file-name }}.exe -Destination ${{ env.PROJECT_NAME }}.exe
         coding-generic -u="${{ secrets.CODING_ARTIFACTS_NAME }}:${{ secrets.CODING_ARTIFACTS_PASSWD }}" -p="${{ env.PROJECT_NAME }}.exe" -r="https://cntvc-generic.pkg.coding.net/star-rail-tools/releases/chunks/${{ env.PROJECT_NAME }}.exe?version=${{ github.ref_name }}"
