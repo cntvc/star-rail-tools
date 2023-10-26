@@ -65,7 +65,7 @@ Your contributions to this project are highly appreciated.
 - If you have new ideas or feature suggestions, please create an issue to discuss them.
 - If you find any bugs in the software or would like to update the documentation, feel free to create a pull request.
 
-For more details, please refer to [CONTRIBUTING](.github/CONTRIBUTING.md)
+For more details, please refer to [CONTRIBUTING](../.github/CONTRIBUTING.md)
 
 
 ## Acknowledgments
