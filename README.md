@@ -18,8 +18,10 @@
 ## 基本用法
 
 下载源：
-- [Github][latest_release]
-- [制品库][coding_latest]（国内下载更快
+- [Github][latest_release] 有两个发行版
+  - zip 后缀: 文件夹压缩版，相对于单文件版本启动较快
+  - exe 后缀: 单文件版本
+- [制品库][coding_latest]（国内下载更快，且只包有单文件版本
 
 
 ### 0. 添加账号
