@@ -29,14 +29,20 @@ def _match_api(api: Optional[str]) -> Optional[str]:
     return match.group() if match else None
 
 
-def _replace_url_path(url: str):
-    base_url = str(routes.GACHA_LOG_URL.get_url(types.GameBiz.CN))
-    split_url = url.split("?")
-    if "webstatic-sea.hoyoverse.com" in split_url[0] or "api-os-takumi" in split_url[0]:
-        base_url = str(routes.GACHA_LOG_URL.get_url(types.GameBiz.GLOBAL))
+def _replace_url_path(url: str) -> yarl.URL:
+    """
+    在开启 [查看详情](https://gs.hoyoverse.com/hkrpg/event/e20211215gacha-v2/index.html) 页面时
+    该页面的链接中也包含 authkey 等必要参数
+    在这里统一替换API
+    """
+    base_url = routes.GACHA_LOG_URL.get_url(types.GameBiz.CN)
+    parsed_url = yarl.URL(url)
 
-    split_url[0] = base_url
-    return "?".join(split_url)
+    os_host_key = ['webstatic-sea', 'hkrpg-api-os', 'api-os-takumi', 'hoyoverse.com']
+    if any(sub_str in parsed_url.host for sub_str in os_host_key):
+        base_url = routes.GACHA_LOG_URL.get_url(types.GameBiz.GLOBAL)
+
+    return base_url.with_query(parsed_url.query)
 
 
 def _copy_file_with_powershell(source_path, destination_path):
@@ -72,8 +78,7 @@ def get_game_cache_url(user: Account) -> Optional[yarl.URL]:
 
     if not url:
         return None
-    url = _replace_url_path(url)
-    return yarl.URL(url)
+    return _replace_url_path(url)
 
 
 def get_clipboard_url() -> Optional[yarl.URL]:
@@ -86,5 +91,4 @@ def get_clipboard_url() -> Optional[yarl.URL]:
     url = _match_api(text)
     if not url:
         return None
-    url = _replace_url_path(url)
-    return yarl.URL(url)
+    return _replace_url_path(url)
