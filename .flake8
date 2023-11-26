@@ -6,5 +6,6 @@ max-line-length = 100
 # F401: unused import.
 # F403: cannot detect unused vars if we use starred import
 # F405: may be undefined, or defined from star imports
+# E402: module level import not at top of file
 per-file-ignores =
-    **/__init__.py: F401, F403, F405
+    **/__init__.py: F401, F403, F405, E402

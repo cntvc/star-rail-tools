@@ -1,0 +1,8 @@
+MonthDialog {
+
+}
+
+MonthDialog Button {
+    margin: 1;
+    width: 100%
+}

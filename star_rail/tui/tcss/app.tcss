@@ -1,0 +1,49 @@
+/* =================================== base =================================== */
+
+Screen {
+    layers: base overlay notifications;
+    overflow: hidden;
+}
+
+Screen>Container {
+    height: 100%;
+    overflow: hidden;
+}
+
+Notification {
+    dock: bottom;
+    layer: notification;
+    width: auto;
+    margin: 2 4;
+    padding: 1 2;
+    background: $background;
+    color: $text;
+    height: auto;
+
+}
+
+
+/* =================================== navigation bar =================================== */
+
+Navigation {
+    width: 30;
+    dock: left;
+    border: dashed green;
+}
+
+NavTab {
+    margin: 1;
+    height: auto;
+    padding: 1 2;
+    background: $boost;
+    color: $text;
+    box-sizing: content-box;
+    content-align: center middle;
+    
+}
+
+NavTab :hover {
+    background: $accent;
+    color: $text;
+    text-style: bold;
+}

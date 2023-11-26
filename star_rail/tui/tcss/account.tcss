@@ -1,0 +1,12 @@
+/* =================================== account =================================== */
+
+AccountDialog {
+    margin-top: 1;
+    margin-right: 5;
+    margin-left: 5;
+}
+
+AccountDialog #parse_cookie {
+    margin: 1;
+    width: 100%;
+}

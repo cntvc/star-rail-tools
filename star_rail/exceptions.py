@@ -1,14 +1,10 @@
-import functools
-import traceback
 import typing
-
-from star_rail.utils.log import logger
 
 
 class HsrException(Exception):
     """Base Exception"""
 
-    msg = ""
+    msg = "There are some errors in the program."
 
     def __init__(self, msg: str = None, *args) -> None:
         self.msg = msg.format(*args) if msg is not None else self.msg
@@ -22,11 +18,7 @@ class DataBaseError(HsrException):
     pass
 
 
-class EncryptError(HsrException):
-    pass
-
-
-class DecryptError(HsrException):
+class GachaRecordError(HsrException):
     pass
 
 
@@ -64,38 +56,54 @@ class ApiException(HsrException):
         return self.msg
 
 
-class RequestError(ApiException):
-    msg = "network error"
+class InvalidLangError(ApiException):
+    """未指定语言或不是支持的语言"""
+
+    retcode = -108
+    msg = "Invalid lang value."
 
 
 class InvalidCookieError(ApiException):
     retcode = -100
-    msg = "Invalid cookie value"
+    msg = "Invalid cookie value."
+
+
+class VisitsTooFrequently(ApiException):
+    retcode = -110
+    msg = "Visits too frequently."
+
+
+class InvalidGameBizError(ApiException):
+    """请求参数game_biz不正确"""
+
+    retcode = -111
+    msg = "Invalid game_biz value."
 
 
 class AuthkeyExceptionError(ApiException):
     """"""
 
-    msg = ""
+    msg = "Invalid authkey value."
 
 
 class InvalidAuthkeyError(AuthkeyExceptionError):
     """Authkey is not valid."""
 
     retcode = -100
-    msg = "InvalidAuthkey"
 
 
 class AuthkeyTimeoutError(AuthkeyExceptionError):
     """Authkey has timed out."""
 
     retcode = -101
-    msg = "InvalidAuthkey"
 
 
 _ERRORS: dict[int, type[ApiException]] = {
+    -108: InvalidLangError,
     -100: InvalidCookieError,
     10001: InvalidCookieError,  # game record error
+    -110: VisitsTooFrequently,
+    -111: InvalidGameBizError,
 }
 
 
@@ -104,7 +112,8 @@ def raise_for_retcode(data: dict[str, typing.Any]) -> typing.NoReturn:
 
     [跃迁记录]
         -100: invalid authkey
-        -101:
+        -101: invalid authkey
+        -111: game_biz error
     [cookie]
         -100: cookie 失效
     """
@@ -124,24 +133,3 @@ def raise_for_retcode(data: dict[str, typing.Any]) -> typing.NoReturn:
         raise exc_type(data)
 
     raise ApiException(data)
-
-
-def err_catch(
-    exec_type: HsrException | typing.Tuple[HsrException, ...] = HsrException,
-    level: typing.Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "ERROR",
-):
-    """捕获异常打印 msg 并返回 None"""
-
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except exec_type as e:
-                logger.log(level, e)
-                logger.debug(traceback.format_exc())
-                return None
-
-        return wrapper
-
-    return decorator

@@ -1,5 +1,4 @@
 import os
-import typing
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,31 +10,7 @@ __all__ = ["settings"]
 _default_config_path = os.path.join(constants.CONFIG_PATH, "settings.json")
 
 
-class Settings(BaseModel):
-    FLAG_AUTO_UPDATE: bool = True
-    """自动更新"""
-
-    FLAG_UPDATED_COMPLETE: bool = False
-
-    UPDATE_SOURCE: typing.Literal["Github", "Coding"] = "Github"
-    """更新源"""
-
-    OLD_EXE_NAME: str = ""
-    """旧版本程序文件名，用于在更新版本后删除该文件"""
-
-    DEFAULT_UID: str = ""
-
-    SALT: str = ""
-    """加密 salt"""
-
-    LANGUAGE: str = ""
-
-    DISPLAY_STARTER_WARP: bool = False
-    """显示新手池"""
-
-    GACHA_RECORD_DESC_MOD: typing.Literal["table", "tree"] = "tree"
-    """抽卡记录详情的显示模式"""
-
+class BaseSetting(BaseModel):
     config_path: str = Field(exclude=True)
 
     model_config = ConfigDict(extra="ignore")
@@ -57,14 +32,19 @@ class Settings(BaseModel):
             return
         self.update_config(load_json(path))
 
-    def model_dump(self, mode: typing.Literal["log", "default"] = "default", *args, **kwargs):
-        if mode == "log":
-            """部分参数值会隐藏"""
-            config_dict = super().model_dump()
-            config_dict["SALT"] = "***"
-            return config_dict
-        elif mode == "default":
-            return super().model_dump()
+
+class Settings(BaseSetting):
+    CHECK_UPDATE: bool = True
+
+    DEFAULT_UID: str = ""
+
+    ENCRYPT_KEY: str = ""
+    """加密 key"""
+
+    LANGUAGE: str = ""
+
+    DISPLAY_STARTER_WARP: bool = False
+    """显示新手池"""
 
 
 settings = Settings(config_path=_default_config_path)

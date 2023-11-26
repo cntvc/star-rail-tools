@@ -2,203 +2,242 @@ import os
 import shutil
 import tempfile
 import unittest
-from functools import partial
+from unittest.mock import AsyncMock, patch
+
+import aiosqlite
 
 from star_rail import exceptions as error
-
-# 导入你的模块
-from star_rail.database.database import (
-    DataBaseClient,
-    DataBaseField,
-    DataBaseModel,
+from star_rail.database.sqlite import (
+    AsyncDBClient,
+    DBField,
     DBManager,
-    ModelAnnotation,
-    model_convert_item,
-    model_convert_list,
+    DBModel,
+    ModelInfo,
+    UpgradeSQL,
 )
 
 
 class TestModelAnnotation(unittest.TestCase):
     def setUp(self) -> None:
-        # 清空全局注册表，否则影响其他测试用例
-        DataBaseModel.__subclass_table__ = []
+        # 清空全局注册表
+        DBModel.__subclass_table__ = []
 
     def test_parse(self):
-        class TestModel(DataBaseModel):
+        class TestModel(DBModel):
             __table_name__ = "test_table"
-            name: str = DataBaseField(primary_key=True)
+            name: str = DBField(primary_key=True)
             age: int
 
-        annotation = ModelAnnotation.parse(TestModel)
+        annotation = ModelInfo.parse(TestModel)
         self.assertIsNotNone(annotation)
         self.assertEqual(annotation.table_name, "test_table")
         self.assertSetEqual(annotation.column, {"name", "age"})
         self.assertSetEqual(annotation.primary_key, {"name"})
 
     def test_parse_without_table_name(self):
-        class TestModel(DataBaseModel):
+        class TestModel(DBModel):
             name: str
             age: int
 
-        self.assertRaises(error.DataBaseError, ModelAnnotation.parse, TestModel)
+        self.assertRaises(error.DataBaseError, ModelInfo.parse, TestModel)
 
 
-class TestDataBaseClient(unittest.TestCase):
-    def setUp(self) -> None:
-        # 清空全局注册表，否则影响其他测试用例
-        DataBaseModel.__subclass_table__ = []
+class TestAsyncClient(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self) -> None:
+        # 清空全局注册表
+        DBModel.__subclass_table__ = []
         self.tmp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.tmp_dir, "test.db")
-        self.client = DataBaseClient(self.db_path)
-        self.db_manager = DBManager(self.client)
+        self.client = AsyncDBClient(db_path=self.db_path)
 
-    def tearDown(self) -> None:
-        self.client.close_all()
+    async def asyncTearDown(self):
+        if self.client.connection is not None:
+            await self.client.close()
         shutil.rmtree(self.tmp_dir)
 
-    def test_insert(self):
-        class UserModel(DataBaseModel):
+    async def test_transaction(self):
+        await self.client.connect()
+        self.assertIsNotNone(self.client.connection)
+        await self.client.start_transaction()
+        self.assertTrue(self.client.connection.in_transaction)
+        await self.client.commit_transaction()
+        self.assertFalse(self.client.connection.in_transaction)
+
+    @patch("aiosqlite.connect", new_callable=AsyncMock, side_effect=aiosqlite.Error)
+    async def test_async_with_db_error(self, mock_connect):
+        # 进入with语句块时出现异常（连接异常
+        mock_connection = AsyncMock()
+        mock_connect.return_value = mock_connection
+
+        with self.assertRaises(error.DataBaseError):
+            async with self.client:
+                pass
+
+    @patch("aiosqlite.connect", new_callable=AsyncMock)
+    async def test_async_with_aiosqlit_error_no_transaction(self, mock_connect):
+        # with语句块内部出现异常，无事务
+        mock_connection = AsyncMock()
+        mock_connect.return_value = mock_connection
+
+        with self.assertRaises(aiosqlite.Error):
+            async with self.client:
+                mock_connection.in_transaction = False
+                raise aiosqlite.OperationalError
+        mock_connection.rollback.assert_not_called()
+        mock_connection.close.assert_called_once()
+
+    @patch("aiosqlite.connect", new_callable=AsyncMock)
+    async def test_async_with_aiosqlit_error_in_transaction(self, mock_connect):
+        # with语句块内部出现异常，且处于事务中
+        mock_connection = AsyncMock()
+        mock_connect.return_value = mock_connection
+        with self.assertRaises(aiosqlite.Error):
+            async with self.client:
+                mock_connection.in_transaction = True
+                raise aiosqlite.OperationalError
+        mock_connection.rollback.assert_called_once()
+        mock_connection.close.assert_called_once()
+
+    @patch("aiosqlite.connect", new_callable=AsyncMock)
+    async def test_async_with_success_in_transaction(self, mock_connect):
+        # with语句块无异常，且处于事务中
+        mock_connection = AsyncMock()
+        mock_connect.return_value = mock_connection
+        async with self.client:
+            mock_connection.in_transaction = True
+        mock_connection.commit.assert_called_once()
+        mock_connection.close.assert_called_once()
+
+    @patch("aiosqlite.connect", new_callable=AsyncMock)
+    async def test_async_with_success_no_transaction(self, mock_connect):
+        # with语句块无异常，无事务
+        mock_connection = AsyncMock()
+        mock_connect.return_value = mock_connection
+        async with self.client:
+            mock_connection.in_transaction = False
+        mock_connection.commit.assert_not_called()
+        mock_connection.close.assert_called_once()
+
+    async def test_execute(self):
+        statements = []
+        await self.client.connect()
+        await self.client.connection.set_trace_callback(statements.append)
+        await self.client.execute("create table if not exists user (id, name);")
+        self.assertEqual(statements, ["create table if not exists user (id, name);"])
+
+    async def test_insert(self):
+        class UserModel(DBModel):
             __table_name__ = "user"
-            id: str = DataBaseField(primary_key=True)
+            id: str = DBField(primary_key=True)
             name: str
-            age: int
 
-        self.db_manager.create_all()
+        await self.client.connect()
+        await self.client.execute("create table if not exists user (id, name, primary key (id) );")
 
-        client = self.client
-        client.connection()
-
-        item = UserModel(id="1", name="Alice", age=25)
-        client.insert(item, "ignore")
-
-        result = client.execute("SELECT * FROM user where id = '1';").fetchone()
-        self.assertEqual(result["name"], "Alice")
-        self.assertEqual(result["age"], 25)
-
-    def test_insert_batch(self):
-        class UserModel(DataBaseModel):
-            __table_name__ = "user"
-            id: str = DataBaseField(primary_key=True)
-            name: str
-            age: int
-
-        items = [
-            UserModel(id="1", name="Alice", age=78),
-            UserModel(id="2", name="Bob", age=30),
-            UserModel(id="3", name="Charlie", age=13),
-            UserModel(id="4", name="Snoopy", age=5),
+        user_list = [
+            UserModel(id="1", name="user1"),
+            UserModel(id="2", name="user2"),
+            UserModel(id="3", name="user3"),
+            UserModel(id="4", name="user4"),
         ]
+        cnt = await self.client.insert(user_list[0], "ignore")
+        self.assertEqual(cnt, 1)
 
-        self.db_manager.create_all()
-        client = self.client
-        client.connection()
-        # 存在则忽略
-        client.insert_batch(items[:3], mode="ignore")
+        cnt = await self.client.insert([], "ignore")
+        self.assertEqual(cnt, 0)
 
-        results = client.execute("SELECT * FROM user;").fetchall()
-        self.assertEqual(len(results), 3)
-        self.assertEqual(results[2]["name"], "Charlie")
+        cnt = await self.client.insert(user_list, "ignore")
+        self.assertEqual(cnt, 3)
 
-        items.append(UserModel(id="2", name="Bob_new", age=31))
-        # 存在则更新
-        client.insert_batch(items, mode="update")
+        cnt = await self.client.insert(UserModel(id="1", name="user1_new"), "update")
+        self.assertEqual(cnt, 1)
 
-        results = client.execute("SELECT * FROM user;").fetchall()
-        self.assertEqual(len(results), 4)
-        for r in results:
-            if r["id"] == "2":
-                self.assertEqual(r["name"], "Bob_new")
-
-    def test_model_convert(self):
-        class UserModel(DataBaseModel):
+    async def test_convert(self):
+        class UserModel(DBModel):
             __table_name__ = "user"
-            id: str = DataBaseField(primary_key=True)
+            id: str = DBField(primary_key=True)
             name: str
-            age: int
 
-        self.db_manager.create_all()
-        client = self.client
-        client.connection()
-
-        items = [
-            UserModel(id="1", name="Alice", age=78),
-            UserModel(id="2", name="Bob", age=30),
-        ]
-        client.insert_batch(items, "update")
-
-        results = client.execute("SELECT * FROM user;").fetchall()
-        self.assertEqual(len(results), 2)
-        self.assertEqual(results[0]["name"], "Alice")
-        self.assertEqual(results[1]["name"], "Bob")
-
-        # test convert list
-        users = model_convert_list(results, UserModel)
-        self.assertIsNotNone(users)
-        self.assertTrue(isinstance(users, list))
-        self.assertEqual(users[0].id, "1")
-        self.assertEqual(users[0].age, 78)
-
-        # test convert item
-        row = client.execute("select * from user where id = '1';").fetchone()
-        user = model_convert_item(row, UserModel)
-        self.assertTrue(isinstance(user, UserModel))
-
-        # test convert item is None
-        row = client.execute("select * from user where id = '4';").fetchone()
-        user = model_convert_item(row, UserModel)
-        self.assertIsNone(user)
+        await self.client.connect()
+        await self.client.execute("create table if not exists user (id, name, primary key (id) );")
+        await self.client.execute("insert into user(id, name) values (?, ?);", ("1", "user1"))
+        cursor = await self.client.execute("select * from user where id = ?;", ("1",))
+        user = self.client.convert(await cursor.fetchone(), UserModel)
+        self.assertEqual(user.id, "1")
+        self.assertEqual(user.name, "user1")
+        await self.client.execute("insert into user(id, name) values (?, ?);", ("2", "user2"))
+        cursor = await self.client.execute("select * from user;")
+        row_list = await cursor.fetchall()
+        user_list = self.client.convert(row_list, UserModel)
+        print(user_list)
+        self.assertEqual(len(user_list), 2)
+        self.assertEqual(user_list[1].id, "2")
 
 
-class TestDataBaseManager(unittest.TestCase):
-    def setUp(self):
-        # 清空全局注册表，否则影响其他测试用例
-        DataBaseModel.__subclass_table__ = []
-
+class TestDBManager(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self) -> None:
+        # 清空全局注册表
+        DBModel.__subclass_table__ = []
+        UpgradeSQL._register = []
         self.tmp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.tmp_dir, "test.db")
-        self.db_client = DataBaseClient(self.db_path)
-        self.db_manager = DBManager(self.db_client)
+        self.db_manager = DBManager(db_path=self.db_path)
+        self.client = AsyncDBClient(db_path=self.db_path)
 
-    def test_create_all(self):
-        class TestModel(DataBaseModel):
-            __table_name__ = "test_table"
-            field1: str = DataBaseField(primary_key=True)
+    async def asyncTearDown(self):
+        if self.client.connection is not None:
+            await self.client.close()
+        shutil.rmtree(self.tmp_dir)
 
-        self.db_manager.create_all()
+    async def test_create_all_success(self):
+        class UserModel(DBModel):
+            __table_name__ = "user"
+            id: str = DBField(primary_key=True)
+            name: str
 
-        # 打开数据库并查询表是否创建成功
-        import sqlite3
+        await self.db_manager.create_all()
+        await self.client.connect()
+        cursor = await self.client.execute(
+            "select name from sqlite_master where type=? and name=?", ("table", "user")
+        )
+        row = await cursor.fetchone()
+        self.assertEqual(row[0], "user")
 
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        cursor.execute("PRAGMA table_info(test_table)")
-        table_info = cursor.fetchall()
-        conn.close()
-
-        self.assertTrue(table_info)
-
-    def test_set_user_version(self):
-        version = self.db_manager.get_user_version()
+    async def test_user_version(self):
+        version = await self.db_manager.user_version()
         self.assertEqual(version, 0)
-        # 设置数据库版本为2
-        self.db_manager.set_user_version(2)
 
-        # 检查数据库版本
-        version = self.db_manager.get_user_version()
-        self.assertEqual(version, 2)
+    async def test_upgrade_version_success(self):
+        UpgradeSQL(
+            1,
+            [
+                "create table if not exists user (id, name, primary key (id));",
+            ],
+        )
+        UpgradeSQL(
+            2,
+            [
+                "alter table user add column age;",
+            ],
+        )
+        with patch.object(DBManager, "DATABASE_VERSION", new=2):
+            self.assertEqual(len(UpgradeSQL._register), 2)
+            await self.db_manager.upgrade_version()
+            await self.client.connect()
+            cursor = await self.client.execute("pragma table_info(user);")
+            column_list = await cursor.fetchall()
+            self.assertEqual(len(column_list), 3)
+            self.assertTrue({"id", "name", "age"}, set(column[1] for column in column_list))
 
-    def test_update_to_version(self):
-        def _upgrade_to_version_1(self):
-            pass
-
-        # 注册升级函数
-        self.db_manager._upgrade_to_version_1 = partial(_upgrade_to_version_1, self.db_manager)
-        self.db_manager._upgrade_to_version_2 = partial(_upgrade_to_version_1, self.db_manager)
-        DBManager.DATABASE_USER_VERSION = 2
-        # 设置当前数据库版本为0
-        self.db_manager.set_user_version(0)
-        self.assertEqual(self.db_manager.get_user_version(), 0)
-        # 运行升级函数并检查版本是否升级
-        self.db_manager.update_to_version()
-        version = self.db_manager.get_user_version()
-        self.assertEqual(version, 2)
+    async def test_upgrade_version_no_opt(self):
+        UpgradeSQL(
+            1,
+            [
+                "create table if not exists user (id, name, primary key (id));",
+            ],
+        )
+        with patch.object(
+            DBManager, "_perform_upgrade_script", new_callable=AsyncMock
+        ) as mock_perform_sql:
+            await self.db_manager.upgrade_version()
+            mock_perform_sql.assert_not_called()

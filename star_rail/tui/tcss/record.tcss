@@ -1,0 +1,30 @@
+GachaRecordDialog {
+    margin:1;
+}
+
+GachaRecordDialog Button {
+    margin: 1;
+    width: auto;
+}
+GachaRecordDialog Vertical {
+    dock:left;
+    width: 20;
+}
+
+GachaRecordDialog RecordDetail {
+    border: dashed green;
+}
+
+RecordDetail GachaContent{
+    width:20;
+    height:1;
+}
+
+RecordDetail GachaContent #desc{
+    dock:left;
+    width: auto;
+}
+RecordDetail GachaContent #value{
+    dock:right;
+    width:auto;
+}

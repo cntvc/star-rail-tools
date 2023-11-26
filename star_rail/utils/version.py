@@ -12,7 +12,7 @@ def compare_versions(version1: str, version2: str):
     """
 
     Return:
-        -1: version1 < version2
+        -1 : version1 < version2
         1 : version1 > version2
         0 : version1 = version2
     """
