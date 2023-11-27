@@ -1,39 +1,42 @@
-from star_rail import exceptions as error
-from star_rail.module import Account
+import json
 
-from .mapper import MonthInfoMapper, MonthInfoRewardSourceMapper
-from .model import MonthInfo, MonthInfoData
-
-
-def month_info_data_to_month_info_mapper(user: Account, month_info: MonthInfoData):
-    """将 MonthInfoData 转换为 MonthInfoMapper"""
-    return MonthInfoMapper(
-        uid=user.uid,
-        month=month_info.data_month,
-        hcoin=month_info.month_data.current_hcoin,
-        rails_pass=month_info.month_data.current_rails_pass,
-    )
+from .mapper import MonthInfoItemMapper
+from .model import MonthInfoData, MonthInfoItem, MonthInfoSource
 
 
-def month_info_data_to_reward_source_mapper(user: Account, month_info: MonthInfoData):
-    """将 MonthInfoData 转为 MonthInfoRewardSourceMapper"""
-    return [
-        MonthInfoRewardSourceMapper(
-            uid=user.uid,
-            month=month_info.data_month,
-            action=item.action,
-            num=item.num,
-            percent=item.percent,
-            action_name=item.action_name,
+def convert_to_month_info_mapper(
+    data: list[MonthInfoData], update_time: str
+) -> list[MonthInfoItemMapper]:
+    month_info_mappers = []
+
+    for item in data:
+        source = [s.model_dump() for s in item.month_data.group_by]
+        month_info_mapper = MonthInfoItemMapper(
+            uid=item.uid,
+            month=item.data_month,
+            hcoin=item.month_data.current_hcoin,
+            rails_pass=item.month_data.current_rails_pass,
+            source=json.dumps(source, ensure_ascii=False),
+            update_time=update_time,
         )
-        for item in month_info.month_data.group_by
-    ]
+
+        month_info_mappers.append(month_info_mapper)
+
+    return month_info_mappers
 
 
-def mapper_to_month_info(data: MonthInfoMapper | list[MonthInfoMapper]):
-    if isinstance(data, list):
-        return [MonthInfo(**item.model_dump()) for item in data]
-    elif isinstance(data, MonthInfoMapper):
-        return MonthInfo(**data.model_dump())
-    else:
-        raise error.HsrException("Invalid param: {}", type(data))
+def convert_to_month_info_item(data: list[MonthInfoItemMapper]) -> list[MonthInfoItem]:
+    result = []
+    for item_mapper in data:
+        month_info_item = MonthInfoItem(
+            uid=item_mapper.uid,
+            month=item_mapper.month,
+            hcoin=item_mapper.hcoin,
+            rails_pass=item_mapper.rails_pass,
+            source=[
+                MonthInfoSource.model_validate(s_item) for s_item in json.loads(item_mapper.source)
+            ],
+            update_time=item_mapper.update_time,
+        )
+        result.append(month_info_item)
+    return result

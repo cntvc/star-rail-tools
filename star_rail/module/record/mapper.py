@@ -1,59 +1,76 @@
-from star_rail.database import (
-    DataBaseClient,
-    DataBaseField,
-    DataBaseModel,
-    model_convert_item,
-    model_convert_list,
-)
+import typing
+
+from star_rail.database import AsyncDBClient, DBField, DBModel
 
 
-class GachaRecordInfoMapper(DataBaseModel):
-    __table_name__ = "record_info"
+class GachaRecordBatchMapper(DBModel):
+    __table_name__ = "gacha_record_batch"
 
-    uid: str = DataBaseField(primary_key=True)
-
+    uid: str
+    batch_id: int = DBField(primary_key=True)
+    """抽卡记录的批次"""
     lang: str
-
-    region: str
-
+    """当前记录批次的lang"""
     region_time_zone: int
+    """服务器时区"""
+    source: str
+    """抽卡记录来源
 
-    @classmethod
-    def query(cls, uid: str):
-        sql = """select * from record_info where uid = ? ;"""
-        with DataBaseClient() as db:
-            row = db.execute(sql, uid).fetchone()
-        return model_convert_item(row, cls)
+        "[URL]" : 剪切板或游戏web缓存获取的链接\n
+        "[{app_name}]" : 从其他app导入的SRGF数据
+    """
+    count: int
+    """本次插入或更新的抽卡记录数量"""
+    timestamp: int
+    """与 region_time_zone 同时区的时间戳"""
+
+    @staticmethod
+    async def query_next_batch_id() -> int:
+        sql = """select coalesce(max(batch_id), 0) + 1 as next_batch_id from gacha_record_batch;"""
+        async with AsyncDBClient() as db:
+            cursor = await db.execute(sql)
+            row = await cursor.fetchone()
+            return row[0]
+
+    @staticmethod
+    async def query_latest_batch(uid: str) -> typing.Optional["GachaRecordBatchMapper"]:
+        """查询最近的一次插入信息"""
+        sql = """select * from gacha_record_batch where uid = ? order by batch_id desc limit 1;"""
+        async with AsyncDBClient() as db:
+            cursor = await db.execute(sql, (uid,))
+            row = await cursor.fetchone()
+            return db.convert(row, GachaRecordBatchMapper)
 
 
-class RecordItemMapper(DataBaseModel):
-    __table_name__ = "record_item"
+class GachaRecordItemMapper(DBModel):
+    __table_name__ = "gacha_record_item"
 
     gacha_id: str
     gacha_type: str
     item_id: str
     time: str
-    id: str = DataBaseField(primary_key=True)
+    id: str = DBField(primary_key=True)
     count: str
     name: str
     rank_type: str
     uid: str
     lang: str
     item_type: str
+    batch_id: int
+    """批次id"""
 
-    @classmethod
-    def query_all(cls, uid: str):
-        """查询按id从小到大排序的跃迁记录"""
+    @staticmethod
+    async def query_latest_gacha_record(uid: str) -> typing.Optional["GachaRecordItemMapper"]:
+        sql = """select * from gacha_record_item where uid = ? order by id desc limit 1;"""
+        async with AsyncDBClient() as db:
+            cursor = await db.execute(sql, (uid,))
+            row = await cursor.fetchone()
+            return db.convert(row, GachaRecordItemMapper)
 
-        sql = """select * from record_item where uid = ? ORDER BY id ;"""
-        with DataBaseClient() as db:
-            row = db.execute(sql, uid).fetchall()
-        return model_convert_list(row, cls)
-
-    @classmethod
-    def query_latest(cls, uid: str):
-        """查询id最大的一条跃迁记录"""
-        sql = """SELECT * FROM record_item where uid = ? ORDER BY id DESC LIMIT 1 ;"""
-        with DataBaseClient() as db:
-            row = db.execute(sql, uid).fetchone()
-        return model_convert_item(row, cls)
+    @staticmethod
+    async def query_all_gacha_record(uid: str) -> list["GachaRecordItemMapper"]:
+        sql = """select * from gacha_record_item where uid = ? order by id;"""
+        async with AsyncDBClient() as db:
+            cursor = await db.execute(sql, (uid,))
+            row = await cursor.fetchall()
+            return db.convert(row, GachaRecordItemMapper)

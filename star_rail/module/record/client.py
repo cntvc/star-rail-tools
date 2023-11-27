@@ -1,49 +1,193 @@
 import bisect
+import functools
 import os
-import time
 import typing
-from pathlib import Path
 
 import pydantic
 import xlsxwriter
-from rich import box
-from rich.columns import Columns
-from rich.console import Console
-from rich.panel import Panel
-from rich.style import Style
-from rich.table import Table
-from rich.tree import Tree
+import yarl
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.config import settings
-from star_rail.i18n import i18n
-from star_rail.module import Account
+from star_rail.core import CursorPaginator, MergedPaginator, Paginator, request
+from star_rail.database import AsyncDBClient
+from star_rail.module import Account, routes
+from star_rail.module.base import BaseClient
 from star_rail.utils import functional
-from star_rail.utils.log import logger
-from star_rail.utils.time import get_format_time
+from star_rail.utils.logger import logger
+from star_rail.utils.time import TimeUtils
 
-from . import api
-from .gacha_record import GachaRecord
-from .model import AnalyzeResult, GachaItem, GachaRecordInfo, _AnalyzeRecordItem, _RecordTypeResult
-from .srgf import SrgfData, convert_to_gacha_record, convert_to_srgf
-from .types import GACHA_TYPE_DICT, GACHA_TYPE_IDS, GachaRecordType
+from . import srgf, types
+from .gacha_url import GachaUrlProvider
+from .mapper import GachaRecordBatchMapper, GachaRecordItemMapper
+from .model import AnalyzeResult, GachaRecordData, GachaRecordItem, StatisticItem, StatisticResult
 
 __all__ = ["GachaRecordClient"]
 
-_lang = i18n.record.client
+
+class GachaRecordAPIClient(BaseClient):
+    def __init__(self, user: Account) -> None:
+        self.user = user
+
+    def filter_required_params(self, url: yarl.URL):
+        """链接替换请求路径只保留必要的参数"""
+        required_params = ("authkey", "lang", "game_biz", "authkey_ver")
+        filtered_params = {key: value for key, value in url.query.items() if key in required_params}
+        return routes.GACHA_LOG_URL.get_url(self.user.game_biz).with_query(filtered_params)
+
+    async def get_url_info(self, url: yarl.URL):
+        """获取URL对应的 UID 和 region 等信息"""
+        uid, lang, region_time_zone = "", "", ""
+        for gacha_type in types.GACHA_TYPE_IDS:
+            data = await self.request_gacha_record_data(url, gacha_type, 1, 0)
+            if data.list:
+                region_time_zone = data.region_time_zone
+                uid = data.list[0].uid
+                lang = data.list[0].lang
+                break
+        return uid, lang, region_time_zone
+
+    async def request_gacha_record_data(
+        self, url: yarl.URL, gacha_type: int | str, size: int | str, end_id: int | str
+    ) -> GachaRecordData:
+        query_params = {
+            "size": size,
+            "gacha_type": gacha_type,
+            "end_id": end_id,
+        }
+        query_params.update(url.query)
+        return GachaRecordData(**await request("GET", url=url, params=query_params))
+
+    async def request_gacha_record_page(
+        self, url: yarl.URL, gacha_type: int | str, size: int | str, end_id: int | str
+    ) -> typing.Sequence[GachaRecordItem]:
+        gacha_data = await self.request_gacha_record_data(url, gacha_type, size, end_id)
+        return gacha_data.list
+
+    async def get_gacha_record(
+        self,
+        url: yarl.URL,
+        *,
+        gacha_type_list: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
+        end_id=0,
+    ) -> Paginator[GachaRecordItem]:
+        """获取跃迁记录
+
+        Args:
+            url (yarl.URL): 跃迁记录URL
+            gacha_type_list : 需要查询的卡池id列表. 默认为 None 时查询全部卡池.
+            end_id (int, optional): 用于翻页的起始查询id. 默认 0 时从第一页开始.
+
+        Returns:
+            Paginator[GachaRecordItem]: 从大到小迭代跃迁记录
+        """
+        gacha_type_list = gacha_type_list or types.GACHA_TYPE_IDS
+
+        if not isinstance(gacha_type_list, typing.Sequence):
+            gacha_type_list = [gacha_type_list]
+
+        max_page_size = 20
+        iterators: list[Paginator[GachaRecordItem]] = []
+
+        for gacha_type in gacha_type_list:
+            iterators.append(
+                CursorPaginator(
+                    functools.partial(
+                        self.request_gacha_record_page,
+                        url=url,
+                        gacha_type=gacha_type,
+                        size=max_page_size,
+                    ),
+                    end_id=end_id,
+                    page_size=max_page_size,
+                )
+            )
+
+        if len(iterators) == 1:
+            return iterators[0]
+        # 从大到小的迭代器，迭代器使用小顶堆排序，比较条件需使用 `-int(x.id)` 按从大到小输出，
+        return MergedPaginator(iterators, key=lambda x: -int(x.id))
 
 
-class RecordAnalyzer:
-    @staticmethod
-    def analyze_data(info: GachaRecordInfo, data: list[GachaItem]):
-        """分析全部抽卡数据"""
-        # 每个卡池统计信息：总抽数，时间范围，5星的具体抽数，未保底计数，平均抽数（不计算未保底）
-        analyze_result = AnalyzeResult(
-            uid=info.uid, update_time=get_format_time(time.time()), lang=info.lang
+class GachaRecordRepository(BaseClient):
+    def __init__(self, user: Account) -> None:
+        self.user = user
+
+    async def get_next_batch_id(self) -> int:
+        """从批次表中获取下一个可用的批次ID"""
+        return await GachaRecordBatchMapper.query_next_batch_id()
+
+    async def get_all_batch(self):
+        """查询所有批次信息"""
+
+    async def get_latest_batch(self) -> GachaRecordBatchMapper | None:
+        return await GachaRecordBatchMapper.query_latest_batch(self.user.uid)
+
+    async def get_latest_gacha_record_by_uid(self) -> typing.Optional[GachaRecordItem]:
+        """根据UID从数据库查询出最大的一条记录"""
+        record_mapper = await GachaRecordItemMapper.query_latest_gacha_record(self.user.uid)
+        if not record_mapper:
+            return None
+        from . import converter
+
+        return converter.convert_to_record_item(record_mapper)
+
+    async def get_all_gacha_record(self) -> list[GachaRecordItem]:
+        """查询账户的所有抽卡记录"""
+        record_mapper_list = await GachaRecordItemMapper.query_all_gacha_record(self.user.uid)
+        from . import converter
+
+        return converter.convert_to_record_item(record_mapper_list)
+
+    async def insert_gacha_record(self, gacha_record_list: list[GachaRecordItem], params: dict):
+        """批量插入抽卡记录
+
+        Args:
+            gacha_record_list (list[GachaRecordItem]): 抽卡记录
+            params (dict): 抽卡记录归档信息
+                required: (uid, batch_id, lang, region_time_zone, source)
+
+        Raises:
+            error.HsrException: 保存数据出现错误
+        """
+        logger.debug("Insert gacha record data.")
+        from . import converter
+
+        record_item_mapper_list = converter.convert_to_record_item_mapper(
+            gacha_record_list, params["batch_id"]
         )
 
-        def analyze_for_type(gacha_type: str, record_item_list: list[GachaItem]):
+        async with AsyncDBClient() as db:
+            await db.start_transaction()
+            cnt = await db.insert(record_item_mapper_list, mode="ignore")
+
+            if cnt == 0:
+                # 数据库无新增记录
+                return 0
+            local_time = TimeUtils.get_local_time()
+            server_time = TimeUtils.local_time_to_timezone(local_time, params["region_time_zone"])
+
+            record_batch_mapper = GachaRecordBatchMapper(
+                **params, count=cnt, timestamp=TimeUtils.convert_to_timestamp(server_time)
+            )
+            await db.insert(record_batch_mapper, "ignore")
+
+            await db.commit_transaction()
+        logger.debug("Add {} new gacha records.", cnt)
+        return cnt
+
+
+class GachaRecordAnalyzer(BaseClient):
+    def __init__(self, user: Account) -> None:
+        self.user = user
+
+    def analyze_records(self, gacha_record_list: list[GachaRecordItem]):
+        analyze_result = AnalyzeResult(
+            uid=self.user.uid,
+            update_time=TimeUtils.get_format_time(TimeUtils.get_time()),
+        )
+
+        def analyze(gacha_type: str, record_item_list: list[GachaRecordItem]):
             """分析单一跃迁类型数据"""
             # 5 星列表
             rank_5_row_list = [item for item in record_item_list if item.rank_type == "5"]
@@ -58,7 +202,7 @@ class RecordAnalyzer:
                 ]
                 # 将 5 星与抽数对应起来，用 rank_5_index 表示抽数
                 rank_5_item_list = [
-                    _AnalyzeRecordItem(index=str(rank_5_index), **rank_5_item.model_dump())
+                    StatisticItem(index=str(rank_5_index), **rank_5_item.model_dump())
                     for rank_5_item, rank_5_index in zip(rank_5_row_list, rank_5_index)
                 ]
             else:
@@ -69,276 +213,112 @@ class RecordAnalyzer:
                 if not rank_5_row_index
                 else len(record_item_list) - rank_5_row_index[-1]
             )
-            return _RecordTypeResult(
+            return StatisticResult(
                 gacha_type=gacha_type,
                 pity_count=pity_count,
                 total_count=len(record_item_list),
                 rank_5=rank_5_item_list,
             )
 
-        for gacha_type_id in GACHA_TYPE_IDS:
-            gacha_data = [item for item in data if item.gacha_type == gacha_type_id]
-            analyze_result.data.append(analyze_for_type(gacha_type_id, gacha_data))
+        for gacha_type_id in types.GACHA_TYPE_IDS:
+            gacha_data = [item for item in gacha_record_list if item.gacha_type == gacha_type_id]
+            analyze_result.data.append(analyze(gacha_type_id, gacha_data))
         return analyze_result
 
-    @staticmethod
-    def load_data(path: str | Path) -> AnalyzeResult | None:
-        """从文件加载已分析的数据"""
-        if not os.path.exists(path):
-            return None
+    async def refresh_analyze_result(self):
+        record_repository = GachaRecordRepository(self.user)
+        gacha_record_list = await record_repository.get_all_gacha_record()
+        analyze_result = self.analyze_records(gacha_record_list)
+        functional.save_json(self.user.gacha_record_analyze_path, analyze_result.model_dump())
 
-        try:
-            analyze_result = AnalyzeResult.model_validate(functional.load_json(path))
-        except pydantic.ValidationError:
-            os.remove(path)
-            return None
-        return analyze_result
-
-    @staticmethod
-    def refresh(user: Account):
-        """刷新分析结果文件"""
-        record_info, record_item_list = GachaRecord.query_record_archive(user.uid)
-        record_info = GachaRecord.query_record_info(user.uid)
-        if record_info is None:
-            return False
-        record_item_list = GachaRecord.query_all_record_item(user.uid)
-        analyze_result = RecordAnalyzer.analyze_data(record_info, record_item_list)
-        functional.save_json(user.gacha_record_analyze_path, analyze_result.model_dump())
-        return True
-
-
-class DataVisualization:
-    title_style = Style(color="cadet_blue", bold=True)
-    header_style = Style(color="cadet_blue")
-
-    def __init__(self, data: AnalyzeResult) -> None:
-        self.analyze_result = data
-        self.analyze_result.data = sorted(
-            self.analyze_result.data, key=lambda item: item.gacha_type
-        )
-        self.gacha_type_dict = GACHA_TYPE_DICT.copy()
-        if settings.DISPLAY_STARTER_WARP is False:
-            del self.gacha_type_dict[GachaRecordType.STARTER_WARP.value]
-
-    def create_overview_table(self):
-        table = Table(
-            title=i18n.table.total.title,
-            box=box.ASCII2,
-            header_style=self.header_style,
-            title_style=self.title_style,
-        )
-        table.add_column(i18n.table.total.gacha)
-        table.add_column(i18n.table.total.total_cnt)
-        table.add_column(i18n.table.total.star5_cnt)
-        table.add_column(i18n.table.total.star5_avg_cnt)
-        table.add_column(i18n.table.total.pity_cnt)
-
-        for item in self.analyze_result.data:
-            total_count = item.total_count
-            rank5_count = len(item.rank_5)
-            pity_count = item.pity_count
-            rank5_average = "-"
-            if rank5_count:
-                rank5_average = (total_count - pity_count) / rank5_count
-                rank5_average = round(rank5_average, 2)
-            if item.gacha_type not in self.gacha_type_dict:
-                # 跳过新手池显示
-                continue
-            table.add_row(
-                self.gacha_type_dict[item.gacha_type],
-                str(total_count),
-                str(rank5_count),
-                str(rank5_average),
-                str(pity_count),
-            )
-        return table
-
-    def create_detail_table(self):
-        """以表格形式竖列显示"""
-        max_rank5_len = max([len(item.rank_5) for item in self.analyze_result.data])
-        table = Table(
-            title=i18n.table.star5.title,
-            box=box.ASCII2,
-            header_style=self.header_style,
-            title_style=self.title_style,
-        )
-        for gacha_name in self.gacha_type_dict.values():
-            table.add_column(gacha_name, justify="left", overflow="ellipsis")
-
-        rank5_data = {}
-        for item in self.analyze_result.data:
-            rank5_detail = [
-                item.name + " : " + item.index + i18n.table.star5.pull_count for item in item.rank_5
-            ]
-            # 表格不支持可变长度，因此在末尾追加空字符串使列表长度一致
-            rank5_detail += [""] * (max_rank5_len - len(rank5_detail))
-            rank5_data[item.gacha_type] = rank5_detail
-
-        for i in range(max_rank5_len):
-            data = [rank5_data[gacha_type][i] for gacha_type in self.gacha_type_dict.keys()]
-
-            table.add_row(*data)
-        return table
-
-    def create_detail_tree(self):
-        """以单元素形式平铺"""
-        tree = Tree("[bold cadet_blue]" + i18n.table.star5.title)
-        for item in self.analyze_result.data:
-            rank5_detail = [
-                Panel(item.name + " : " + item.index + i18n.table.star5.pull_count, expand=True)
-                for item in item.rank_5
-            ]
-            if item.gacha_type not in self.gacha_type_dict:
-                # 跳过新手池显示
-                continue
-            tree.add("[cadet_blue]" + self.gacha_type_dict[item.gacha_type]).add(
-                Columns(rank5_detail)
-            )
-        return tree
-
-    def display(self):
-        functional.clear_all()
-        print("UID:", functional.color_str("{}".format(self.analyze_result.uid), "green"))
-        print(_lang.analyze_update_time, self.analyze_result.update_time, end="\n\n")
-        _console = Console()
-        _console.print(self.create_overview_table())
-        print("", end="\n\n")
-        if settings.GACHA_RECORD_DESC_MOD == "tree":
-            _console.print(self.create_detail_tree())
-        elif settings.GACHA_RECORD_DESC_MOD == "table":
-            _console.print(self.create_detail_table())
+    async def load_analyze_result(self):
+        if self.user.gacha_record_analyze_path.exists():
+            try:
+                return AnalyzeResult(**functional.load_json(self.user.gacha_record_analyze_path))
+            except pydantic.ValidationError:
+                await self.refresh_analyze_result()
+                return AnalyzeResult(**functional.load_json(self.user.gacha_record_analyze_path))
         else:
-            raise error.HsrException(i18n.error.param_value_error, settings.GACHA_RECORD_DESC_MOD)
-
-    @staticmethod
-    def set_display_mode(mode: typing.Literal["table", "tree"]):
-        settings.GACHA_RECORD_DESC_MOD = mode
-        settings.save_config()
-        logger.success(i18n.config.settings.update_success)
-
-    @staticmethod
-    def get_show_display_desc():
-        """获取当前显示模式描述"""
-        if settings.GACHA_RECORD_DESC_MOD == "table":
-            return _lang.show_mode_table
-        elif settings.GACHA_RECORD_DESC_MOD == "tree":
-            return _lang.show_mode_tree
-        else:
-            raise error.HsrException(i18n.error.param_value_error, settings.GACHA_RECORD_DESC_MOD)
-
-    @staticmethod
-    def set_display_starter_warp(status: bool):
-        settings.DISPLAY_STARTER_WARP = status
-        settings.save_config()
-        logger.success(i18n.config.settings.update_success)
-
-    @staticmethod
-    def get_display_starter_warp_desc():
-        return "{}: {}".format(
-            i18n.config.settings.current_status,
-            functional.color_str(i18n.common.open, "green")
-            if settings.DISPLAY_STARTER_WARP
-            else functional.color_str(i18n.common.close, "red"),
-        )
+            await self.refresh_analyze_result()
+            return AnalyzeResult(**functional.load_json(self.user.gacha_record_analyze_path))
 
 
-class GachaRecordClient:
+class GachaRecordClient(BaseClient):
     def __init__(self, user: Account) -> None:
         self.user = user
 
-    def refresh_gacha_record(self, source: typing.Literal["web_cache", "clipboard"] = "web_cache"):
-        if source == "clipboard":
-            url = api.get_clipboard_url()
-        else:
-            url = api.get_game_cache_url(self.user)
+    async def refresh_gacha_record(self, source: typing.Literal["webcache", "clipboard"]):
+        """刷新跃迁记录
 
+        Return:
+            成功更新的数量
+        """
+        if source == "webcache":
+            url = GachaUrlProvider().parse_game_web_cache(self.user)
+        elif source == "clipboard":
+            url = GachaUrlProvider().parse_clipboard_url()
+        else:
+            raise error.HsrException(
+                f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
+            )
         if url is None:
-            logger.warning(_lang.invalid_gacha_url)
-            return
+            raise error.GachaRecordError("Not found valid url.")
 
-        gacha_record = GachaRecord(url)
-        if not gacha_record.verify_url():
-            logger.warning(_lang.invalid_gacha_url)
-            return
-        logger.debug(functional.desensitize_url(str(url), "authkey"))
-        record_info = gacha_record.get_record_url_info(url)
-        if self.user.uid != record_info.uid:
-            logger.warning(_lang.diff_account)
-            return
+        api_client = GachaRecordAPIClient(self.user)
+        url = api_client.filter_required_params(url)
+        uid, lang, region_time_zone = await api_client.get_url_info(url)
 
-        self.user.gacha_url = str(url)
-        self.user.save_profile()
+        if not uid:
+            raise error.GachaRecordError("This url has no gacha record.")
 
-        record_item_list = gacha_record.fetch_record_item_list()
+        if self.user.uid != uid:
+            raise error.GachaRecordError("The url does not belong to the current account.")
 
-        # 数据库增量更新
-        latest_gacha_item = gacha_record.query_latest_record_item(self.user.uid)
-        if not latest_gacha_item:
-            # 数据库无记录，直接保存全部数据
-            GachaRecord.save_record_info(record_info)
-            GachaRecord.save_record_item_list(record_item_list)
+        gacha_record_iter = await api_client.get_gacha_record(url)
+        gacha_item_list = list(await gacha_record_iter.flatten())
+        # 反转后为从小到大排序
+        gacha_item_list.reverse()
+
+        # 新增数据插入到数据库：
+        # 首先查询批次表，获取下一个批次ID
+        # 根据UID从数据库查询出最大的一条记录
+        #     如果无记录，直接全部插入
+        #     有记录，比较id后只对数据库插入不存在的条目
+        # 根据插入操作返回的数量，生成 时间、数据来源、服务器时区、语言等信息，插入到 批次表
+
+        record_repository = GachaRecordRepository(self.user)
+        latest_record = await record_repository.get_latest_gacha_record_by_uid()
+
+        if latest_record:
+            index = bisect.bisect_right(gacha_item_list, latest_record)
+            need_insert = gacha_item_list[index:]
         else:
-            # 查找到最新的跃迁记录位置索引
-            index = bisect.bisect_right(record_item_list, latest_gacha_item)
-            new_record_data = record_item_list[index:]
-            GachaRecord.save_record_item_list(new_record_data)
+            need_insert = gacha_item_list
+        cnt = 0
+        if need_insert:
+            next_batch_id = await record_repository.get_next_batch_id()
+            params = dict(
+                uid=self.user.uid,
+                batch_id=next_batch_id,
+                lang=lang,
+                region_time_zone=region_time_zone,
+                source=source,
+            )
+            cnt = await record_repository.insert_gacha_record(need_insert, params)
 
-        RecordAnalyzer.refresh(self.user)
-        self.show_analyze_result()
+        # 查询所有记录并生成统计结果
+        await GachaRecordAnalyzer(self.user).refresh_analyze_result()
+        return cnt
 
-    def show_analyze_result(self):
-        if not self.user.gacha_record_analyze_path.exists():
-            if RecordAnalyzer.refresh(self.user) is False:
-                logger.warning(_lang.account_no_record_data)
-                return
+    async def export_to_execl(self):
+        """导出所有数据到ExecL
 
-        analyze_result = RecordAnalyzer.load_data(self.user.gacha_record_analyze_path)
-        if analyze_result:
-            DataVisualization(analyze_result).display()
-        else:
-            RecordAnalyzer.refresh(self.user)
-            analyze_result = RecordAnalyzer.load_data(self.user.gacha_record_analyze_path)
-            DataVisualization(analyze_result).display()
+        即使账户无数据也会正常导出
+        """
+        logger.debug("Export gacha record to Execl.")
+        record_repository = GachaRecordRepository(self.user)
 
-    def import_gacha_record(self):
-        logger.debug("import gacha record")
-        import_data_path = constants.IMPORT_DATA_PATH
-        file_list = [
-            name
-            for name in os.listdir(import_data_path)
-            if os.path.isfile(os.path.join(import_data_path, name)) and name.endswith(".json")
-        ]
-        record_info = None
-
-        for file_name in file_list:
-            file_path = os.path.join(import_data_path, file_name)
-            data = functional.load_json(file_path)
-            try:
-                srgf_data = SrgfData(**data)
-            except pydantic.ValidationError:
-                logger.info(_lang.invalid_srgf_data, file_path)
-                continue
-            if srgf_data.info.uid != self.user.uid:
-                logger.info(_lang.diff_account_srgf_data, file_path)
-                continue
-            record_info, item_list = convert_to_gacha_record(srgf_data)
-            GachaRecord.save_record_info(record_info)
-            GachaRecord.save_record_item_list(item_list)
-            logger.success(_lang.import_file_success, file_path)
-
-        if record_info is None:
-            logger.warning(_lang.no_file_import)
-            return
-        RecordAnalyzer.refresh(self.user)
-        self.show_analyze_result()
-
-    def export_record_to_xlsx(self):
-        record_info = GachaRecord.query_record_info(self.user.uid)
-        if not record_info:
-            logger.warning(_lang.account_no_record_data)
-            return
-        gacha_record_list = GachaRecord.query_all_record_item(self.user.uid)
-        logger.debug("create sheet: " + self.user.gacha_record_xlsx_path.as_posix())
+        gacha_record_list = await record_repository.get_all_gacha_record()
         os.makedirs(self.user.gacha_record_xlsx_path.parent.as_posix(), exist_ok=True)
         workbook = xlsxwriter.Workbook(self.user.gacha_record_xlsx_path.as_posix())
 
@@ -366,21 +346,21 @@ class GachaRecordClient:
         star_4 = workbook.add_format({"color": "#a256e1", "bold": True})
         star_3 = workbook.add_format({"color": "#8e8e8e"})
 
-        for gacha_type in GACHA_TYPE_IDS:
+        for gacha_type in types.GACHA_TYPE_IDS:
             gacha_record_type_list = [
                 item for item in gacha_record_list if item.gacha_type == gacha_type
             ]
-            gacha_type_name = GACHA_TYPE_DICT[gacha_type]
+            gacha_type_name = types.GACHA_TYPE_DICT[gacha_type]
 
             worksheet = workbook.add_worksheet(gacha_type_name)
             excel_header = [
-                i18n.execl.header.time,
-                i18n.execl.header.name,
-                i18n.execl.header.type,
-                i18n.execl.header.level,
-                i18n.execl.header.gacha_type,
-                i18n.execl.header.total_count,
-                i18n.execl.header.pity_count,
+                "时间",
+                "名称",
+                "类别",
+                "星级",
+                "跃迁类型",
+                "总次数",
+                "保底计数",
             ]
             worksheet.set_column("A:A", 22)
             worksheet.set_column("B:B", 14)
@@ -390,8 +370,8 @@ class GachaRecordClient:
             counter = 0
             pity_counter = 0
             for item in gacha_record_type_list:
-                counter = counter + 1
-                pity_counter = pity_counter + 1
+                counter += 1
+                pity_counter += 1
                 excel_data = [
                     item.time,
                     item.name,
@@ -432,33 +412,60 @@ class GachaRecordClient:
                 last_col,
                 {"type": "formula", "criteria": "=$D2=3", "format": star_3},
             )
-            logger.debug(
-                "create sheet {}，total count: {} ", gacha_type_name, len(gacha_record_type_list)
-            )
-
         workbook.close()
-        logger.debug("create xlsx file success")
-        logger.success(_lang.export_file_success, self.user.gacha_record_xlsx_path.as_posix())
 
-    def export_record_to_srgf(self):
-        record_info = GachaRecord.query_record_info(self.user.uid)
-        if not record_info:
-            logger.warning(_lang.account_no_record_data)
-            return
-        gacha_record_list = GachaRecord.query_all_record_item(self.user.uid)
-        srgf_data = convert_to_srgf(record_info, gacha_record_list)
+    async def export_to_srgf(self):
+        logger.debug("Export gacha record to SRGF.")
+        record_repository = GachaRecordRepository(self.user)
+        gacha_record_list = await record_repository.get_all_gacha_record()
+        if not gacha_record_list:
+            return False
+        record_batch = await record_repository.get_latest_batch()
+        srgf_data = srgf.convert_to_srgf(gacha_record_list, record_batch)
         functional.save_json(self.user.srgf_path, srgf_data.model_dump())
-        logger.success(_lang.export_file_success, self.user.srgf_path.as_posix())
+        return True
 
-    def set_gacha_record_display_mode(self, mode: typing.Literal["table", "tree"]):
-        DataVisualization.set_display_mode(mode)
+    async def _import_srgf_data(self, file_data: srgf.SRGFData):
+        record_repository = GachaRecordRepository(self.user)
+        item_list, info = srgf.convert_to_gacha_record_data(file_data)
 
-    def get_gacha_record_visualization_desc(self):
-        """获取当前显示模式描述"""
-        return DataVisualization.get_show_display_desc()
+        next_batch_id = await record_repository.get_next_batch_id()
+        info.update(batch_id=next_batch_id)
+        return await record_repository.insert_gacha_record(item_list, info)
 
-    def set_display_starter_warp(self, status: bool):
-        DataVisualization.set_display_starter_warp(status)
+    async def import_srgf_json(self):
+        """导入SRGF数据
 
-    def get_display_starter_warp_desc(self):
-        return DataVisualization.get_display_starter_warp_desc()
+        Return:
+            成功导入的数据数量"""
+        logger.debug("Import SRGF.")
+        import_data_path = constants.IMPORT_DATA_PATH
+        file_list = [
+            name
+            for name in os.listdir(import_data_path)
+            if os.path.isfile(os.path.join(import_data_path, name)) and name.endswith(".json")
+        ]
+        invalid_file_list = []
+        cnt = 0
+
+        for file_name in file_list:
+            file_path = os.path.join(import_data_path, file_name)
+            data = functional.load_json(file_path)
+            try:
+                srgf_data = srgf.SRGFData.model_validate(data)
+            except pydantic.ValidationError:
+                invalid_file_list.append(file_name)
+                continue
+            if srgf_data.info.uid != self.user.uid:
+                invalid_file_list.append(file_name)
+                continue
+
+            cnt += await self._import_srgf_data(srgf_data)
+
+        if cnt:
+            await GachaRecordAnalyzer(self.user).refresh_analyze_result()
+        return cnt, invalid_file_list
+
+    async def view_analysis_results(self):
+        analyzer = GachaRecordAnalyzer(self.user)
+        return await analyzer.load_analyze_result()

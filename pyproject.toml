@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "star_rail"
-version = "2.1.1"
-description = "Honkai: Star Rail Gacha Record Export Tools"
+version = "3.0.0"
+description = "Honkai: Star Rail Toolkit"
 authors = ["Charlie Brown <cntvc@outlook.com>"]
 license = "GPLv3"
 readme = "README.md"
@@ -10,31 +10,34 @@ packages = [{include = "star_rail"}]
 
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.11,<3.13" # pyinstaller requires ">=3.11,<3.13"
 loguru = "^0.7.2"
-requests = "^2.31.0"
-xlsxwriter = "^3.1.7"
-pydantic = "^2.4.2"
+pydantic = "^2.5.1"
+aiohttp = "^3.9.0"
+yarl = "^1.9.2" # subdependencies for aiohttp
+aiosqlite = "^0.19.0"
 pyperclip = "^1.8.2"
-yarl = "^1.9.2"
-rich = "^13.6.0"
+xlsxwriter = "^3.1.9"
+textual = "^0.41.0"
 pycryptodome = "^3.19.0"
 
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"
-black = "^23.9.1"
+black = "^23.11.0"
 flake8 = "^6.1.0"
-pre-commit = "^3.4.0"
+pre-commit = "^3.5.0"
+textual-dev = "^1.2.1"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.2"
+pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
+pytest-asyncio = "^0.21.1"
 
 
 [tool.poetry.group.release.dependencies]
-pyinstaller = "^6.0.0"
+pyinstaller = "^6.2.0"
 
 
 [build-system]
@@ -49,3 +52,15 @@ profile = "black"
 
 [tool.black]
 line-length = 100
+
+[tool.pytest.ini_options]
+addopts = ["-vs"]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+omit = [
+    "**/__init__.py",
+    "**/mapper.py",
+    "exceptions.py",
+    "main.py",
+]

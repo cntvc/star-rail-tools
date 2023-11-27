@@ -1,10 +1,9 @@
 import enum
-import typing
 
-from star_rail.i18n import i18n
+__all__ = ["GachaRecordType", "GACHA_TYPE_IDS", "GACHA_TYPE_DICT"]
 
 
-class GachaRecordType(str, enum.Enum):
+class GachaRecordType(enum.StrEnum):
     REGULAR_WARP = "1"
     STARTER_WARP = "2"
     CHARACTER_EVENT_WARP = "11"
@@ -14,12 +13,11 @@ class GachaRecordType(str, enum.Enum):
 GACHA_TYPE_IDS: list[str] = [member.value for member in GachaRecordType]
 """抽卡类型列表"""
 
-GACHA_TYPE_DICT: typing.OrderedDict[str, str] = typing.OrderedDict(
-    {
-        GachaRecordType.REGULAR_WARP.value: i18n.regular_warp,
-        GachaRecordType.STARTER_WARP.value: i18n.starter_warp,
-        GachaRecordType.CHARACTER_EVENT_WARP.value: i18n.character_event_warp,
-        GachaRecordType.LIGHT_CONE_EVENT_WARP.value: i18n.light_cone_event_warp,
-    }
-)
+GACHA_TYPE_DICT = {
+    GachaRecordType.REGULAR_WARP.value: "常驻跃迁",
+    GachaRecordType.STARTER_WARP.value: "新手跃迁",
+    GachaRecordType.CHARACTER_EVENT_WARP.value: "角色活动跃迁",
+    GachaRecordType.LIGHT_CONE_EVENT_WARP.value: "光锥活动跃迁",
+}
+
 """[抽卡类型ID:抽卡类型名]"""

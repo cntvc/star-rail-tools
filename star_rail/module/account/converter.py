@@ -1,21 +1,24 @@
+from star_rail.module.types import GameBiz, Region
+
 from .account import Account
 from .cookie import Cookie
-from .mapper import CookieMapper, UserMapper
+from .mapper import AccountMapper
 
 
-def user_to_mapper(user: Account):
-    return UserMapper(
-        uid=user.uid, gacha_url=user.gacha_url, region=user.region, game_biz=user.game_biz
+def account_to_mapper(user: Account):
+    return AccountMapper(
+        uid=user.uid,
+        cookie=user.cookie.model_dump_json(exclude_defaults=True),
+        region=user.region,
+        game_biz=user.game_biz,
     )
 
 
-def user_mapper_to_user(user_mapper: UserMapper):
-    return Account(**user_mapper.model_dump())
-
-
-def cookie_to_cookie_mapper(user: Account, cookie: Cookie):
-    return CookieMapper(uid=user.uid, **cookie.model_dump())
-
-
-def cookie_mapper_to_cookie(cookie_mapper: CookieMapper):
-    return Cookie(**cookie_mapper.model_dump())
+def mapper_to_account(user_mapper: AccountMapper):
+    cookie = Cookie.model_validate_json(user_mapper.cookie)
+    return Account(
+        uid=user_mapper.uid,
+        cookie=cookie,
+        region=Region.get_by_str(user_mapper.region),
+        game_biz=GameBiz.get_by_str(user_mapper.game_biz),
+    )

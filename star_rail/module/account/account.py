@@ -1,29 +1,24 @@
+import base64
 import re
 from pathlib import Path
 
 import pyperclip
-from pydantic import BaseModel, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ValidationError, field_serializer, field_validator, model_validator
 
 from star_rail import constants
-from star_rail import exceptions as error
-from star_rail.config import settings
-from star_rail.database import DataBaseClient
-from star_rail.i18n import i18n
-from star_rail.utils.functional import color_str
-from star_rail.utils.log import logger
-from star_rail.utils.menu import MenuItem
+from star_rail.config.settings import settings
+from star_rail.core import request
+from star_rail.module import routes
+from star_rail.module.header import Header
+from star_rail.module.types import GameBiz, GameType, Region
+from star_rail.utils.logger import logger
 from star_rail.utils.security import AES128
 
-from ..api_helper import DefaultHeader, Header, Salt, request
-from ..routes import GAME_RECORD_CARD_URL
-from ..types import GameBiz, GameType, Region
 from .cookie import Cookie
-from .mapper import CookieMapper, UserMapper
+from .mapper import AccountMapper
 from .model import GameRecordCard, UserGameRecordCards
 
-__all__ = ["Account", "AccountManager"]
-
-_lang = i18n.account
+__all__ = ["Account", "AccountClient"]
 
 
 def verify_uid_format(v):
@@ -37,24 +32,20 @@ _UID_RE = re.compile("^[1-9][0-9]{8}$")
 
 class Account(BaseModel):
     uid: str
-    """星铁账户 UID"""
     cookie: Cookie = Cookie()
-    gacha_url: str = ""
 
     # 以下成员根据 uid 初始化
-    region: str = ""
-    game_biz: str = ""
+    region: Region = None
+    game_biz: GameBiz = None
 
     gacha_record_xlsx_path: Path = ""
     gacha_record_analyze_path: Path = ""
     srgf_path: Path = ""
 
-    def __init__(self, uid: str, **data):
-        super().__init__(uid=uid, **data)
-
     _verify_uid_format = field_validator("uid", mode="before")(verify_uid_format)
 
-    _serialize_include_keys = {"cookie", "uid", "gacha_url"}
+    def __init__(self, uid: str, **data):
+        super().__init__(uid=uid, **data)
 
     @model_validator(mode="after")
     def init_param(self):
@@ -66,101 +57,86 @@ class Account(BaseModel):
         self.gacha_record_xlsx_path = Path(
             constants.ROOT_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
         )
+        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
         self.gacha_record_analyze_path = Path(
             constants.TEMP_PATH, f"GachaRecordAnalyze_{self.uid}.json"
         )
-        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
 
     def _init_game_biz(self):
-        self.game_biz = GameBiz.get_by_uid(self.uid).value
+        self.game_biz = GameBiz.get_by_uid(self.uid)
 
     def _init_region(self):
-        self.region = Region.get_by_uid(self.uid).value
+        self.region = Region.get_by_uid(self.uid)
 
-    def _encrypt_cookie(self) -> dict[str, str]:
-        if not settings.SALT:
-            raise error.EncryptError("Empty salt value")
-        # 未设置 Cookie 时无需加密
-        if self.cookie.is_empty():
-            return {}
-        aes128 = AES128(settings.SALT)
-        cookie = self.cookie.model_dump()
-        return {k: aes128.encrypt(v) for k, v in cookie.items()}
+    @field_serializer("region")
+    def serialize_region(self, region: Region):
+        return region.value
 
-    def _decrypt_cookie(self, cookie: Cookie) -> Cookie:
-        if not settings.SALT:
-            raise error.DecryptError("Empty salt value")
-        # 未设置 Cookie 时无需解密
-        if cookie.is_empty():
-            return cookie
-        aes128 = AES128(settings.SALT)
-        for k in cookie.model_fields.keys():
-            setattr(cookie, k, aes128.decrypt(getattr(cookie, k)))
-        return cookie
+    @field_serializer("game_biz")
+    def serialize_game_biz(self, game_biz: GameBiz):
+        return game_biz.value
 
-    def save_profile(self):
-        """保存数据到 user 表和 cookie 表"""
-        logger.debug("save user profile")
+    def model_dump(self, include={"uid", "cookie", "region", "game_biz"}, **kwargs):
+        return super().model_dump(include=include, **kwargs)
 
-        from . import converter as converter
-
-        user_mapper = converter.user_to_mapper(self)
-        # 如果配置文件中 Salt 值不存在，表示为旧版本升级或者配置文件被删除等其他原因，那么自动生成一个并保存
-        if not settings.SALT:
-            salt = AES128.generate_salt()
-            settings.SALT = salt
-            settings.save_config()
-
-        encrypt_cookie = self._encrypt_cookie()
-        cookie_mapper = CookieMapper(uid=self.uid, **encrypt_cookie)
-        with DataBaseClient() as db:
-            db.insert(user_mapper, "update")
-            db.insert(cookie_mapper, "update")
-
-    def reload_profile(self) -> bool:
-        """重新加载用户数据"""
-        from . import converter as converter
-
-        logger.debug("load user profile")
-
-        user_mapper = UserMapper.query_user(self.uid)
-        if user_mapper is None:
+    async def load_profile(self) -> bool:
+        logger.debug("Load profile. Account: {}", self.uid)
+        account_mapper = await AccountMapper.query_by_uid(self.uid)
+        if account_mapper is None:
             return False
-        local_user = converter.user_mapper_to_user(user_mapper)
-        local_user_cookie_mapper = CookieMapper.query_cookie(self.uid)
-        local_cookie = converter.cookie_mapper_to_cookie(local_user_cookie_mapper)
 
-        """
-        加载账户基本数据时，使用配置文件中的 salt 对 cookie 解密
-        如果解密错误，表示 salt 无效或出现其他错误，重置配置文件的 salt 和数据库 cookie
+        from . import converter
 
-        如果配置文件中 Salt 值不存在，表示为旧版本升级或者配置文件被删除等其他原因，那么自动生成一个并保存
-        """
-        if not settings.SALT:
-            salt = AES128.generate_salt()
-            settings.SALT = salt
-            settings.save_config()
+        local_account = converter.mapper_to_account(account_mapper)
+
+        def decrypt_cookie(cookie: Cookie) -> Cookie:
+            # 如果 cookie 为默认值（空），则不进行解密
+            cookie_dict = cookie.model_dump("all")
+            if not cookie_dict:
+                return cookie
+            key = base64.b64decode(settings.ENCRYPT_KEY)
+            aes = AES128(key)
+            return Cookie(**{c_k: aes.decrypt(c_v) for c_k, c_v in cookie_dict.items()})
 
         try:
-            local_user.cookie = self._decrypt_cookie(local_cookie)
-        except error.DecryptError:
-            logger.debug("Decrypt cookie failed, reset data")
-            settings.SALT = ""
+            local_account.cookie = decrypt_cookie(local_account.cookie)
+        except Exception:
+            # 如果解密失败，key失效，重置 key 和 Cookie
+            settings.ENCRYPT_KEY = ""
             settings.save_config()
-            empty_cookie_mapper = converter.cookie_to_cookie_mapper(self, Cookie())
-            with DataBaseClient() as db:
-                db.insert(empty_cookie_mapper, "update")
-            local_user.cookie = Cookie()
+            self.cookie = Cookie()
+            await self.save_profile()
+            return True
 
-        for k in local_user.model_fields_set:
-            if k not in self._serialize_include_keys:
-                continue
-            v = getattr(local_user, k)
-            setattr(self, k, v)
+        for k in local_account.model_fields_set:
+            setattr(self, k, getattr(local_account, k))
         return True
 
-    def model_dump(self, *args, **kwargs):
-        return super().model_dump(include=self._serialize_include_keys)
+    async def save_profile(self) -> bool:
+        logger.debug("Save profile. Account: {}", self.uid)
+
+        def encrypt_cookie(cookie: Cookie) -> Cookie:
+            # 加密时，如果key不存在则生成新key
+            # 当cookie中value全部为默认值（即未设置Cookie）则不进行加密
+            # 否则使用该key对cookie的value加密，返回加密后的Cookie对象
+
+            if not settings.ENCRYPT_KEY:
+                settings.ENCRYPT_KEY = AES128.generate_aes_key()
+                settings.save_config()
+
+            cookie_dict = cookie.model_dump("all")
+            if not cookie_dict:
+                return cookie
+            key = base64.b64decode(settings.ENCRYPT_KEY)
+            aes = AES128(key)
+            return Cookie(**{k: aes.encrypt(v) for k, v in cookie_dict.items()})
+
+        insert_user = self.model_copy(deep=True, update={"cookie": encrypt_cookie(self.cookie)})
+        from . import converter
+
+        account_mapper = converter.account_to_mapper(insert_user)
+        cnt = await AccountMapper.add_account(account_mapper)
+        return True if cnt else False
 
     @staticmethod
     def verify_uid(v):
@@ -173,145 +149,79 @@ class Account(BaseModel):
         return self.uid != other.uid or self.cookie != other.cookie
 
 
-class AccountManager:
-    def __init__(self):
-        self.user: Account = None
+class AccountClient:
+    user: Account
 
-    def init_default_user(self):
-        logger.debug("init default user")
+    async def init_default_account(self):
+        logger.debug("Init default account.")
         if not settings.DEFAULT_UID:
-            self.user = None
             return
         self.user = Account(settings.DEFAULT_UID)
-        result = self.user.reload_profile()
-        if result is False:
-            # 本地文件设置了默认账户数据库却不存在该账号
+        result = await self.user.load_profile()
+        if not result:
+            # 本地配置文件记录了但数据库无数据
             self.user = None
             settings.DEFAULT_UID = ""
             settings.save_config()
 
-    def login(self, user: str | Account):
-        if isinstance(user, str):
-            self.user = Account(user)
-        elif isinstance(user, Account):
-            self.user = user
-        else:
-            raise error.HsrException(i18n.error.param_type_error, type(user))
-
-        self.user.reload_profile()
-        logger.success(_lang.login_account_success, self.user.uid)
-        settings.DEFAULT_UID = self.user.uid
+    async def login(self, uid: str):
+        self.user = Account(uid)
+        opt_status = await self.user.load_profile()
+        if not opt_status:
+            await self.user.save_profile()
+        settings.DEFAULT_UID = uid
         settings.save_config()
+        logger.debug("Login: {}", uid)
 
-    def create_by_input_uid(self):
-        logger.debug("create user by input uid")
-        uid = _input_uid()
-        if uid is None:
-            return
-        user = Account(uid)
-        if not user.reload_profile():
-            # 如果库里没有该账户，则创建
-            user.save_profile()
-        logger.success(_lang.add_account_success, user.uid)
-
-    @error.err_catch(level="WARNING")
-    def create_by_cookie(self):
-        logger.debug("create user by cookie")
-        if not settings.SALT:
-            settings.SALT = AES128.generate_salt()
-            settings.save_config()
+    async def create_account_with_cookie(self):
+        logger.debug("Add cookies to account.")
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
-        if cookie is None:
-            logger.warning(_lang.invalid_cookie)
-            return
-        if cookie.verify_login_ticket() and not cookie.verify_stoken():
-            cookie.refresh_multi_token()
-        cookie.refresh_cookie_token()
-        roles = get_game_record_card(cookie)
+
+        if cookie.empty():
+            logger.debug("Empty cookies.")
+            return None
+        if not cookie.verify_login_ticket():
+            logger.debug("Invalid cookies.")
+            return None
+        await cookie.refresh_multi_token()
+        await cookie.refresh_cookie_token()
+        roles = await AccountClient.get_game_record_card(cookie)
+        user = None
         for role in roles.list:
-            if not self.is_hsr_role(role):
+            if not AccountClient.is_hsr_role(role):
                 continue
 
             user = Account(uid=role.game_role_id)
 
             user.cookie = cookie
-            user.save_profile()
+            await user.save_profile()
+        return user
 
-            # 如果与当前登陆的账号一致，更新内存数据
-            if self.user is not None and self.user.uid == user.uid:
-                self.user = user
-                logger.success(_lang.update_cookie_success, user.uid)
-            else:
-                logger.success(_lang.add_account_success, user.uid)
-
-    def delete(self, user: Account):
-        """# TODO 删除user的所有表数据"""
-
-    def is_hsr_role(self, role: GameRecordCard):
+    @staticmethod
+    def is_hsr_role(role: GameRecordCard):
         """是否为星穹铁道账户"""
         return role.game_id == GameType.STAR_RAIL.value
 
-    def get_uid_list(self):
-        user_list = UserMapper.query_all()
-        if user_list is None:
-            return []
-        return [user.uid for user in user_list]
+    @staticmethod
+    async def get_game_record_card(cookie: Cookie):
+        param = {"uid": cookie.account_id}
 
-    def get_account_status_desc(self):
-        if self.user is not None:
-            return _lang.current_account.format(color_str(self.user.uid, color="green"))
-        return _lang.without_account
+        header = Header.create_header("PC")
+        header.set_ds("v2", Header.Salt.X4, param)
 
-    def create_account_menu(self):
-        menu_list = [
-            MenuItem(title=_lang.menu.add_by_game_uid, options=lambda: self.create_by_input_uid()),
-            MenuItem(title=_lang.menu.add_by_cookie, options=lambda: self.create_by_cookie()),
-        ]
-        uid_list = self.get_uid_list()
-        menu_list.extend(
-            [
-                MenuItem(
-                    title=_lang.menu.select_account.format(uid),
-                    # lambda 闭包捕获外部变量值 uid = uid
-                    options=lambda uid=uid: self.login(uid),
-                )
-                for uid in uid_list
-            ]
+        data = await request(
+            method="GET",
+            url=routes.GAME_RECORD_CARD_URL.get_url(GameBiz.CN),
+            headers=header.value,
+            params=param,
+            cookies=cookie.model_dump("all"),
         )
-        return menu_list
+        return UserGameRecordCards(**data)
 
+    async def delete_account(self, uid: str):
+        await AccountMapper.delete_account(uid)
 
-def _input_uid():
-    """输入并校验UID格式
-
-    Returns:
-        "0": exit
-        str: uid
-    """
-    while True:
-        uid = input(_lang.menu.input_uid).strip()
-        if uid == "0":
-            return None
-        if not Account.verify_uid(uid):
-            print(color_str(_lang.menu.invalid_uid_format, color="yellow"))
-            continue
-        return uid
-
-
-def get_game_record_card(cookie: Cookie):
-    param = {"uid": cookie.account_id}
-
-    header = Header()
-    header.update(DefaultHeader.PC_HEADER)
-    header.set_ds("v2", Salt.X4, param)
-
-    data = request(
-        method="get",
-        url=GAME_RECORD_CARD_URL.get_url(GameBiz.CN),
-        headers=header.dict(),
-        params=param,
-        cookies=cookie.model_dump("all"),
-    )
-    logger.debug("get game record card")
-    return UserGameRecordCards(**data)
+    @staticmethod
+    async def get_uid_list():
+        return await AccountMapper.query_all_user()

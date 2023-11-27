@@ -1,6 +1,0 @@
-[run]
-omit =
-    main.py
-    star_rail\utils\menu.py
-    star_rail\client.py
-    star_rail\module\about.py
