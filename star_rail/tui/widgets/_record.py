@@ -9,6 +9,7 @@ from star_rail.config import settings
 from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
+from star_rail.tui.handler import error_handler, required_account
 
 
 class GachaContent(Horizontal):
@@ -70,25 +71,38 @@ class GachaRecordDialog(Container):
 
     @work(exclusive=True)
     @on(Button.Pressed, "#refresh_with_cache")
+    @error_handler
+    @required_account
     async def refresh_with_webcache(self):
         client: HSRClient = self.app.client
+        self.notify("正在更新数据")
         await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.view_analysis_results()
+        self.notify("更新已完成")
 
     @work(exclusive=True)
     @on(Button.Pressed, "#refresh_with_url")
+    @error_handler
+    @required_account
     async def refresh_with_url(self):
         client: HSRClient = self.app.client
+        self.notify("正在更新数据")
         await client.refresh_gacha_record("clipboard")
+        self.analyze_result = await client.view_analysis_results()
+        self.notify("更新已完成")
 
     @work(exclusive=True)
     @on(Button.Pressed, "#view_record")
+    @error_handler
+    @required_account
     async def view_record(self):
         client: HSRClient = self.app.client
         self.analyze_result = await client.view_analysis_results()
 
     @work(exclusive=True)
     @on(Button.Pressed, "#import")
+    @error_handler
+    @required_account
     async def import_srgf(self):
         client: HSRClient = self.app.client
         cnt, failed_list = await client.import_srgf_json()
@@ -99,14 +113,18 @@ class GachaRecordDialog(Container):
 
     @work(exclusive=True)
     @on(Button.Pressed, "#export_execl")
+    @error_handler
+    @required_account
     async def export_to_execl(self):
         client: HSRClient = self.app.client
         await client.export_to_execl()
-        self.notify("导出成功")
+        self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
 
     @work(exclusive=True)
     @on(Button.Pressed, "#export_srgf")
+    @error_handler
+    @required_account
     async def export_to_srgf(self):
         client: HSRClient = self.app.client
         await client.export_to_srgf()
-        self.notify("导出成功")
+        self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")

@@ -16,7 +16,7 @@ logger.remove()
 # 文件输出
 logger.add(
     sink=os.path.join(constants.LOG_PATH, "log_{time:YYYY_MM}.log"),
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | {level} | {file.path}:{line} | {function} | message: {message}",  # noqa
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | {level} | {file}:{line} | {function} | message: {message}",  # noqa
     level="DEBUG",
     rotation="5MB",
     compression="tar.gz",

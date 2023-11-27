@@ -14,6 +14,7 @@ from star_rail.database import AsyncDBClient
 from star_rail.module import Account, routes
 from star_rail.module.base import BaseClient
 from star_rail.utils import functional
+from star_rail.utils.logger import logger
 from star_rail.utils.time import TimeUtils
 
 from . import srgf, types
@@ -104,7 +105,7 @@ class GachaRecordAPIClient(BaseClient):
 
         if len(iterators) == 1:
             return iterators[0]
-        # 从大到小的迭代器，在小顶堆中按从大到小输出，
+        # 从大到小的迭代器，迭代器使用小顶堆排序，比较条件需使用 `-int(x.id)` 按从大到小输出，
         return MergedPaginator(iterators, key=lambda x: -int(x.id))
 
 
@@ -149,7 +150,7 @@ class GachaRecordRepository(BaseClient):
         Raises:
             error.HsrException: 保存数据出现错误
         """
-
+        logger.debug("Insert gacha record data.")
         from . import converter
 
         record_item_mapper_list = converter.convert_to_record_item_mapper(
@@ -172,6 +173,7 @@ class GachaRecordRepository(BaseClient):
             await db.insert(record_batch_mapper, "ignore")
 
             await db.commit_transaction()
+        logger.debug("Add {} new gacha records.", cnt)
         return cnt
 
 
@@ -313,6 +315,7 @@ class GachaRecordClient(BaseClient):
 
         即使账户无数据也会正常导出
         """
+        logger.debug("Export gacha record to Execl.")
         record_repository = GachaRecordRepository(self.user)
 
         gacha_record_list = await record_repository.get_all_gacha_record()
@@ -412,6 +415,7 @@ class GachaRecordClient(BaseClient):
         workbook.close()
 
     async def export_to_srgf(self):
+        logger.debug("Export gacha record to SRGF.")
         record_repository = GachaRecordRepository(self.user)
         gacha_record_list = await record_repository.get_all_gacha_record()
         if not gacha_record_list:
@@ -434,6 +438,7 @@ class GachaRecordClient(BaseClient):
 
         Return:
             成功导入的数据数量"""
+        logger.debug("Import SRGF.")
         import_data_path = constants.IMPORT_DATA_PATH
         file_list = [
             name

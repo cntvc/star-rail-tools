@@ -96,10 +96,11 @@ class Cookie(BaseModel):
         return True if self.stoken and self.stuid and self.mid else False
 
     def verify_cookie_token(self):
-        return True if self.cookie_token and self.account_id else False
+        return True if self.cookie_token else False
 
     async def refresh_multi_token(self):
         """刷新 Cookie 的 stoken 和 ltoken"""
+        logger.debug("Refresh stoken and ltoken.")
         params = {
             "login_ticket": self.login_ticket,
             "token_types": 3,
@@ -120,6 +121,7 @@ class Cookie(BaseModel):
 
     async def refresh_cookie_token(self):
         """刷新 Cookie 的 cookie_token"""
+        logger.debug("Refresh cookie_token.")
         data = await request(
             "GET",
             url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(GameBiz.get_by_uid(self.login_uid)),

@@ -12,6 +12,8 @@ from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.utils.logger import logger
 
+from .upgrade_sql import DATABASE_VERSION, UpgradeSQL
+
 _DEFAULT_DB_PATH = os.path.join(constants.DATA_PATH, "star_rail.db")
 
 __all__ = ["DBModel", "DBField", "AsyncDBClient", "DBManager"]
@@ -80,7 +82,7 @@ class AsyncDBClient:
         self.db_path = db_path
         self.connection = None
         self._isolation_level = None
-        self.sql_queue = deque(maxlen=15)
+        self.sql_queue = deque(maxlen=20)
 
     async def connect(self):
         try:
@@ -117,7 +119,7 @@ class AsyncDBClient:
         else:
             if self.connection.in_transaction:
                 await self.rollback_transaction()
-            logger.debug("[SQL traceback]:{}", "\n".join(self.sql_queue))
+            logger.debug("[SQL traceback]:{}\n", "\n".join(self.sql_queue))
         await self.close()
 
     async def execute(self, sql: str, parameters: tuple = None):
@@ -210,9 +212,6 @@ class AsyncDBClient:
 
 
 class DBManager:
-    DATABASE_VERSION = 0
-    """软件中数据库版本"""
-
     def __init__(self, *, db_path=_DEFAULT_DB_PATH) -> None:
         self.db_path = db_path
 
@@ -240,21 +239,25 @@ class DBManager:
 
     async def init_user_version(self):
         async with AsyncDBClient(db_path=self.db_path) as db:
-            await db.execute("pragma user_version = ?;", (DBManager.DATABASE_VERSION,))
+            await db.execute("pragma user_version = ?;", (DATABASE_VERSION,))
 
     async def upgrade_version(self):
         """升级数据库版本"""
+        logger.debug("Update database version.")
         local_db_version = await self.user_version()
-        if local_db_version >= self.DATABASE_VERSION:
+        if local_db_version >= DATABASE_VERSION:
             return
 
         upgrade_script_list = sorted(UpgradeSQL._register, key=lambda x: x.target_version)
         for upgrade_script in upgrade_script_list:
-            if local_db_version < upgrade_script.target_version <= self.DATABASE_VERSION:
+            if local_db_version < upgrade_script.target_version <= DATABASE_VERSION:
                 await self._perform_upgrade_script(upgrade_script)
                 local_db_version = await self.user_version()
 
+            logger.debug("current database version: {}", local_db_version)
+
     async def _perform_upgrade_script(self, script: "UpgradeSQL"):
+        logger.debug("Upgrade database version to {}", script.target_version)
         async with AsyncDBClient(db_path=self.db_path) as db:
             await db.start_transaction()
             for sql in script.sql_list:
@@ -262,14 +265,3 @@ class DBManager:
             await db.execute(f"pragma user_version = {script.target_version};")
             await db.commit_transaction()
             logger.debug("Upgrade database version to {} completed.", script.target_version)
-
-
-class UpgradeSQL:
-    _register: list["UpgradeSQL"] = []
-    target_version: int
-    sql_list: list[str]
-
-    def __init__(self, target_version: int, sql_list: list[str]) -> None:
-        self.target_version = target_version
-        self.sql_list = sql_list
-        self._register.append(self)

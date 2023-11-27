@@ -1,5 +1,6 @@
 import os
 
+from loguru import logger
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -7,8 +8,10 @@ from textual.containers import Container
 from textual.widgets import ContentSwitcher, Header, Static
 
 from star_rail.config import settings
-from star_rail.database import DBManager
+from star_rail.database import DATABASE_VERSION, DBManager
 from star_rail.module import HSRClient, Updater
+from star_rail.module.info import get_sys_info
+from star_rail.tui.handler import error_handler
 
 from .widgets import AccountDialog, ConfigDialog, Footer, GachaRecordDialog, MonthDialog, Sidebar
 
@@ -64,11 +67,17 @@ class HSRApp(App):
         yield Footer()
 
     @work(exclusive=True)
+    @error_handler
     async def on_mount(self):
+        logger.debug("============================================================")
+        logger.debug(get_sys_info())
         if not os.path.exists(self.db_manager.db_path):
             await self.db_manager.create_all()
             await self.db_manager.init_user_version()
-        else:
+        cur_db_version = await self.db_manager.user_version()
+        logger.debug("Current db version: {}.", cur_db_version)
+        if cur_db_version < DATABASE_VERSION:
+            self.notify("数据库正在升级，请勿关闭软件.", severity="warning", timeout=5)
             await self.db_manager.upgrade_version()
 
         await self.client.init_default_account()
@@ -81,6 +90,7 @@ class HSRApp(App):
             self.check_update()
 
     @work(exclusive=True, exit_on_error=False)
+    @error_handler
     async def check_update(self):
         result = await self.updater.check_update()
         if result:

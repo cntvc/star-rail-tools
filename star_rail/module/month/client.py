@@ -5,6 +5,7 @@ from star_rail.core import request
 from star_rail.module import Account, routes
 from star_rail.module.base import BaseClient
 from star_rail.module.types import GameBiz
+from star_rail.utils.logger import logger
 from star_rail.utils.time import TimeUtils
 
 from .mapper import MonthInfoItemMapper
@@ -79,16 +80,18 @@ class MonthInfoClient(BaseClient):
         Returns:
             int: 成功更新的月份数量
         """
+        logger.debug("Refresh month info.")
         if self.user.game_biz == GameBiz.GLOBAL:
             raise error.HsrException(
                 "This feature does not yet support international server accounts."
             )
         if not self.user.cookie.verify_cookie_token():
-            raise error.HsrException("Empty cookie value.")
+            raise error.HsrException("Empty cookie_token value.")
         try:
             cur_month_info_data = await self._request_month_info()
         except error.InvalidCookieError:
             # cookie_token 有效期比stoken短，因此尝试刷新一次
+            logger.debug("The cookie_token value has expired.")
             await self.user.cookie.refresh_cookie_token()
             await self.user.save_profile()
             cur_month_info_data = await self._request_month_info()

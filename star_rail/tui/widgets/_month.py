@@ -1,13 +1,10 @@
-import traceback
-
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Container, VerticalScroll
 from textual.widgets import Button, DataTable
 
-from star_rail import exceptions as error
 from star_rail.module import HSRClient
-from star_rail.utils.logger import logger
+from star_rail.tui.handler import error_handler, required_account
 
 
 class MonthInfo(Container):
@@ -24,38 +21,22 @@ class MonthDialog(Container):
 
     @work(exclusive=True)
     @on(Button.Pressed, "#refresh")
+    @error_handler
+    @required_account
     async def refresh_month_info(self):
         client: HSRClient = self.app.client
-        try:
-            cnt = await client.refresh_month_info()
-        except error.HsrException as e:
-            self.notify(e.msg, severity="warning")
-            return
-        except Exception as e:
-            logger.debug(traceback.format_exc())
-            self.notify(str(e), severity="error")
-            return
-        if cnt:
-            msg = f"已成功刷新最近{cnt}月数据"
-        else:
-            msg = "暂无新数据"
-        self.notify(msg)
+        cnt = await client.refresh_month_info()
+        self.notify(f"已成功刷新最近{cnt}月数据")
 
     @work(exclusive=True)
     @on(Button.Pressed, "#view")
+    @error_handler
+    @required_account
     async def view_month_info(self):
         client: HSRClient = self.app.client
-        try:
-            info_list = await client.get_month_info_in_range()
-        except error.HsrException as e:
-            self.notify(e.msg, severity="warning")
-            return
-        except Exception as e:
-            logger.debug(traceback.format_exc())
-            self.notify(str(e), severity="error")
-            return
+        info_list = await client.get_month_info_in_range()
         if not info_list:
-            self.notify("无数据")
+            self.notify("暂无数据")
             return
         table = self.query_one(DataTable)
         table.clear(columns=True)

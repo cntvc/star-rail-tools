@@ -11,6 +11,7 @@ from star_rail.core import request
 from star_rail.module import routes
 from star_rail.module.header import Header
 from star_rail.module.types import GameBiz, GameType, Region
+from star_rail.utils.logger import logger
 from star_rail.utils.security import AES128
 
 from .cookie import Cookie
@@ -79,6 +80,7 @@ class Account(BaseModel):
         return super().model_dump(include=include, **kwargs)
 
     async def load_profile(self) -> bool:
+        logger.debug("Load profile. Account: {}", self.uid)
         account_mapper = await AccountMapper.query_by_uid(self.uid)
         if account_mapper is None:
             return False
@@ -104,6 +106,8 @@ class Account(BaseModel):
         return True
 
     async def save_profile(self) -> bool:
+        logger.debug("Save profile. Account: {}", self.uid)
+
         def encrypt_cookie(cookie: Cookie) -> Cookie:
             # 加密时，如果key不存在则生成新key
             # 当cookie中value全部为默认值（即未设置Cookie）则不进行加密
@@ -142,6 +146,7 @@ class AccountClient:
     user: Account
 
     async def init_default_account(self):
+        logger.debug("Init default account.")
         if not settings.DEFAULT_UID:
             return
         self.user = Account(settings.DEFAULT_UID)
@@ -159,14 +164,18 @@ class AccountClient:
             await self.user.save_profile()
         settings.DEFAULT_UID = uid
         settings.save_config()
+        logger.debug("Login: {}", uid)
 
     async def create_account_with_cookie(self):
+        logger.debug("Add cookies to account.")
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
 
         if cookie.empty():
+            logger.debug("Empty cookies.")
             return None
         if not cookie.verify_login_ticket():
+            logger.debug("Invalid cookies.")
             return None
         await cookie.refresh_multi_token()
         await cookie.refresh_cookie_token()

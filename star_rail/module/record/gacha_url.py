@@ -10,6 +10,7 @@ from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.module import Account
 from star_rail.module.game_client import GameClient
+from star_rail.utils.logger import logger
 
 __all__ = ["GachaUrlProvider"]
 
@@ -38,6 +39,7 @@ class GachaUrlProvider:
         return destination_path
 
     def parse_game_web_cache(self, user: Account):
+        logger.debug("Parse game client web cache.")
         tmp_file_path = os.path.join(constants.TEMP_PATH, "data_2")
         webcache_path = GameClient(user).get_webcache_path()
         self._copy_file_with_powershell(webcache_path, tmp_file_path)
@@ -60,6 +62,7 @@ class GachaUrlProvider:
         return yarl.URL(url)
 
     def parse_clipboard_url(self):
+        logger.debug("Parse clipboard.")
         import pyperclip
 
         text = pyperclip.paste()

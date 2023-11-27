@@ -3,6 +3,8 @@ from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.widgets import Static, Switch
 
+from star_rail import __version__ as version
+
 
 class OptionGroup(Container):
     pass
@@ -48,7 +50,7 @@ class DarkSwitch(Horizontal):
 
 class Version(Static):
     def render(self) -> RenderableType:
-        return "[b]v0.1.0"
+        return f"[b]v{version}"
 
 
 class Sidebar(Container):
