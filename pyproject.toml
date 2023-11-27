@@ -53,14 +53,17 @@ profile = "black"
 [tool.black]
 line-length = 100
 
+
 [tool.pytest.ini_options]
 addopts = ["-vs"]
 asyncio_mode = "auto"
+
 
 [tool.coverage.run]
 omit = [
     "**/__init__.py",
     "**/mapper.py",
+    "*/tui/*",
     "exceptions.py",
     "main.py",
 ]
