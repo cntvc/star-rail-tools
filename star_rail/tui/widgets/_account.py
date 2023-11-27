@@ -51,3 +51,4 @@ class AccountDialog(Container):
         await client.login(event.value)
         self.app.query_one("CurrentUID").uid = event.value
         self.notify("账户设置成功")
+        self.query_one(Input).value = ""

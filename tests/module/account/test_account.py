@@ -58,7 +58,8 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                     for k in account.cookie.model_fields_set:
                         self.assertEqual(getattr(account.cookie, k), "decrypted_value")
 
-    async def test_load_profile_with_no_decrypt(self):
+    @patch.object(AccountMapper, "add_account", new_callable=AsyncMock, return_value=1)
+    async def test_load_profile_with_no_decrypt(self, mock_add_account):
         uid = "123456789"
         account = Account(uid=uid)
 
@@ -92,7 +93,8 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                     for k in account.cookie.model_fields_set:
                         self.assertEqual(getattr(account.cookie, k), getattr(test_cookie, k))
 
-    async def test_save_profile_no_encrypt(self):
+    @patch.object(AccountMapper, "add_account", new_callable=AsyncMock, return_value=1)
+    async def test_save_profile_no_encrypt(self, mock_add_account):
         uid = "123456789"
         account = Account(
             uid=uid,
@@ -108,12 +110,10 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 stuid="test_uid",
             ),
         )
-        with patch.object(AccountMapper, "add_account", new_callable=AsyncMock) as mock_add_account:
-            mock_add_account.return_value = 1
-            with patch.object(settings, "ENCRYPT_KEY", new=""), patch.object(
-                BaseSetting, "save_config", new_callable=Mock
-            ) as mock_save_config:
-                result = await account.save_profile()
+        with patch.object(settings, "ENCRYPT_KEY", new=""), patch.object(
+            BaseSetting, "save_config", new_callable=Mock
+        ) as mock_save_config:
+            result = await account.save_profile()
         self.assertTrue(result)
         mock_save_config.assert_called_once()
 

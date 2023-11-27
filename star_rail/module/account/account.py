@@ -105,7 +105,7 @@ class Account(BaseModel):
             settings.ENCRYPT_KEY = ""
             settings.save_config()
             self.cookie = Cookie()
-            self.save_profile()
+            await self.save_profile()
             return True
 
         for k in local_account.model_fields_set:
