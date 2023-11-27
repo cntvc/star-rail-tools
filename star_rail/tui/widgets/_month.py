@@ -25,6 +25,9 @@ class MonthDialog(Container):
     @required_account
     async def refresh_month_info(self):
         client: HSRClient = self.app.client
+        if not client.user.cookie.model_dump():
+            self.notify("请设置Cookie后再试")
+            return
         cnt = await client.refresh_month_info()
         self.notify(f"已成功刷新最近{cnt}月数据")
 

@@ -36,7 +36,7 @@ class AccountDialog(Container):
         if user:
             await client.login(user.uid)
             self.app.query_one("CurrentUID").uid = user.uid
-            self.notify("成功设置Cookie")
+            self.notify("Cookie解析成功")
         else:
             self.notify("未读取到有效Cookie", severity="warning")
 
@@ -50,4 +50,4 @@ class AccountDialog(Container):
         client: HSRClient = self.app.client
         await client.login(event.value)
         self.app.query_one("CurrentUID").uid = event.value
-        self.notify("登陆成功")
+        self.notify("账户设置成功")

@@ -7,28 +7,32 @@ exe_name = "StarRailTools"
 
 src_root_dir = "star_rail"
 
-def find_py_files(folder_path):
+def find_files(folder_path, ext_type:str):
     py_files = []
     for root, dirs, files in os.walk(folder_path):
         for file in files:
-            if file.endswith('.py'):
+            if file.endswith(ext_type):
                 py_files.append(os.path.join(root, file))
     return py_files
 
-file_list = find_py_files(src_root_dir)
+
+src_list = find_files(src_root_dir, '.py')
+
+
+tcss_path = src_root_dir + "/tui"+"/tcss"
+tcss_file = find_files(tcss_path, ".tcss")
+ui_res_list = [(file, tcss_path) for file in tcss_file]
 
 icon_path = "resource/hsr.ico"
 
-data_list = [
-    (icon_path, "resource"),
-]
+data_list = ui_res_list
 
 a = Analysis(
-    file_list,
+    src_list,
     pathex=[],
     binaries=[],
     datas=data_list,
-    hiddenimports=[],
+    hiddenimports=["textual.widgets._tab_pane"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

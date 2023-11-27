@@ -9,7 +9,7 @@ from star_rail.utils.logger import logger
 from star_rail.utils.time import TimeUtils
 
 from .mapper import MonthInfoItemMapper
-from .model import MonthInfoData
+from .model import MonthInfoData, MonthInfoItem
 
 __all__ = ["MonthInfoClient"]
 
@@ -37,7 +37,7 @@ class MonthInfoClient(BaseClient):
         )
         return MonthInfoData(**data)
 
-    async def get_month_info_in_range(self, _range: int = 12) -> list[MonthInfoItemMapper]:
+    async def get_month_info_in_range(self, _range: int = 12) -> list[MonthInfoItem]:
         """查询 最近 _range 条月历信息
 
         Args:
@@ -46,7 +46,10 @@ class MonthInfoClient(BaseClient):
         Returns:
             list[MonthInfoItemMapper]: 月历数据
         """
-        return await MonthInfoItemMapper.query_by_range(self.user.uid, _range)
+        mapper_list = await MonthInfoItemMapper.query_by_range(self.user.uid, _range)
+        from . import converter
+
+        return converter.convert_to_month_info_item(mapper_list)
 
     async def get_month_info_by_month(self, month: str) -> typing.Optional[MonthInfoItemMapper]:
         """查询指定月份的月历信息
@@ -86,7 +89,7 @@ class MonthInfoClient(BaseClient):
                 "This feature does not yet support international server accounts."
             )
         if not self.user.cookie.verify_cookie_token():
-            raise error.HsrException("Empty cookie_token value.")
+            raise error.HsrException("Empty cookie value.")
         try:
             cur_month_info_data = await self._request_month_info()
         except error.InvalidCookieError:

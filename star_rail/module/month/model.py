@@ -63,3 +63,22 @@ class MonthInfoData(BaseModel):
     """起始月份"""
 
     data_text: dict
+
+
+class MonthInfoItem(BaseModel):
+    uid: str
+    """用户id"""
+
+    month: str
+    """月份"""
+
+    hcoin: int
+    """星穹"""
+
+    rails_pass: int
+    """列车票"""
+
+    source: list[MonthInfoSource]
+    """开拓月历星穹来源"""
+
+    update_time: str

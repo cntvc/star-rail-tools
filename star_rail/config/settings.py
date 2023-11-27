@@ -43,7 +43,7 @@ class Settings(BaseSetting):
 
     LANGUAGE: str = ""
 
-    DISPLAY_STARTER_WARP: bool = False
+    DISPLAY_STARTER_WARP: bool = True
     """显示新手池"""
 
 

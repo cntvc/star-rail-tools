@@ -90,9 +90,7 @@ class Account(BaseModel):
         local_account = converter.mapper_to_account(account_mapper)
 
         def decrypt_cookie(cookie: Cookie) -> Cookie:
-            # 如果key不存在或者cookie为默认值，则不进行解密
-            if not settings.ENCRYPT_KEY:
-                return cookie
+            # 如果 cookie 为默认值（空），则不进行解密
             cookie_dict = cookie.model_dump("all")
             if not cookie_dict:
                 return cookie
@@ -100,7 +98,16 @@ class Account(BaseModel):
             aes = AES128(key)
             return Cookie(**{c_k: aes.decrypt(c_v) for c_k, c_v in cookie_dict.items()})
 
-        local_account.cookie = decrypt_cookie(local_account.cookie)
+        try:
+            local_account.cookie = decrypt_cookie(local_account.cookie)
+        except Exception:
+            # 如果解密失败，key失效，重置 key 和 Cookie
+            settings.ENCRYPT_KEY = ""
+            settings.save_config()
+            self.cookie = Cookie()
+            self.save_profile()
+            return True
+
         for k in local_account.model_fields_set:
             setattr(self, k, getattr(local_account, k))
         return True

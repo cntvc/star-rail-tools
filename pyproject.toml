@@ -10,7 +10,7 @@ packages = [{include = "star_rail"}]
 
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13" # pyinstaller requires ">=3.11,<3.13"
 loguru = "^0.7.2"
 pydantic = "^2.5.1"
 aiohttp = "^3.9.0"
@@ -35,6 +35,11 @@ pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
 pytest-asyncio = "^0.21.1"
 
+
+[tool.poetry.group.release.dependencies]
+pyinstaller = "^6.2.0"
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -57,4 +62,5 @@ omit = [
     "**/__init__.py",
     "**/mapper.py",
     "exceptions.py",
+    "main.py",
 ]

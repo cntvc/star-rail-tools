@@ -108,6 +108,8 @@ class GachaRecordDialog(Container):
         cnt, failed_list = await client.import_srgf_json()
         if cnt:
             self.notify(f"新增{cnt}条记录")
+        else:
+            self.notify("无数据可导入")
         if failed_list:
             self.notify("\n".join([f"文件{name }导入失败" for name in failed_list]))
 

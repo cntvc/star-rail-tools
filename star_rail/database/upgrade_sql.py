@@ -28,7 +28,19 @@ UpgradeSQL(
         "alter table temp_user rename to user;",
         # 修改月历表，聚合为一个表
         """
-        INSERT or ignore INTO month_info_item (uid, month, hcoin, rails_pass, update_time, source)
+        CREATE TABLE IF NOT EXISTS month_info_item
+        (
+            uid         TEXT,
+            month       TEXT,
+            hcoin       INTEGER,
+            rails_pass  INTEGER,
+            source      TEXT,
+            update_time TEXT,
+            PRIMARY KEY (uid, month)
+        );
+        """,
+        """
+        INSERT INTO month_info_item (uid, month, hcoin, rails_pass, update_time, source)
         select mi.uid, mi.month, mi.hcoin, mi.rails_pass, mir.update_time,
             json_group_array(
                 json_object(
@@ -57,7 +69,7 @@ UpgradeSQL(
             region_time_zone TEXT,
             batch_id         INTEGER PRIMARY KEY AUTOINCREMENT,
             uid              TEXT,
-            source           TEXT
+            source           TEXT default ''
         );
         """,
         """
@@ -80,14 +92,14 @@ UpgradeSQL(
         """
         INSERT INTO gacha_record_batch (lang, count, timestamp, region_time_zone, uid)
         SELECT lang,
-            (SELECT COUNT(*) FROM record_item WHERE record_item.uid = record_info.uid) AS count,
-            strftime('%s','now');                                                      AS timestamp,
+            (SELECT COUNT(*) FROM record_item WHERE record_item.uid = ri.uid) AS count,
+            strftime('%s', 'now')                                             AS timestamp,
             region_time_zone,
             uid
-        FROM record_info;
+        FROM record_info as ri;
         """,
         """
-        insert into temp_gacha_record_item (rank_type, name, lang, gacha_id, item_id, count, item_type, id, time, gacha_type,batch_id, uid)
+        insert into gacha_record_item (rank_type, name, lang, gacha_id, item_id, count, item_type, id, time, gacha_type,batch_id, uid)
         select ri.rank_type,
             ri.name,
             ri.lang,
@@ -102,7 +114,6 @@ UpgradeSQL(
             ri.uid
         from record_item ri join gacha_record_batch grb on ri.uid = grb.uid;
         """,
-        "alter table temp_gacha_record_item rename to gacha_record_item;",
         "drop table if exists record_item;",
         "drop table if exists record_info;",
     ],

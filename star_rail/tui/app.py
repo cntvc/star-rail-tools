@@ -29,11 +29,13 @@ class MainDialog(ContentSwitcher):
     pass
 
 
-tcss_dir = os.path.join(os.getcwd(), "star_rail", "tui", "tcss")
+def get_tcss_list():
+    # 使用相对路径访问
+    tcss_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tcss")
+    return [os.path.join(tcss_dir, name) for name in os.listdir(tcss_dir) if name.endswith(".tcss")]
 
-tcss_list = [
-    os.path.join(tcss_dir, name) for name in os.listdir(tcss_dir) if name.endswith(".tcss")
-]
+
+tcss_list = get_tcss_list()
 
 
 class HSRApp(App):
@@ -72,13 +74,15 @@ class HSRApp(App):
         logger.debug("============================================================")
         logger.debug(get_sys_info())
         if not os.path.exists(self.db_manager.db_path):
+            logger.debug("init database.")
             await self.db_manager.create_all()
             await self.db_manager.init_user_version()
         cur_db_version = await self.db_manager.user_version()
         logger.debug("Current db version: {}.", cur_db_version)
         if cur_db_version < DATABASE_VERSION:
-            self.notify("数据库正在升级，请勿关闭软件.", severity="warning", timeout=5)
+            self.notify("正在升级数据库，请勿关闭软件.", severity="warning")
             await self.db_manager.upgrade_version()
+            self.notify("升级完成")
 
         await self.client.init_default_account()
 

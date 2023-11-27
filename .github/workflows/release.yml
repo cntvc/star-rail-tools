@@ -34,8 +34,8 @@ jobs:
 
     - name: Package
       run: |
-        poetry run pyinstaller --clean ./main_d.spec
-        poetry run pyinstaller --clean ./main_f.spec
+        poetry run pyinstaller --clean ./main_d.spec --noconfirm
+        poetry run pyinstaller --clean ./main_f.spec --noconfirm
 
     - name: Generate package name
       run: |

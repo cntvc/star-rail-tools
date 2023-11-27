@@ -119,7 +119,7 @@ class AsyncDBClient:
         else:
             if self.connection.in_transaction:
                 await self.rollback_transaction()
-            logger.debug("[SQL traceback]:{}\n", "\n".join(self.sql_queue))
+            logger.debug("[SQL traceback]:\n{}", "\n".join(self.sql_queue))
         await self.close()
 
     async def execute(self, sql: str, parameters: tuple = None):
@@ -239,7 +239,7 @@ class DBManager:
 
     async def init_user_version(self):
         async with AsyncDBClient(db_path=self.db_path) as db:
-            await db.execute("pragma user_version = ?;", (DATABASE_VERSION,))
+            await db.execute(f"pragma user_version = {DATABASE_VERSION};")
 
     async def upgrade_version(self):
         """升级数据库版本"""

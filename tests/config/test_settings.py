@@ -23,7 +23,7 @@ class TestSettings(unittest.TestCase):
         self.assertEqual(settings.DEFAULT_UID, "")
         self.assertEqual(settings.ENCRYPT_KEY, "")
         self.assertEqual(settings.LANGUAGE, "")
-        self.assertFalse(settings.DISPLAY_STARTER_WARP)
+        self.assertTrue(settings.DISPLAY_STARTER_WARP)
 
     def test_save_config(self):
         settings = Settings(config_path=self.config_path)
@@ -63,5 +63,5 @@ class TestSettings(unittest.TestCase):
         self.assertEqual(settings.DEFAULT_UID, "test_uid")
         self.assertEqual(settings.ENCRYPT_KEY, "")
         self.assertEqual(settings.LANGUAGE, "")
-        self.assertFalse(settings.DISPLAY_STARTER_WARP)
+        self.assertTrue(settings.DISPLAY_STARTER_WARP)
         self.assertFalse(hasattr(settings, "TEST_ITEM"))

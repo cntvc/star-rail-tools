@@ -125,6 +125,17 @@ dev = ["aiounittest (==1.4.1)", "attribution (==1.6.2)", "black (==23.3.0)", "co
 docs = ["sphinx (==6.1.3)", "sphinx-mdinclude (==0.5.3)"]
 
 [[package]]
+name = "altgraph"
+version = "0.17.4"
+description = "Python graph (network) package"
+optional = false
+python-versions = "*"
+files = [
+    {file = "altgraph-0.17.4-py2.py3-none-any.whl", hash = "sha256:642743b4750de17e655e6711601b077bc6598dbfa3ba5fa2b2a35ce12b508dff"},
+    {file = "altgraph-0.17.4.tar.gz", hash = "sha256:1b5afbb98f6c4dcadb2e2ae6ab9fa994bbb8c1d75f4fa96d340f9437ae454406"},
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.6.0"
 description = "Reusable constraint types to use with typing.Annotated"
@@ -517,6 +528,20 @@ win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
 dev = ["Sphinx (==7.2.5)", "colorama (==0.4.5)", "colorama (==0.4.6)", "exceptiongroup (==1.1.3)", "freezegun (==1.1.0)", "freezegun (==1.2.2)", "mypy (==v0.910)", "mypy (==v0.971)", "mypy (==v1.4.1)", "mypy (==v1.5.1)", "pre-commit (==3.4.0)", "pytest (==6.1.2)", "pytest (==7.4.0)", "pytest-cov (==2.12.1)", "pytest-cov (==4.1.0)", "pytest-mypy-plugins (==1.9.3)", "pytest-mypy-plugins (==3.0.0)", "sphinx-autobuild (==2021.3.14)", "sphinx-rtd-theme (==1.3.0)", "tox (==3.27.1)", "tox (==4.11.0)"]
 
 [[package]]
+name = "macholib"
+version = "1.16.3"
+description = "Mach-O header analysis and editing"
+optional = false
+python-versions = "*"
+files = [
+    {file = "macholib-1.16.3-py2.py3-none-any.whl", hash = "sha256:0e315d7583d38b8c77e815b1ecbdbf504a8258d8b3e17b61165c6feb60d18f2c"},
+    {file = "macholib-1.16.3.tar.gz", hash = "sha256:07ae9e15e8e4cd9a788013d81f5908b3609aa76f9b1421bae9c4d7606ec86a30"},
+]
+
+[package.dependencies]
+altgraph = ">=0.17"
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -776,6 +801,17 @@ python-versions = ">=3.7"
 files = [
     {file = "pathspec-0.11.2-py3-none-any.whl", hash = "sha256:1d6ed233af05e679efb96b1851550ea95bbb64b7c490b0f5aa52996c11e92a20"},
     {file = "pathspec-0.11.2.tar.gz", hash = "sha256:e0d8d0ac2f12da61956eb2306b69f9469b42f4deb0f3cb6ed47b9cce9996ced3"},
+]
+
+[[package]]
+name = "pefile"
+version = "2023.2.7"
+description = "Python PE parsing module"
+optional = false
+python-versions = ">=3.6.0"
+files = [
+    {file = "pefile-2023.2.7-py3-none-any.whl", hash = "sha256:da185cd2af68c08a6cd4481f7325ed600a88f6a813bad9dea07ab3ef73d8d8d6"},
+    {file = "pefile-2023.2.7.tar.gz", hash = "sha256:82e6114004b3d6911c77c3953e3838654b04511b8b66e8583db70c65998017dc"},
 ]
 
 [[package]]
@@ -1040,6 +1076,51 @@ files = [
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pyinstaller"
+version = "6.2.0"
+description = "PyInstaller bundles a Python application and all its dependencies into a single package."
+optional = false
+python-versions = "<3.13,>=3.8"
+files = [
+    {file = "pyinstaller-6.2.0-py3-none-macosx_10_13_universal2.whl", hash = "sha256:a1adbd3cf25dc90926d783eae0f444d65cdfecc7bcdf6da522c3ae3ff47b4c25"},
+    {file = "pyinstaller-6.2.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:29d164394f1e949072f78a64c1e040f1c47b7f4aff08514c7666a031c8b44996"},
+    {file = "pyinstaller-6.2.0-py3-none-manylinux2014_i686.whl", hash = "sha256:ba602a38d7403de89c38b8956b221ce6de0280730d269bab522492fcad82ee33"},
+    {file = "pyinstaller-6.2.0-py3-none-manylinux2014_ppc64le.whl", hash = "sha256:ebac06d99b80d2035594c3cc2fb5f2612d86289edd0510dbcbeb20a873f51d5a"},
+    {file = "pyinstaller-6.2.0-py3-none-manylinux2014_s390x.whl", hash = "sha256:fcfabc0ff1d38a4262c051dea3fdc1f7f106405c1f1b491b4c79cd28df19cab6"},
+    {file = "pyinstaller-6.2.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:104430686149b2f1c135b2c17aa2967c85d54ef77dc92feb4e179ec846c0c467"},
+    {file = "pyinstaller-6.2.0-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:e87fd60292b53bb9965cb5a84122875469a2bd475fd0d0db0052a3f1be351f75"},
+    {file = "pyinstaller-6.2.0-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:8ec9d6c98972bb922cedb16a6638257aa66e5deadd79e2953f3464696237c413"},
+    {file = "pyinstaller-6.2.0-py3-none-win32.whl", hash = "sha256:e5561e9a9b946d835c8dbc11ae4c16cc21e62bc77d10cc043406dc2992dfb4c6"},
+    {file = "pyinstaller-6.2.0-py3-none-win_amd64.whl", hash = "sha256:3b586196277c4c54b69880650984c39c28bb6258c2b4b64200032e6ac69d53a0"},
+    {file = "pyinstaller-6.2.0-py3-none-win_arm64.whl", hash = "sha256:d0c87b605bf13c3a04dfaa1d2fa7cd36765b8137000eeadccba865e1d6a19bf0"},
+    {file = "pyinstaller-6.2.0.tar.gz", hash = "sha256:1ce77043929bf525be38289d78feecde0fcf15506215eda6500176a8715c5047"},
+]
+
+[package.dependencies]
+altgraph = "*"
+macholib = {version = ">=1.8", markers = "sys_platform == \"darwin\""}
+packaging = ">=22.0"
+pefile = {version = ">=2022.5.30", markers = "sys_platform == \"win32\""}
+pyinstaller-hooks-contrib = ">=2021.4"
+pywin32-ctypes = {version = ">=0.2.1", markers = "sys_platform == \"win32\""}
+setuptools = ">=42.0.0"
+
+[package.extras]
+completion = ["argcomplete"]
+hook-testing = ["execnet (>=1.5.0)", "psutil", "pytest (>=2.7.3)"]
+
+[[package]]
+name = "pyinstaller-hooks-contrib"
+version = "2023.10"
+description = "Community maintained hooks for PyInstaller"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pyinstaller-hooks-contrib-2023.10.tar.gz", hash = "sha256:4b4a998036abb713774cb26534ca06b7e6e09e4c628196017a10deb11a48747f"},
+    {file = "pyinstaller_hooks_contrib-2023.10-py2.py3-none-any.whl", hash = "sha256:6dc1786a8f452941245d5bb85893e2a33632ebdcbc4c23eea41f2ee08281b0c0"},
+]
+
+[[package]]
 name = "pyperclip"
 version = "1.8.2"
 description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
@@ -1104,6 +1185,17 @@ pytest = ">=4.6"
 
 [package.extras]
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
+
+[[package]]
+name = "pywin32-ctypes"
+version = "0.2.2"
+description = "A (partial) reimplementation of pywin32 using ctypes/cffi"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pywin32-ctypes-0.2.2.tar.gz", hash = "sha256:3426e063bdd5fd4df74a14fa3cf80a0b42845a87e1d1e81f6549f9daec593a60"},
+    {file = "pywin32_ctypes-0.2.2-py3-none-any.whl", hash = "sha256:bf490a1a709baf35d688fe0ecf980ed4de11d2b3e37b51e5442587a75d9957e7"},
+]
 
 [[package]]
 name = "pyyaml"
@@ -1410,5 +1502,5 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11"
-content-hash = "b399da9fdbf56617c0f3da2f0321801c94ea415efa03f375be40ce0f9fc44436"
+python-versions = ">=3.11,<3.13"
+content-hash = "440968e0ee09a744355b9e8baebf70c7903df54638c530125122c75736b42555"
