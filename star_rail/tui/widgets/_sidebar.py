@@ -19,7 +19,7 @@ class Message(Static):
 
 
 ABOUT_MESSAGE = """
-欢迎使用 StarRailTools.
+欢迎使用 StarRailTools
 
 作者: cntvc
 
@@ -27,7 +27,7 @@ ABOUT_MESSAGE = """
 
 [@click="app.open_link('https://github.com/cntvc/star-rail-tools')"]GitHub 仓库主页[/]
 
-[@click="app.open_link('https://api.github.com/repos/cntvc/star-rail-tools/releases')"]下载链接[/]
+[@click="app.open_link('https://github.com/cntvc/star-rail-tools/releases')"]下载链接[/]
 
 [@click="app.open_link('https://github.com/cntvc/star-rail-tools/issues')"]Bug 反馈[/]
 """
