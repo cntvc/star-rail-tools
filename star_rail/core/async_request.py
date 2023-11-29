@@ -68,12 +68,13 @@ async def request(
     headers: dict[str, str] = None,
     **kwargs,
 ) -> dict[str, str]:
+    log_url = url
     if params:
-        url.with_query(replace_params_values(params, ["authkey"], "***"))
+        log_url = url.update_query(replace_params_values(params, ["authkey"], "***"))
     logger.info(
         "[{}] {} {}",
         method,
-        url,
+        log_url,
         "\n" + json.dumps(data, separators=(",", ":")) if data else "",
     )
 
