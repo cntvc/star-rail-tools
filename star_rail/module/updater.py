@@ -1,5 +1,4 @@
 import yarl
-from pydantic import BaseModel
 
 from star_rail import __version__ as app_version
 from star_rail.core import request
@@ -7,15 +6,6 @@ from star_rail.utils.logger import logger
 from star_rail.utils.version import compare_versions
 
 __all__ = ["Updater"]
-
-
-class UpdateContext(BaseModel):
-    version: str = ""
-    """版本号"""
-    name: str = ""
-    """文件名"""
-    download_url: str = ""
-    """下载链接"""
 
 
 class Updater:

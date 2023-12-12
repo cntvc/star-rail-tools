@@ -14,10 +14,6 @@ def error_handler(func):
             logger.debug(traceback.format_exc())
             self.notify("[Warning]:" + str(e), severity="warning")
             return
-        except error.HsrException as e:
-            logger.debug(traceback.format_exc())
-            self.notify("[Error]:" + str(e), severity="error")
-            return
         except Exception as e:
             logger.debug(traceback.format_exc())
             self.notify("[Error]:" + str(e), severity="error")
