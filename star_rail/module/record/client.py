@@ -382,7 +382,11 @@ class GachaRecordClient(BaseClient):
                     pity_counter,
                 ]
                 # 这里转换为int类型，在后面修改单元格样式时使用
-                excel_data[3] = int(excel_data[3])
+                try:
+                    excel_data[3] = int(excel_data[3])
+                except ValueError:
+                    # 由于SRGF标准未强制包含该字段，若不存在则忽略
+                    pass
                 worksheet.write_row(counter, 0, excel_data, content_css)
                 if excel_data[3] == 5:
                     pity_counter = 0
@@ -464,6 +468,7 @@ class GachaRecordClient(BaseClient):
 
         if cnt:
             await GachaRecordAnalyzer(self.user).refresh_analyze_result()
+        logger.debug("{} new records added.", cnt)
         return cnt, invalid_file_list
 
     async def view_analysis_results(self):
