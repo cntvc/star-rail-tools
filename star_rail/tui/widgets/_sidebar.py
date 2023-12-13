@@ -19,8 +19,6 @@ class Message(Static):
 
 
 ABOUT_MESSAGE = """
-欢迎使用 StarRailTools
-
 作者: cntvc
 
 邮箱: cntvc@outlook.com

@@ -237,9 +237,9 @@ class DBManager:
             row = await cursor.fetchone()
             return row[0]
 
-    async def init_user_version(self):
+    async def set_user_version(self, db_version: str):
         async with AsyncDBClient(db_path=self.db_path) as db:
-            await db.execute(f"pragma user_version = {DATABASE_VERSION};")
+            await db.execute(f"pragma user_version = {db_version};")
 
     async def upgrade_version(self):
         """升级数据库版本"""

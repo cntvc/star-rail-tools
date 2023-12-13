@@ -308,6 +308,7 @@ class GachaRecordClient(BaseClient):
 
         # 查询所有记录并生成统计结果
         await GachaRecordAnalyzer(self.user).refresh_analyze_result()
+        logger.debug("{} new records added.", cnt)
         return cnt
 
     async def export_to_execl(self):

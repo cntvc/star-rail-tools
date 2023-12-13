@@ -71,7 +71,7 @@ async def request(
     log_url = url
     if params:
         log_url = url.update_query(replace_params_values(params, ["authkey"], "***"))
-    logger.info(
+    logger.debug(
         "[{}] {} {}",
         method,
         log_url,

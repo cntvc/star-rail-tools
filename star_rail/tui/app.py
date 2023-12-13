@@ -76,7 +76,7 @@ class HSRApp(App):
         if not os.path.exists(self.db_manager.db_path):
             logger.debug("init database.")
             await self.db_manager.create_all()
-            await self.db_manager.init_user_version()
+            await self.db_manager.set_user_version(DATABASE_VERSION)
         cur_db_version = await self.db_manager.user_version()
         logger.debug("Current db version: {}.", cur_db_version)
         if cur_db_version < DATABASE_VERSION:
