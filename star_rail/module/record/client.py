@@ -431,6 +431,7 @@ class GachaRecordClient(BaseClient):
         return True
 
     async def _import_srgf_data(self, file_data: srgf.SRGFData):
+        logger.debug("SRGF info:{}", file_data.info.model_dump_json())
         record_repository = GachaRecordRepository(self.user)
         item_list, info = srgf.convert_to_gacha_record_data(file_data)
 
