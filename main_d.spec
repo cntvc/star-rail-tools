@@ -10,15 +10,15 @@ dir_name = "StarRailTools"
 src_root_dir = "star_rail"
 
 def find_files(folder_path, ext_type:str):
-    py_files = []
+    file_list = []
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             if file.endswith(ext_type):
-                py_files.append(os.path.join(root, file))
-    return py_files
+                file_list.append(os.path.join(root, file))
+    return file_list
 
-# code file
-file_list = find_files(src_root_dir, '.py')
+
+src_list = find_files(src_root_dir, '.py')
 
 # ui file
 tcss_path = src_root_dir + "/tui"+"/tcss"
@@ -31,7 +31,7 @@ icon_path = "resource/hsr.ico"
 data_list = ui_tuple_list
 
 a = Analysis(
-    file_list,
+    src_list,
     pathex=[],
     binaries=[],
     datas=data_list,
