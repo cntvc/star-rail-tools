@@ -30,10 +30,12 @@ def replace_params_values(params: dict, param_names_to_replace: list, placeholde
 
 
 def handle_rate_limits(
-    tries: int = 5,
     exception: typing.Type[exceptions.HsrException] = exceptions.VisitsTooFrequently,
+    *,
+    tries: int = 5,
     delay: float = 0.3,
     max_delay: float = 5,
+    factor: float = 2.0,
 ) -> typing.Callable[[_CallableT], _CallableT]:
     """Handle rate limits for requests."""
 
@@ -45,9 +47,9 @@ def handle_rate_limits(
                 try:
                     x = await func(*args, **kwargs)
                 except exception:
-                    await asyncio.sleep(delay)
+                    await asyncio.sleep(current_delay)
                     # 请求出错，正在重试
-                    current_delay = min(2 * current_delay, max_delay)
+                    current_delay = min(factor * current_delay, max_delay)
                 else:
                     return x
             else:
