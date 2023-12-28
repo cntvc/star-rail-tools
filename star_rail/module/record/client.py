@@ -190,28 +190,29 @@ class GachaRecordAnalyzer(BaseClient):
         def analyze(gacha_type: str, record_item_list: list[GachaRecordItem]):
             """分析单一跃迁类型数据"""
             # 5 星列表
-            rank_5_row_list = [item for item in record_item_list if item.rank_type == "5"]
+            rank_5_list = [item for item in record_item_list if item.rank_type == "5"]
             # 5 星原始位置
-            rank_5_row_index = [
+            rank_5_raw_index = [
                 i for i, item in enumerate(record_item_list, 1) if item.rank_type == "5"
             ]
-            if rank_5_row_index:
-                # 5 星相对位置（抽数
-                rank_5_index = [rank_5_row_index[0]] + [
-                    j - i for i, j in zip(rank_5_row_index, rank_5_row_index[1:])
+
+            rank_5_item_list = []
+            if rank_5_raw_index:
+                # 计算5星抽数列表（相邻5星的位置差
+                rank_5_index = [rank_5_raw_index[0]] + [
+                    j - i for i, j in zip(rank_5_raw_index, rank_5_raw_index[1:])
                 ]
-                # 将 5 星与抽数对应起来，用 rank_5_index 表示抽数
+                # 将5星列表与抽数列表对应
                 rank_5_item_list = [
                     StatisticItem(index=str(rank_5_index), **rank_5_item.model_dump())
-                    for rank_5_item, rank_5_index in zip(rank_5_row_list, rank_5_index)
+                    for rank_5_item, rank_5_index in zip(rank_5_list, rank_5_index)
                 ]
-            else:
-                rank_5_item_list = []
-            # 未保底计数
+
+            # 保底计数
             pity_count = (
-                len(rank_5_row_index)
-                if not rank_5_row_index
-                else len(record_item_list) - rank_5_row_index[-1]
+                len(rank_5_raw_index)
+                if not rank_5_raw_index
+                else len(record_item_list) - rank_5_raw_index[-1]
             )
             return StatisticResult(
                 gacha_type=gacha_type,
