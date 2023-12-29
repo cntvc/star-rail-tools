@@ -1,5 +1,3 @@
-from star_rail import exceptions as error
-
 from .mapper import GachaRecordItemMapper
 from .model import GachaRecordItem
 
@@ -25,9 +23,9 @@ def convert_to_record_item_mapper(
             batch_id=batch_id,
         )
     else:
-        raise error.HsrException(
-            "Param type error. Expected type 'list' or 'GachaRecordItemMapper', got [{}].",
-            type(data),
+        assert False, (
+            "Param type error. Expected type 'list' or 'GachaRecordItemMapper',",
+            f" got [{type(data)}].",
         )
 
 
@@ -51,7 +49,7 @@ def convert_to_record_item(
             item_type=data.item_type,
         )
     else:
-        raise error.HsrException(
-            "Param type error. Expected type 'list' or 'GachaRecordItemMapper', got [{}].",
-            type(data),
+        assert False, (
+            "Param type error. Expected type 'list' or 'GachaRecordItemMapper',",
+            f" got [{ type(data)}].",
         )

@@ -177,10 +177,11 @@ class AsyncDBClient:
             )
             cursor = await self.connection.execute(sql_statement, values)
         else:
-            raise error.DataBaseError(
-                "Param type error. Expected type 'list' or 'DBModel', got [{}].",
-                type(item_or_item_list),
+            assert False, (
+                "Param type error. Expected type 'list' or 'DBModel',",
+                f"got [{type(item_or_item_list)}].",
             )
+
         return cursor.rowcount
 
     @typing.overload
@@ -206,9 +207,7 @@ class AsyncDBClient:
                 data.append(t)
             return data
         else:
-            raise error.DataBaseError(
-                f"Param type error. Expected type 'list' or 'DBModel', got [{type(row)}]."
-            )
+            assert False, f"Param type error. Expected type 'list' or 'DBModel', got [{type(row)}]."
 
 
 class DBManager:

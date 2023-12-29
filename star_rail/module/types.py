@@ -1,7 +1,5 @@
 import enum
 
-from star_rail import exceptions as error
-
 __all__ = ["GameBiz", "Region", "GameType"]
 
 
@@ -16,14 +14,14 @@ class GameBiz(enum.StrEnum):
         elif "1" <= uid[0] <= "5":
             return GameBiz.CN
         else:
-            raise error.HsrException(f"Param value error, got [{uid}].")
+            assert False, f"Param value error, got [{uid}]."
 
     @staticmethod
     def get_by_str(val: str):
         for member in GameBiz.__members__.values():
             if member.value == val:
                 return member
-        raise error.HsrException(f"Param value error, got [{val}].")
+        assert False, f"Param value error, got [{val}]."
 
 
 class Region(enum.StrEnum):
@@ -52,7 +50,7 @@ class Region(enum.StrEnum):
         for member in Region.__members__.values():
             if member.value == val:
                 return member
-        raise error.HsrException(f"Param value error, got [{val}].")
+        assert False, f"Param value error, got [{val}]."
 
 
 class GameType(enum.IntEnum):

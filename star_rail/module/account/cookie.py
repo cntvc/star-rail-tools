@@ -3,7 +3,6 @@ from http import cookies
 
 from pydantic import BaseModel, model_validator
 
-from star_rail import exceptions as error
 from star_rail.core import request
 from star_rail.module import routes
 from star_rail.module.header import Header
@@ -15,12 +14,13 @@ __all__ = ["Cookie"]
 
 def _parse_cookie(cookie: str) -> dict[str, str]:
     """cookie字符串解析为字典"""
+
+    assert isinstance(cookie, str), f"Param type error. Expected type 'str', got [{type(cookie)}]."
+
     if not cookie:
         return {}
-    if isinstance(cookie, str):
-        simple_cookie = cookies.SimpleCookie(cookie)
-    else:
-        raise error.HsrException(f"Param type error. Expected type 'str', got [{type(cookie)}].")
+
+    simple_cookie = cookies.SimpleCookie(cookie)
 
     return {
         str(k): v.value if isinstance(v, cookies.Morsel) else str(v)

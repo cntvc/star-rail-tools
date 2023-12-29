@@ -259,9 +259,9 @@ class GachaRecordClient(BaseClient):
         elif source == "clipboard":
             url = GachaUrlProvider().parse_clipboard_url()
         else:
-            raise error.HsrException(
-                f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
-            )
+            assert (
+                False
+            ), f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
         if url is None:
             raise error.GachaRecordError("Not found valid url.")
 

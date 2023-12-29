@@ -18,6 +18,11 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             stuid="test_uid",
         )
 
+    def test_cookie_paese_failed(self):
+        ck_str = 1
+        with self.assertRaises(AssertionError):
+            Cookie.parse(ck_str)
+
     def test_cookie_parse_success(self):
         ck_str = "login_ticket=a;login_uid=b;other=c; mid=s"
         has_value = ("login_ticket", "mid", "login_uid", "stuid", "ltuid", "account_id")
