@@ -209,11 +209,8 @@ class GachaRecordAnalyzer(BaseClient):
                 ]
 
             # 保底计数
-            pity_count = (
-                len(rank_5_raw_index)
-                if not rank_5_raw_index
-                else len(record_item_list) - rank_5_raw_index[-1]
-            )
+            pity_count = len(record_item_list) - rank_5_raw_index[-1] if rank_5_raw_index else 0
+
             return StatisticResult(
                 gacha_type=gacha_type,
                 pity_count=pity_count,
