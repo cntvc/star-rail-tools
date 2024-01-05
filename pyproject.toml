@@ -19,7 +19,7 @@ aiosqlite = "^0.19.0"
 pyperclip = "^1.8.2"
 xlsxwriter = "^3.1.9"
 textual = "^0.41.0"
-pycryptodome = "^3.19.0"
+pycryptodome = "^3.19.1"
 
 
 [tool.poetry.group.dev.dependencies]
