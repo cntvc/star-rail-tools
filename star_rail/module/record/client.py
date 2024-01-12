@@ -75,7 +75,7 @@ class GachaRecordAPIClient(BaseClient):
 
         Args:
             url (yarl.URL): 跃迁记录URL
-            gacha_type_list : 需要查询的卡池id列表. 默认为 None 时查询全部卡池.
+            gacha_type_list: 需要查询的卡池id列表. 默认为 None 时查询全部卡池.
             end_id (int, optional): 用于翻页的起始查询id. 默认 0 时从第一页开始.
 
         Returns:

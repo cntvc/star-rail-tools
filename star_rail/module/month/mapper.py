@@ -27,13 +27,7 @@ class MonthInfoItemMapper(DBModel):
     async def query_by_month(uid: str, month: str) -> typing.Optional["MonthInfoItemMapper"]:
         sql = """select * from month_info_item where month = ? and uid = ?;"""
         async with AsyncDBClient() as db:
-            cursor = await db.execute(
-                sql,
-                (
-                    month,
-                    uid,
-                ),
-            )
+            cursor = await db.execute(sql, month, uid)
             row = await cursor.fetchone()
             return db.convert(row, MonthInfoItemMapper)
 
@@ -41,13 +35,7 @@ class MonthInfoItemMapper(DBModel):
     async def query_by_range(uid: str, _range: int) -> list["MonthInfoItemMapper"]:
         sql = """select * from month_info_item where uid = ? order by month desc limit ?;"""
         async with AsyncDBClient() as db:
-            cursor = await db.execute(
-                sql,
-                (
-                    uid,
-                    _range,
-                ),
-            )
+            cursor = await db.execute(sql, uid, _range)
             row = await cursor.fetchall()
             return db.convert(row, MonthInfoItemMapper)
 

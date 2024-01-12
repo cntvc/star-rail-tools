@@ -37,7 +37,7 @@ class GachaRecordBatchMapper(DBModel):
         """查询最近的一次插入信息"""
         sql = """select * from gacha_record_batch where uid = ? order by batch_id desc limit 1;"""
         async with AsyncDBClient() as db:
-            cursor = await db.execute(sql, (uid,))
+            cursor = await db.execute(sql, uid)
             row = await cursor.fetchone()
             return db.convert(row, GachaRecordBatchMapper)
 
@@ -63,7 +63,7 @@ class GachaRecordItemMapper(DBModel):
     async def query_latest_gacha_record(uid: str) -> typing.Optional["GachaRecordItemMapper"]:
         sql = """select * from gacha_record_item where uid = ? order by id desc limit 1;"""
         async with AsyncDBClient() as db:
-            cursor = await db.execute(sql, (uid,))
+            cursor = await db.execute(sql, uid)
             row = await cursor.fetchone()
             return db.convert(row, GachaRecordItemMapper)
 
@@ -71,6 +71,6 @@ class GachaRecordItemMapper(DBModel):
     async def query_all_gacha_record(uid: str) -> list["GachaRecordItemMapper"]:
         sql = """select * from gacha_record_item where uid = ? order by id;"""
         async with AsyncDBClient() as db:
-            cursor = await db.execute(sql, (uid,))
+            cursor = await db.execute(sql, uid)
             row = await cursor.fetchall()
             return db.convert(row, GachaRecordItemMapper)

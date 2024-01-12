@@ -160,12 +160,12 @@ class TestAsyncClient(unittest.IsolatedAsyncioTestCase):
 
         await self.client.connect()
         await self.client.execute("create table if not exists user (id, name, primary key (id) );")
-        await self.client.execute("insert into user(id, name) values (?, ?);", ("1", "user1"))
-        cursor = await self.client.execute("select * from user where id = ?;", ("1",))
+        await self.client.execute("insert into user(id, name) values (?, ?);", "1", "user1")
+        cursor = await self.client.execute("select * from user where id = ?;", "1")
         user = self.client.convert(await cursor.fetchone(), UserModel)
         self.assertEqual(user.id, "1")
         self.assertEqual(user.name, "user1")
-        await self.client.execute("insert into user(id, name) values (?, ?);", ("2", "user2"))
+        await self.client.execute("insert into user(id, name) values (?, ?);", "2", "user2")
         cursor = await self.client.execute("select * from user;")
         row_list = await cursor.fetchall()
         user_list = self.client.convert(row_list, UserModel)
@@ -198,7 +198,7 @@ class TestDBManager(unittest.IsolatedAsyncioTestCase):
         await self.db_manager.create_all()
         await self.client.connect()
         cursor = await self.client.execute(
-            "select name from sqlite_master where type=? and name=?", ("table", "user")
+            "select name from sqlite_master where type=? and name=?", "table", "user"
         )
         row = await cursor.fetchone()
         self.assertEqual(row[0], "user")

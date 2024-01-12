@@ -122,8 +122,9 @@ class AsyncDBClient:
             logger.debug("[SQL traceback]:\n{}", "\n".join(self.sql_queue))
         await self.close()
 
-    async def execute(self, sql: str, parameters: tuple = None):
-        return await self.connection.execute(sql, parameters)
+    async def execute(self, sql: str, *params):
+        params = tuple(params)
+        return await self.connection.execute(sql, params)
 
     @typing.overload
     async def insert(
