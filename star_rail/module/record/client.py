@@ -242,9 +242,6 @@ class GachaRecordAnalyzer(BaseClient):
 
 
 class GachaRecordClient(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     async def refresh_gacha_record(self, source: typing.Literal["webcache", "clipboard"]):
         """刷新跃迁记录
 

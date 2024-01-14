@@ -20,6 +20,4 @@ class Updater:
         data = await request("GET", url)
 
         latest_version = data["tag_name"]
-        if compare_versions(app_version, latest_version) == -1:
-            return True
-        return False
+        return compare_versions(app_version, latest_version) == -1

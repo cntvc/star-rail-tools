@@ -2,7 +2,7 @@ import typing
 
 from star_rail import exceptions as error
 from star_rail.core import request
-from star_rail.module import Account, routes
+from star_rail.module import routes
 from star_rail.module.base import BaseClient
 from star_rail.module.types import GameBiz
 from star_rail.utils.logger import logger
@@ -15,9 +15,6 @@ __all__ = ["MonthInfoClient"]
 
 
 class MonthInfoClient(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     async def _request_month_info(self, month: str = "") -> MonthInfoData:
         """请求指定月份的月历数据
 
