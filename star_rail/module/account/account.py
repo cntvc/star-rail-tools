@@ -143,10 +143,10 @@ class Account(BaseModel):
         return isinstance(v, str) and _UID_RE.fullmatch(v) is not None
 
     def __eq__(self, other: "Account"):
-        return self.uid == other.uid and self.cookie == other.cookie
+        return self.uid == other.uid
 
     def __ne__(self, other: "Account"):
-        return self.uid != other.uid or self.cookie != other.cookie
+        return self.uid != other.uid
 
 
 class AccountClient:
