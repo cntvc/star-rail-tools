@@ -1,7 +1,7 @@
 import yarl
 
 from star_rail import __version__ as app_version
-from star_rail.core import request
+from star_rail.core import _request
 from star_rail.utils.logger import logger
 from star_rail.utils.version import compare_versions
 
@@ -17,7 +17,7 @@ class Updater:
         """
         logger.debug("Check update.")
         url = yarl.URL("https://api.github.com/repos/cntvc/star-rail-tools/releases/latest")
-        data = await request("GET", url)
+        data = await _request("GET", url)
 
         latest_version = data["tag_name"]
         return compare_versions(app_version, latest_version) == -1
