@@ -44,8 +44,6 @@ class Cookie(BaseModel):
     login_ticket: str = ""
     login_uid: str = ""
 
-    mid: str = ""
-
     account_id: str = ""
     account_mid: str = ""
 
@@ -73,10 +71,9 @@ class Cookie(BaseModel):
             self.account_id = mihoyo_uid
 
         # init mid
-        mid_params = (self.ltmid, self.mid, self.account_mid)
+        mid_params = (self.ltmid, self.account_mid)
         mid = next((v for v in mid_params if v), None)
         if mid:
-            self.mid = mid
             self.ltmid = mid
             self.account_mid = mid
 
@@ -98,7 +95,7 @@ class Cookie(BaseModel):
         return True if self.login_ticket and self.login_uid else False
 
     def verify_stoken(self):
-        return True if self.stoken and self.stuid and self.mid else False
+        return True if self.stoken and self.stuid else False
 
     def verify_cookie_token(self):
         return True if self.cookie_token else False
@@ -176,7 +173,7 @@ class Cookie(BaseModel):
             or self.cookie_token != other.cookie_token
             or self.ltoken != other.ltoken
             or self.stoken != other.stoken
-            or self.mid != other.mid
+            or self.ltmid != other.ltmid
         )
 
     def empty(self):

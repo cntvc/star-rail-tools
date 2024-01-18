@@ -4,7 +4,6 @@ from star_rail import exceptions as error
 from star_rail.core import request
 from star_rail.module import routes
 from star_rail.module.base import BaseClient
-from star_rail.module.types import GameBiz
 from star_rail.utils.logger import logger
 from star_rail.utils.time import TimeUtils
 

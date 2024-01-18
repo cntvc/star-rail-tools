@@ -38,7 +38,7 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 cookie_token="test_cookie_token",
                 ltoken="test_ltoken",
                 ltuid="test_uid",
-                mid="test_mid",
+                ltmid="test_ltmid",
                 stoken="test_stoken",
                 stuid="test_uid",
             )
@@ -73,7 +73,7 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 cookie_token="test_cookie_token",
                 ltoken="test_ltoken",
                 ltuid="test_uid",
-                mid="test_mid",
+                ltmid="test_ltmid",
                 stoken="test_stoken",
                 stuid="test_uid",
             )
@@ -105,7 +105,7 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 cookie_token="test_cookie_token",
                 ltoken="test_ltoken",
                 ltuid="test_uid",
-                mid="test_mid",
+                ltmid="test_ltmid",
                 stoken="test_stoken",
                 stuid="test_uid",
             ),

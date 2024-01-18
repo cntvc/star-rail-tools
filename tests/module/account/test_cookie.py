@@ -14,7 +14,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             cookie_token="test_cookie_token",
             ltoken="test_ltoken",
             ltuid="test_uid",
-            mid="test_mid",
+            ltmid="test_mid",
             stoken="test_stoken",
             stuid="test_uid",
         )
@@ -25,10 +25,9 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             Cookie.parse(ck_str)
 
     def test_cookie_parse_success(self):
-        ck_str = "login_ticket=a;login_uid=b;other=c; mid=s"
+        ck_str = "login_ticket=a;login_uid=b;other=c; ltmid=s"
         has_value = (
             "login_ticket",
-            "mid",
             "login_uid",
             "stuid",
             "ltuid",
@@ -48,7 +47,6 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
         ck_str = "login_ticket_v2=a;login_uid_v2=b;other=c; ltmid_v2=s"
         has_value = (
             "login_ticket",
-            "mid",
             "login_uid",
             "stuid",
             "ltuid",
@@ -63,7 +61,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             else:
                 self.assertEqual(getattr(cookie, k), "")
         self.assertTrue(cookie.stuid == cookie.ltuid == cookie.login_uid == cookie.account_id)
-        self.assertEqual(cookie.mid, "s")
+        self.assertEqual(cookie.ltmid, "s")
 
     def test_cookie_parse_empty(self):
         ck_str = ""
@@ -119,7 +117,6 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
                 "cookie_token": "test_cookie_token",
                 "ltoken": "test_ltoken",
                 "ltuid": "test_uid",
-                "mid": "test_mid",
                 "stoken": "test_stoken",
                 "stuid": "test_uid",
                 "account_mid": "test_mid",
