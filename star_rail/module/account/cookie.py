@@ -1,7 +1,7 @@
 import typing
 from http import cookies
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 from star_rail.core import request
 from star_rail.module import routes
@@ -44,22 +44,24 @@ class Cookie(BaseModel):
     login_ticket: str = ""
     login_uid: str = ""
 
+    mid: str = ""
+
     account_id: str = ""
-    cookie_token: str = ""
+    account_mid: str = ""
 
     ltoken: str = ""
     ltuid: str = ""
-    mid: str = ""
-    """mihoyo uid
+    ltmid: str = ""
 
-    同 webapi: [ltmid_v2, account_mid_v2]
-    """
+    cookie_token: str = ""
 
     stoken: str = ""
     stuid: str = ""
 
-    @model_validator(mode="after")
-    def init_uid(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        # init mihoyo uid
         uid_params = (self.stuid, self.ltuid, self.login_uid, self.account_id)
 
         mihoyo_uid = next((v for v in uid_params if v), None)
@@ -70,7 +72,13 @@ class Cookie(BaseModel):
             self.login_uid = mihoyo_uid
             self.account_id = mihoyo_uid
 
-        return self
+        # init mid
+        mid_params = (self.ltmid, self.mid, self.account_mid)
+        mid = next((v for v in mid_params if v), None)
+        if mid:
+            self.mid = mid
+            self.ltmid = mid
+            self.account_mid = mid
 
     @staticmethod
     def parse(cookie_str: str):
@@ -81,9 +89,6 @@ class Cookie(BaseModel):
 
         # 获取的 cookie 可能为 v2 版本，将后缀去除
         cookie_dict = _remove_suffix(cookie_dict, "_v2")
-        # 一般接口只使用到了 mid 值，但是有多个相同值来源，例如 'ltmid'
-        if "ltmid" in cookie_dict:
-            cookie_dict["mid"] = cookie_dict["ltmid"]
 
         logger.debug("parse cookie param:" + " ".join(k for k, _ in cookie_dict.items()))
         cookie = Cookie.model_validate(cookie_dict)
@@ -171,6 +176,7 @@ class Cookie(BaseModel):
             or self.cookie_token != other.cookie_token
             or self.ltoken != other.ltoken
             or self.stoken != other.stoken
+            or self.mid != other.mid
         )
 
     def empty(self):

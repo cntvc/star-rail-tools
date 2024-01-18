@@ -26,7 +26,16 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
 
     def test_cookie_parse_success(self):
         ck_str = "login_ticket=a;login_uid=b;other=c; mid=s"
-        has_value = ("login_ticket", "mid", "login_uid", "stuid", "ltuid", "account_id")
+        has_value = (
+            "login_ticket",
+            "mid",
+            "login_uid",
+            "stuid",
+            "ltuid",
+            "account_id",
+            "account_mid",
+            "ltmid",
+        )
         cookie = Cookie.parse(ck_str)
         for k in cookie.model_fields_set:
             if k in has_value:
@@ -37,7 +46,16 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
 
     def test_cookie_parse_success_ckv2(self):
         ck_str = "login_ticket_v2=a;login_uid_v2=b;other=c; ltmid_v2=s"
-        has_value = ("login_ticket", "mid", "login_uid", "stuid", "ltuid", "account_id")
+        has_value = (
+            "login_ticket",
+            "mid",
+            "login_uid",
+            "stuid",
+            "ltuid",
+            "account_id",
+            "account_mid",
+            "ltmid",
+        )
         cookie = Cookie.parse(ck_str)
         for k in cookie.model_fields_set:
             if k in has_value:
@@ -104,6 +122,8 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
                 "mid": "test_mid",
                 "stoken": "test_stoken",
                 "stuid": "test_uid",
+                "account_mid": "test_mid",
+                "ltmid": "test_mid",
             },
         )
 
