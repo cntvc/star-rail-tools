@@ -6,5 +6,5 @@ class BaseClient:
 
     user: Account
 
-    def __init__(self, user:Account) -> None:
+    def __init__(self, user: Account) -> None:
         self.user = user
