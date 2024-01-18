@@ -98,7 +98,7 @@ class Cookie(BaseModel):
     def verify_cookie_token(self):
         return True if self.cookie_token else False
 
-    async def refresh_multi_token(self):
+    async def refresh_multi_token(self, game_biz: GameBiz):
         """刷新 Cookie 的 stoken 和 ltoken"""
         logger.debug("Refresh stoken and ltoken.")
         params = {
@@ -108,7 +108,7 @@ class Cookie(BaseModel):
         }
         data = await request(
             "GET",
-            url=routes.MULTI_TOKEN_BY_LOGINTICKET_URL.get_url(),
+            url=routes.MULTI_TOKEN_BY_LOGINTICKET_URL.get_url(game_biz),
             headers=Header.create_header("WEB").value,
             params=params,
         )
@@ -119,12 +119,12 @@ class Cookie(BaseModel):
             if item["name"] == "ltoken":
                 self.ltoken = item["token"]
 
-    async def refresh_cookie_token(self):
+    async def refresh_cookie_token(self, game_biz: GameBiz):
         """刷新 Cookie 的 cookie_token"""
         logger.debug("Refresh cookie_token.")
         data = await request(
             "GET",
-            url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(GameBiz.get_by_uid(self.login_uid)),
+            url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(game_biz),
             headers=Header.create_header("WEB").value,
             cookies=self.model_dump("web"),
             params={"uid": self.login_uid, "stoken": self.stoken},

@@ -184,8 +184,10 @@ class AccountClient:
         if not cookie.verify_login_ticket():
             logger.debug("Invalid cookies.")
             return None
-        await cookie.refresh_multi_token()
-        await cookie.refresh_cookie_token()
+        if not cookie.verify_stoken():
+            await cookie.refresh_multi_token(self.user.game_biz)
+        if not cookie.verify_cookie_token():
+            await cookie.refresh_cookie_token(self.user.game_biz)
         roles = await AccountClient.get_game_record_card(cookie)
         user = None
         for role in roles.list:

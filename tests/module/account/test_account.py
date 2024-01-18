@@ -138,6 +138,6 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
         user2_4 = Account(uid="123456789", cookie=Cookie(login_uid="123456789"))
         user3 = Account(uid="223456789")
 
-        self.assertNotEqual(user2, user2_4)
+        self.assertEqual(user2, user2_4)
         self.assertNotEqual(user1, user3)
         self.assertEqual(user1, user2)

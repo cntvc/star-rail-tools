@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import AsyncMock, patch
 
 from star_rail.module.account.cookie import Cookie
+from star_rail.module.types import GameBiz
 
 
 class TestCookie(unittest.IsolatedAsyncioTestCase):
@@ -125,7 +126,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             }
 
             # Act
-            await cookie.refresh_multi_token()
+            await cookie.refresh_multi_token(GameBiz.CN)
 
             # Assert
             self.assertEqual(cookie.stoken, "xx_stoken")
@@ -144,7 +145,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             mock_request.return_value = {"cookie_token": "xxcookie_token"}
 
             # Act
-            await cookie.refresh_cookie_token()
+            await cookie.refresh_cookie_token(GameBiz.CN)
 
             # Assert
             self.assertEqual(cookie.cookie_token, "xxcookie_token")

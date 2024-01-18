@@ -28,7 +28,7 @@ class MonthInfoClient(BaseClient):
 
         data = await request(
             method="GET",
-            url=routes.MONTH_INFO_URL.get_url(),
+            url=routes.MONTH_INFO_URL.get_url(self.user.game_biz),
             params=param,
             cookies=self.user.cookie.model_dump("all"),
         )
@@ -92,7 +92,7 @@ class MonthInfoClient(BaseClient):
         except error.InvalidCookieError:
             # cookie_token 有效期比stoken短，因此尝试刷新一次
             logger.debug("The cookie_token value has expired.")
-            await self.user.cookie.refresh_cookie_token()
+            await self.user.cookie.refresh_cookie_token(self.user.game_biz)
             await self.user.save_profile()
             cur_month_info_data = await self._request_month_info()
         datas = [cur_month_info_data]
