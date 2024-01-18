@@ -81,10 +81,6 @@ class MonthInfoClient(BaseClient):
             int: 成功更新的月份数量
         """
         logger.debug("Refresh month info.")
-        if self.user.game_biz == GameBiz.GLOBAL:
-            raise error.HsrException(
-                "This feature does not yet support international server accounts."
-            )
         if not self.user.cookie.verify_cookie_token():
             raise error.HsrException("Empty cookie value.")
         try:
