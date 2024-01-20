@@ -11,7 +11,7 @@ from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.core import CursorPaginator, MergedPaginator, Paginator, request
 from star_rail.database import AsyncDBClient
-from star_rail.module import Account, routes
+from star_rail.module import routes
 from star_rail.module.base import BaseClient
 from star_rail.utils import functional
 from star_rail.utils.logger import logger
@@ -26,9 +26,6 @@ __all__ = ["GachaRecordClient"]
 
 
 class GachaRecordAPIClient(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     def filter_required_params(self, url: yarl.URL):
         """链接替换请求路径只保留必要的参数"""
         required_params = ("authkey", "lang", "game_biz", "authkey_ver")
@@ -110,9 +107,6 @@ class GachaRecordAPIClient(BaseClient):
 
 
 class GachaRecordRepository(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     async def get_next_batch_id(self) -> int:
         """从批次表中获取下一个可用的批次ID"""
         return await GachaRecordBatchMapper.query_next_batch_id()
@@ -178,9 +172,6 @@ class GachaRecordRepository(BaseClient):
 
 
 class GachaRecordAnalyzer(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     def analyze_records(self, gacha_record_list: list[GachaRecordItem]):
         analyze_result = AnalyzeResult(
             uid=self.user.uid,

@@ -27,9 +27,6 @@ class GameLogPath(str, enum.Enum):
 
 
 class GameClient(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     def get_game_path(self):
         """解析日志文件获取游戏路径"""
         log_path = GameLogPath.get_by_user(self.user)
