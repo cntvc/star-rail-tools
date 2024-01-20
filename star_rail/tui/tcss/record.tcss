@@ -13,7 +13,6 @@ GachaRecordDialog {
 }
 
 RecordDetail {
-    border: green;
     width: 100%;
     height:  100%;
     GachaContent{
