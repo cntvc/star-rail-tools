@@ -63,6 +63,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=icon_path,
 )
 coll = COLLECT(
     exe,
@@ -73,5 +74,4 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name=dir_name,
-    icon=icon_path,
 )
