@@ -2,9 +2,8 @@ import typing
 
 from star_rail import exceptions as error
 from star_rail.core import request
-from star_rail.module import Account, routes
+from star_rail.module import routes
 from star_rail.module.base import BaseClient
-from star_rail.module.types import GameBiz
 from star_rail.utils.logger import logger
 from star_rail.utils.time import TimeUtils
 
@@ -15,9 +14,6 @@ __all__ = ["MonthInfoClient"]
 
 
 class MonthInfoClient(BaseClient):
-    def __init__(self, user: Account) -> None:
-        self.user = user
-
     async def _request_month_info(self, month: str = "") -> MonthInfoData:
         """请求指定月份的月历数据
 
@@ -31,7 +27,7 @@ class MonthInfoClient(BaseClient):
 
         data = await request(
             method="GET",
-            url=routes.MONTH_INFO_URL.get_url(),
+            url=routes.MONTH_INFO_URL.get_url(self.user.game_biz),
             params=param,
             cookies=self.user.cookie.model_dump("all"),
         )
@@ -44,7 +40,7 @@ class MonthInfoClient(BaseClient):
             _range (int, optional): 默认查询条数. Defaults to 12.
 
         Returns:
-            list[MonthInfoItemMapper]: 月历数据
+            list[MonthInfoItemMapper]: 按时间倒序的月历数据
         """
         mapper_list = await MonthInfoItemMapper.query_by_range(self.user.uid, _range)
         from . import converter
@@ -84,10 +80,6 @@ class MonthInfoClient(BaseClient):
             int: 成功更新的月份数量
         """
         logger.debug("Refresh month info.")
-        if self.user.game_biz == GameBiz.GLOBAL:
-            raise error.HsrException(
-                "This feature does not yet support international server accounts."
-            )
         if not self.user.cookie.verify_cookie_token():
             raise error.HsrException("Empty cookie value.")
         try:
@@ -95,7 +87,7 @@ class MonthInfoClient(BaseClient):
         except error.InvalidCookieError:
             # cookie_token 有效期比stoken短，因此尝试刷新一次
             logger.debug("The cookie_token value has expired.")
-            await self.user.cookie.refresh_cookie_token()
+            await self.user.cookie.refresh_cookie_token(self.user.game_biz)
             await self.user.save_profile()
             cur_month_info_data = await self._request_month_info()
         datas = [cur_month_info_data]

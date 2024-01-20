@@ -45,7 +45,7 @@
 
     **注意：Cookie 是非常重要的账号凭据，请误泄漏以免导致可能的账号安全问题**
 
-    首先登陆[米哈游通行证](https://user.mihoyo.com/)页面，打开F12，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
+    首先登陆[**米哈游通行证**](https://user.mihoyo.com/)（国际服用户登陆[**hoyolab**](https://www.hoyolab.com/)）页面，打开F12，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
     ```javascript
     javascript:(function(){prompt(document.domain,document.cookie)})();
     ```
@@ -127,8 +127,9 @@
 
 ## 鸣谢
 
-- 导出 Execl 代码参考 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
+- 早期开发的参考项目 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
 - 适配国际服的代码参考 [**star-rail-warp-export**](https://github.com/biuuu/star-rail-warp-export)
+- [分页查询模块](./star_rail/core/paginator/) [genshin.py](https://github.com/thesadru/genshin.py)
 
 ### JetBrains 开发工具
 特别感谢 [**JetBrains**](https://jb.gg/OpenSourceSupport) 为开源项目提供的开发许可证

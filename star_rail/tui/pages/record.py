@@ -1,15 +1,28 @@
+from rich.columns import Columns
 from rich.console import RenderableType
+from rich.markdown import Markdown
+from rich.panel import Panel
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
+from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
-from textual.widgets import Button, Static, TabbedContent, TabPane
+from textual.widgets import Static, TabbedContent, TabPane
 
 from star_rail.config import settings
 from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui.handler import error_handler, required_account
+from star_rail.tui.widgets import SimpleButton, apply_text_color
+
+EMPTY_DATA = [
+    r"[O]     \,`/ /      [/O]",
+    r"[O]    _)..  `_     [/O]",
+    r"[O]   ( __  -\      [/O]",
+    r"[O]       '`.       [/O]",
+    r"[O]      ( \>_-_,   [/O]",
+    r"[O]      _||_ ~-/   [G]No data at the moment![/G][/O]",
+]
 
 
 class GachaContent(Horizontal):
@@ -23,15 +36,21 @@ class GachaContent(Horizontal):
         yield Static(self.val, id="value")
 
 
+class EmptyRecord(Static):
+    def render(self) -> RenderableType:
+        return apply_text_color(EMPTY_DATA)
+
+
+RECORD_TMP = """# 抽卡总数: {}\t\t 5星总数: {}\t\t 保底计数: {}"""
+
+
 class RecordDetail(Container):
     def __init__(self, analyze_result: AnalyzeResult, **kwargs):
         super().__init__(**kwargs)
         self.analyze_result = analyze_result
 
     def compose(self) -> RenderableType:
-        if self.analyze_result is None:
-            return
-        yield Static(f"数据更新时间:{self.analyze_result.update_time}")
+        yield Static(f"数据统计时间:{self.analyze_result.update_time}")
         with TabbedContent():
             for result in self.analyze_result.data:
                 if (
@@ -41,36 +60,52 @@ class RecordDetail(Container):
                     continue
                 name = GACHA_TYPE_DICT[result.gacha_type]
                 with TabPane(name):
-                    yield GachaContent("抽卡总数", f"{result.total_count}")
-                    yield GachaContent("5星总数", f"{len(result.rank_5)}")
-                    yield GachaContent("保底计数", f"{result.pity_count}")
-                    yield Static("===================================")
+                    yield Static(
+                        Markdown(
+                            RECORD_TMP.format(
+                                result.total_count, len(result.rank_5), result.pity_count
+                            )
+                        )
+                    )
                     with VerticalScroll():
-                        for item in result.rank_5:
-                            yield GachaContent(item.name, f"{item.index}抽")
+                        rank_5_list = [
+                            Panel(f"{i}. " + item.name + " : " + item.index + "抽", expand=True)
+                            for i, item in enumerate(result.rank_5, start=1)
+                        ]
+                        yield Static(Columns(rank_5_list))
 
 
 class GachaRecordDialog(Container):
     analyze_result: reactive[AnalyzeResult] = reactive(None, layout=True)
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Button("刷新记录", id="refresh_with_cache")
+        with Horizontal():
+            yield SimpleButton("刷新记录", id="refresh_with_cache")
             # yield Button("读取链接", id="refresh_with_url")
-            yield Button("查看统计", id="view_record")
-            yield Button("导入数据", id="import")
-            yield Button("生成Execl", id="export_execl")
-            yield Button("生成SRGF", id="export_srgf")
-        yield RecordDetail(None)
+            yield SimpleButton("导入数据", id="import")
+            yield SimpleButton("生成Execl", id="export_execl")
+            yield SimpleButton("生成SRGF", id="export_srgf")
+        yield EmptyRecord()
 
     def watch_analyze_result(self, new):
-        details = self.query(RecordDetail)
-        if details:
-            details.remove()
+        def remove_widgets():
+            empty = self.query(EmptyRecord)
+            if empty:
+                empty.remove()
+            details = self.query(RecordDetail)
+            if details:
+                details.remove()
+
+        remove_widgets()
+
+        if not new:
+            self.mount(EmptyRecord())
+            return
+
         self.mount(RecordDetail(new))
 
     @work(exclusive=True)
-    @on(Button.Pressed, "#refresh_with_cache")
+    @on(SimpleButton.Pressed, "#refresh_with_cache")
     @error_handler
     @required_account
     async def refresh_with_webcache(self):
@@ -81,7 +116,7 @@ class GachaRecordDialog(Container):
         self.notify("更新已完成")
 
     @work(exclusive=True)
-    @on(Button.Pressed, "#refresh_with_url")
+    @on(SimpleButton.Pressed, "#refresh_with_url")
     @error_handler
     @required_account
     async def refresh_with_url(self):
@@ -91,16 +126,12 @@ class GachaRecordDialog(Container):
         self.analyze_result = await client.view_analysis_results()
         self.notify("更新已完成")
 
-    @work(exclusive=True)
-    @on(Button.Pressed, "#view_record")
-    @error_handler
-    @required_account
     async def view_record(self):
         client: HSRClient = self.app.client
         self.analyze_result = await client.view_analysis_results()
 
     @work(exclusive=True)
-    @on(Button.Pressed, "#import")
+    @on(SimpleButton.Pressed, "#import")
     @error_handler
     @required_account
     async def import_srgf(self):
@@ -114,7 +145,7 @@ class GachaRecordDialog(Container):
             self.notify("\n".join([f"文件{name }导入失败" for name in failed_list]))
 
     @work(exclusive=True)
-    @on(Button.Pressed, "#export_execl")
+    @on(SimpleButton.Pressed, "#export_execl")
     @error_handler
     @required_account
     async def export_to_execl(self):
@@ -123,7 +154,7 @@ class GachaRecordDialog(Container):
         self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
 
     @work(exclusive=True)
-    @on(Button.Pressed, "#export_srgf")
+    @on(SimpleButton.Pressed, "#export_srgf")
     @error_handler
     @required_account
     async def export_to_srgf(self):

@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import AsyncMock, patch
 
 from star_rail.module.account.cookie import Cookie
+from star_rail.module.types import GameBiz
 
 
 class TestCookie(unittest.IsolatedAsyncioTestCase):
@@ -13,7 +14,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             cookie_token="test_cookie_token",
             ltoken="test_ltoken",
             ltuid="test_uid",
-            mid="test_mid",
+            ltmid="test_mid",
             stoken="test_stoken",
             stuid="test_uid",
         )
@@ -24,8 +25,16 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             Cookie.parse(ck_str)
 
     def test_cookie_parse_success(self):
-        ck_str = "login_ticket=a;login_uid=b;other=c; mid=s"
-        has_value = ("login_ticket", "mid", "login_uid", "stuid", "ltuid", "account_id")
+        ck_str = "login_ticket=a;login_uid=b;other=c; ltmid=s"
+        has_value = (
+            "login_ticket",
+            "login_uid",
+            "stuid",
+            "ltuid",
+            "account_id",
+            "account_mid",
+            "ltmid",
+        )
         cookie = Cookie.parse(ck_str)
         for k in cookie.model_fields_set:
             if k in has_value:
@@ -36,7 +45,15 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
 
     def test_cookie_parse_success_ckv2(self):
         ck_str = "login_ticket_v2=a;login_uid_v2=b;other=c; ltmid_v2=s"
-        has_value = ("login_ticket", "mid", "login_uid", "stuid", "ltuid", "account_id")
+        has_value = (
+            "login_ticket",
+            "login_uid",
+            "stuid",
+            "ltuid",
+            "account_id",
+            "account_mid",
+            "ltmid",
+        )
         cookie = Cookie.parse(ck_str)
         for k in cookie.model_fields_set:
             if k in has_value:
@@ -44,7 +61,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             else:
                 self.assertEqual(getattr(cookie, k), "")
         self.assertTrue(cookie.stuid == cookie.ltuid == cookie.login_uid == cookie.account_id)
-        self.assertEqual(cookie.mid, "s")
+        self.assertEqual(cookie.ltmid, "s")
 
     def test_cookie_parse_empty(self):
         ck_str = ""
@@ -100,9 +117,10 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
                 "cookie_token": "test_cookie_token",
                 "ltoken": "test_ltoken",
                 "ltuid": "test_uid",
-                "mid": "test_mid",
                 "stoken": "test_stoken",
                 "stuid": "test_uid",
+                "account_mid": "test_mid",
+                "ltmid": "test_mid",
             },
         )
 
@@ -125,7 +143,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             }
 
             # Act
-            await cookie.refresh_multi_token()
+            await cookie.refresh_multi_token(GameBiz.CN)
 
             # Assert
             self.assertEqual(cookie.stoken, "xx_stoken")
@@ -144,7 +162,7 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             mock_request.return_value = {"cookie_token": "xxcookie_token"}
 
             # Act
-            await cookie.refresh_cookie_token()
+            await cookie.refresh_cookie_token(GameBiz.CN)
 
             # Assert
             self.assertEqual(cookie.cookie_token, "xxcookie_token")

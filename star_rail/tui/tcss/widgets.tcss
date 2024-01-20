@@ -1,0 +1,15 @@
+
+SimpleButton {
+    margin: 1;
+    padding: 1 2;
+    background: #2e3440;
+    color: $text;
+    box-sizing: content-box;
+    content-align: center middle;
+
+    &:hover {
+        background: $accent;
+        color: $text;
+        text-style: bold;
+    }
+}

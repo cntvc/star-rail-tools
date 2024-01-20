@@ -47,23 +47,3 @@ Message {
     content-align-vertical: middle;
     border: dashed green;
 }
-
-DarkSwitch {    
-    background: $panel;
-    padding: 1;
-    dock: bottom;
-    height: auto;
-    border-right: vkey $background;
-}
-
-DarkSwitch .label {
-    width: 1fr;
-    padding: 1 2;
-    color: $text-muted;
-}
-
-DarkSwitch Switch {
-    background: $boost;
-    dock: left;
-}
-

@@ -1,33 +1,30 @@
 /* =================================== Config =================================== */
 
 ConfigDialog {
-    margin-top: 1;
-    margin-right: 5;
-    margin-left: 5;
+    margin: 1;
+
+    Static {
+        height: 3;
+        content-align: left middle;
+        width: auto;
+    }
 }
 
 ConfigSwitchItem {
     height: auto;
-    border: dashed green
+
+    &>Switch {
+        dock: right;
+        height: auto;
+        width: auto;
+    }
 }
+
 ConfigSelectItem {
     height: auto;
-    border: dashed green
-}
-ConfigSelectItem>Select {
-    height: auto;
-    dock: right;
-    width: 40%;
-}
-
-ConfigDialog Static {
-    height: 3;
-    content-align: left middle;
-    width: auto;
-}
-
-ConfigSwitchItem>Switch {
-    dock: right;
-    height: auto;
-    width: auto;
+    &>Select {
+        height: auto;
+        dock: right;
+        width: 40%;
+    }
 }

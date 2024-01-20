@@ -38,7 +38,7 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 cookie_token="test_cookie_token",
                 ltoken="test_ltoken",
                 ltuid="test_uid",
-                mid="test_mid",
+                ltmid="test_ltmid",
                 stoken="test_stoken",
                 stuid="test_uid",
             )
@@ -73,7 +73,7 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 cookie_token="test_cookie_token",
                 ltoken="test_ltoken",
                 ltuid="test_uid",
-                mid="test_mid",
+                ltmid="test_ltmid",
                 stoken="test_stoken",
                 stuid="test_uid",
             )
@@ -105,7 +105,7 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 cookie_token="test_cookie_token",
                 ltoken="test_ltoken",
                 ltuid="test_uid",
-                mid="test_mid",
+                ltmid="test_ltmid",
                 stoken="test_stoken",
                 stuid="test_uid",
             ),
@@ -138,6 +138,6 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
         user2_4 = Account(uid="123456789", cookie=Cookie(login_uid="123456789"))
         user3 = Account(uid="223456789")
 
-        self.assertNotEqual(user2, user2_4)
+        self.assertEqual(user2, user2_4)
         self.assertNotEqual(user1, user3)
         self.assertEqual(user1, user2)

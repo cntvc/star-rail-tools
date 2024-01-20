@@ -1,7 +1,7 @@
 import typing
 from http import cookies
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 from star_rail.core import request
 from star_rail.module import routes
@@ -45,21 +45,21 @@ class Cookie(BaseModel):
     login_uid: str = ""
 
     account_id: str = ""
-    cookie_token: str = ""
+    account_mid: str = ""
 
     ltoken: str = ""
     ltuid: str = ""
-    mid: str = ""
-    """mihoyo uid
+    ltmid: str = ""
 
-    同 webapi: [ltmid_v2, account_mid_v2]
-    """
+    cookie_token: str = ""
 
     stoken: str = ""
     stuid: str = ""
 
-    @model_validator(mode="after")
-    def init_uid(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        # init mihoyo uid
         uid_params = (self.stuid, self.ltuid, self.login_uid, self.account_id)
 
         mihoyo_uid = next((v for v in uid_params if v), None)
@@ -70,7 +70,12 @@ class Cookie(BaseModel):
             self.login_uid = mihoyo_uid
             self.account_id = mihoyo_uid
 
-        return self
+        # init mid
+        mid_params = (self.ltmid, self.account_mid)
+        mid = next((v for v in mid_params if v), None)
+        if mid:
+            self.ltmid = mid
+            self.account_mid = mid
 
     @staticmethod
     def parse(cookie_str: str):
@@ -81,9 +86,6 @@ class Cookie(BaseModel):
 
         # 获取的 cookie 可能为 v2 版本，将后缀去除
         cookie_dict = _remove_suffix(cookie_dict, "_v2")
-        # 一般接口只使用到了 mid 值，但是有多个相同值来源，例如 'ltmid'
-        if "ltmid" in cookie_dict:
-            cookie_dict["mid"] = cookie_dict["ltmid"]
 
         logger.debug("parse cookie param:" + " ".join(k for k, _ in cookie_dict.items()))
         cookie = Cookie.model_validate(cookie_dict)
@@ -93,12 +95,12 @@ class Cookie(BaseModel):
         return True if self.login_ticket and self.login_uid else False
 
     def verify_stoken(self):
-        return True if self.stoken and self.stuid and self.mid else False
+        return True if self.stoken and self.stuid else False
 
     def verify_cookie_token(self):
         return True if self.cookie_token else False
 
-    async def refresh_multi_token(self):
+    async def refresh_multi_token(self, game_biz: GameBiz):
         """刷新 Cookie 的 stoken 和 ltoken"""
         logger.debug("Refresh stoken and ltoken.")
         params = {
@@ -108,7 +110,7 @@ class Cookie(BaseModel):
         }
         data = await request(
             "GET",
-            url=routes.MULTI_TOKEN_BY_LOGINTICKET_URL.get_url(),
+            url=routes.MULTI_TOKEN_BY_LOGINTICKET_URL.get_url(game_biz),
             headers=Header.create_header("WEB").value,
             params=params,
         )
@@ -119,12 +121,12 @@ class Cookie(BaseModel):
             if item["name"] == "ltoken":
                 self.ltoken = item["token"]
 
-    async def refresh_cookie_token(self):
+    async def refresh_cookie_token(self, game_biz: GameBiz):
         """刷新 Cookie 的 cookie_token"""
         logger.debug("Refresh cookie_token.")
         data = await request(
             "GET",
-            url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(GameBiz.get_by_uid(self.login_uid)),
+            url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(game_biz),
             headers=Header.create_header("WEB").value,
             cookies=self.model_dump("web"),
             params={"uid": self.login_uid, "stoken": self.stoken},
@@ -171,6 +173,7 @@ class Cookie(BaseModel):
             or self.cookie_token != other.cookie_token
             or self.ltoken != other.ltoken
             or self.stoken != other.stoken
+            or self.ltmid != other.ltmid
         )
 
     def empty(self):

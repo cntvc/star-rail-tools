@@ -1,19 +1,27 @@
 import os
 
-from loguru import logger
-from textual import work
+from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
-from textual.widgets import ContentSwitcher, Header, Static
+from textual.widgets import ContentSwitcher, Static
 
 from star_rail.config import settings
-from star_rail.database import DATABASE_VERSION, DBManager
 from star_rail.module import HSRClient, Updater
 from star_rail.module.info import get_sys_info
+from star_rail.tui import events
 from star_rail.tui.handler import error_handler
+from star_rail.utils.logger import logger
 
-from .widgets import AccountDialog, ConfigDialog, Footer, GachaRecordDialog, MonthDialog, Sidebar
+from .pages import (
+    AccountDialog,
+    ConfigDialog,
+    CurrentUID,
+    GachaRecordDialog,
+    MonthDialog,
+    Sidebar,
+    StatusBar,
+)
 
 
 class Navigation(Container):
@@ -37,23 +45,29 @@ def get_tcss_list():
 
 tcss_list = get_tcss_list()
 
+"""调用逻辑
+
+主界面消费 loginAccount，使 status_bar 更新uid，跃迁记录查询本地，开拓月历查询本地
+"""
+
 
 class HSRApp(App):
     TITLE = "StarRailTools"
     CSS_PATH = tcss_list
     BINDINGS = [
         ("ctrl+b", "toggle_sidebar", "关于..."),
+        ("ctrl+p", "command_palette", "命令行"),
         Binding("ctrl+q", "app.quit", "退出", show=False),
     ]
+
+    client: HSRClient
 
     def __init__(self):
         super().__init__()
         self.client = HSRClient(None)
         self.updater = Updater()
-        self.db_manager = DBManager()
 
     def compose(self) -> ComposeResult:
-        yield Header()
         with Container():
             yield Sidebar(classes="-hidden")
             with Navigation():
@@ -66,35 +80,34 @@ class HSRApp(App):
                 yield GachaRecordDialog(id="gacha_record")
                 yield MonthDialog(id="month")
                 yield ConfigDialog(id="config")
-        yield Footer()
+        yield StatusBar()
 
-    @work(exclusive=True)
     @error_handler
     async def on_mount(self):
         logger.debug("============================================================")
         logger.debug(get_sys_info())
-        if not os.path.exists(self.db_manager.db_path):
-            logger.debug("init database.")
-            await self.db_manager.create_all()
-            await self.db_manager.set_user_version(DATABASE_VERSION)
-        cur_db_version = await self.db_manager.user_version()
-        logger.debug("Current db version: {}.", cur_db_version)
-        if cur_db_version < DATABASE_VERSION:
-            self.notify("正在升级数据库，请勿关闭软件.", severity="warning")
-            await self.db_manager.upgrade_version()
-            self.notify("升级完成")
 
-        await self.client.init_default_account()
-
-        if self.client.user:
-            cur_user = self.query_one("CurrentUID")
-            cur_user.uid = self.client.user.uid
+        await self.client.start()
 
         if settings.CHECK_UPDATE:
             self.check_update()
 
-    @work(exclusive=True, exit_on_error=False)
+        if not self.client.user:
+            return
+
+        await self.reset_account_data()
+
+    async def reset_account_data(self):
+        self.query_one(CurrentUID).uid = self.client.user.uid
+        self.query_one(MonthDialog).month_info_list = await self.client.get_month_info_in_range()
+        self.query_one(GachaRecordDialog).analyze_result = await self.client.view_analysis_results()
+
+    @on(events.LoginAccount)
     @error_handler
+    async def login_account(self):
+        await self.reset_account_data()
+
+    @work(exclusive=True, exit_on_error=False)
     async def check_update(self):
         result = await self.updater.check_update()
         if result:

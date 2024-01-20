@@ -1,2 +1,2 @@
-from .async_request import request
+from .async_request import *
 from .paginator import *
