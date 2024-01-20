@@ -36,7 +36,6 @@ class RecordDetail(Container):
         self.analyze_result = analyze_result
 
     def compose(self) -> RenderableType:
-        yield Static(f"数据统计时间:{self.analyze_result.update_time}")
         with TabbedContent():
             for result in self.analyze_result.data:
                 if (
