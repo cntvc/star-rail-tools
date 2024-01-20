@@ -15,79 +15,42 @@
 </p>
 
 
-## 基本用法
+## 基本使用
 
-下载源：
+### 下载源
 - [Github][latest_release] 有两个发行版
   - zip 后缀: 文件夹压缩版，相对于单文件版本启动较快
   - exe 后缀: 单文件版本
 - [制品库][coding_latest]（国内下载更快，且只包有单文件版本
 
+### 添加或更新账号 Cookie
 
-### 0. 添加账号
+  **注意：Cookie 是非常重要的账号凭据，请勿泄漏以免导致可能的账号安全问题**
 
-1. 手动输入游戏 UID 添加账号
+  首先登陆[**米哈游通行证**](https://user.mihoyo.com/)（国际服用户登陆[**hoyolab**](https://www.hoyolab.com/)）页面，点击F12按键，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
 
-    依次输入数字选择菜单项 "账号设置" -> "输入游戏 UID 添加账号"
+  ```javascript
+  javascript:(function(){prompt(document.domain,document.cookie)})();
+  ```
 
-    <details>
-    <summary>输入 UID 步骤示例</summary>
-    <p>
+  然后点击"读取 Cookie"按钮，这将自动读取剪切板数据并进行解析
 
-    <p>
-      <img src="docs/image/input_uid.png" alt="input UID" height = 80% width = 80% align="middle">
-    </p>
+  <details>
+    <summary>Cookie 获取示例</summary>
+  <p>
 
-    </p>
-    </details>
+  <p>
+    <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
+  </p>
 
-2. 添加或更新账号 Cookie
+  </p>
+  </details>
 
-    **注意：Cookie 是非常重要的账号凭据，请误泄漏以免导致可能的账号安全问题**
+### 数据迁移
+  本软件为 [UIGF](https://uigf.org/zh) 组织成员，支持 [SRGF](https://uigf.org/zh/standards/SRGF.html) 标准格式的导入导出
 
-    首先登陆[**米哈游通行证**](https://user.mihoyo.com/)（国际服用户登陆[**hoyolab**](https://www.hoyolab.com/)）页面，打开F12，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
-    ```javascript
-    javascript:(function(){prompt(document.domain,document.cookie)})();
-    ```
-
-    然后依次输入数字选择菜单项 "账号设置" -> "通过 Cookie 添加账号"，这将自动读取剪切板数据并获得相关游戏账号
-
-    <details>
-      <summary>Cookie 获取示例</summary>
-    <p>
-
-    <p>
-      <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
-    </p>
-
-    </p>
-    </details>
-
-
-
-### 1. 跃迁记录
-
-#### (1) 跃迁记录导出
-
-1. 设置账号：选择或添加星穹铁道账号 UID
-2. 打开游戏，在 "抽卡记录页面" 选择历史记录并翻页
-3. 切换到软件，依次选择菜单项 "跃迁记录" -> "通过游戏缓存导出"
-4. 完成导出后，会自动显示当前抽卡分析结果
-
-#### (2) 导入抽卡数据
-
-1. 设置账号：输入或选择星穹铁道账号 UID
-2. 将需要导入的数据放入 "Import" 文件夹内，可一次放入多个文件。支持 [SRGF][SRGF] 格式的 json 文件
-3. 切换到软件，依次选择菜单项 "跃迁记录" -> "导入跃迁记录"
-4. 根据提示导入成功后，需要手动选择菜单项 "查看分析结果"
-
-### 2. 开拓月历
-
-#### 开拓月历导出
-
-1. 添加或更新账号 Cookie
-2. 选择需要操作的 UID
-3. 依次选择菜单项 "开拓月历" -> "获取开拓月历" 功能，等待结果显示
+  **导入 SRGF 格式数据**: 
+  将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击"导入数据"按钮即可
 
 
 <details>
@@ -128,7 +91,6 @@
 ## 鸣谢
 
 - 早期开发的参考项目 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
-- 适配国际服的代码参考 [**star-rail-warp-export**](https://github.com/biuuu/star-rail-warp-export)
 - [分页查询模块](./star_rail/core/paginator/) [genshin.py](https://github.com/thesadru/genshin.py)
 
 ### JetBrains 开发工具
@@ -139,6 +101,4 @@
 
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
-
-[SRGF]: https://uigf.org/zh/standards/SRGF.html
 [en_us]: docs/README_EN.md
