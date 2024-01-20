@@ -1,9 +1,20 @@
 MonthDialog {
     margin: 1;
 
-    DataTable  {
-        margin: 1;
-        width: auto;
-        height: auto;
+    EmptyData  {
+        Static{
+            margin: 1;
+            width: auto;
+            height: auto;
+        }
+    }
+
+    MonthInfoDetail {
+        Static{
+            margin: 1;
+            width: auto;
+            height: auto;
+            max-width: 40;
+        }
     }
 }

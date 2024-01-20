@@ -13,16 +13,7 @@ from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui.handler import error_handler, required_account
-from star_rail.tui.widgets import SimpleButton, apply_text_color
-
-EMPTY_DATA = [
-    r"[O]     \,`/ /      [/O]",
-    r"[O]    _)..  `_     [/O]",
-    r"[O]   ( __  -\      [/O]",
-    r"[O]       '`.       [/O]",
-    r"[O]      ( \>_-_,   [/O]",
-    r"[O]      _||_ ~-/   [G]No data at the moment![/G][/O]",
-]
+from star_rail.tui.widgets import SimpleButton
 
 
 class GachaContent(Horizontal):
@@ -34,11 +25,6 @@ class GachaContent(Horizontal):
     def compose(self) -> ComposeResult:
         yield Static(self.desc, id="desc")
         yield Static(self.val, id="value")
-
-
-class EmptyRecord(Static):
-    def render(self) -> RenderableType:
-        return apply_text_color(EMPTY_DATA)
 
 
 RECORD_TMP = """# 抽卡总数: {}\t\t 5星总数: {}\t\t 保底计数: {}"""
@@ -85,22 +71,14 @@ class GachaRecordDialog(Container):
             yield SimpleButton("导入数据", id="import")
             yield SimpleButton("生成Execl", id="export_execl")
             yield SimpleButton("生成SRGF", id="export_srgf")
-        yield EmptyRecord()
 
     def watch_analyze_result(self, new):
-        def remove_widgets():
-            empty = self.query(EmptyRecord)
-            if empty:
-                empty.remove()
-            details = self.query(RecordDetail)
-            if details:
-                details.remove()
-
-        remove_widgets()
-
+        # 即使没有记录，也会有一个空的统计结果
         if not new:
-            self.mount(EmptyRecord())
             return
+        details = self.query(RecordDetail)
+        if details:
+            details.remove()
 
         self.mount(RecordDetail(new))
 

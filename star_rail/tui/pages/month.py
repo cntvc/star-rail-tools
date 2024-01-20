@@ -1,8 +1,7 @@
-from rich.console import RenderableType
 from rich.markdown import Markdown
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Container
+from textual.containers import Center, Container, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Select, Static
 
@@ -32,35 +31,37 @@ EMPTY_DATA = [
 ]
 
 
-class MonthInfoDetail(Container):
+class MonthInfoDetail(VerticalScroll):
     def __init__(self, month_detail: MonthInfoItem, **kwargs):
         super().__init__(**kwargs)
         self.month_detail = month_detail
 
     def compose(self) -> ComposeResult:
-        yield Static(
-            Markdown(
-                DETAIL_TEMP.format(
-                    self.month_detail.hcoin,
-                    self.month_detail.rails_pass,
-                    "\n".join(
-                        [
-                            f"|{source.action_name}|{source.percent}%|"
-                            for source in self.month_detail.source
-                        ]
-                    ),
+        with Center():
+            yield Static(
+                Markdown(
+                    DETAIL_TEMP.format(
+                        self.month_detail.hcoin,
+                        self.month_detail.rails_pass,
+                        "\n".join(
+                            [
+                                f"|{source.action_name}|{source.percent}%|"
+                                for source in self.month_detail.source
+                            ]
+                        ),
+                    )
                 )
             )
-        )
 
 
 class MonthList(Select):
     pass
 
 
-class EmptyData(Static):
-    def render(self) -> RenderableType:
-        return apply_text_color(EMPTY_DATA)
+class EmptyData(Container):
+    def compose(self) -> ComposeResult:
+        with Center():
+            yield Static(apply_text_color(EMPTY_DATA))
 
 
 class MonthDialog(Container):
@@ -100,7 +101,7 @@ class MonthDialog(Container):
 
         # 空数据加载默认组件
         if not new:
-            self.mount(EmptyData())
+            self.mount(EmptyData(id="empty_month"))
             return
 
         month_list = [item.month for item in self.month_info_list]
