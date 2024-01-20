@@ -9,7 +9,13 @@ GachaRecordDialog {
             height: auto;
         }
     }
-
+    EmptyData  {
+        Static{
+            margin: 1;
+            width: auto;
+            height: auto;
+        }
+    }
 }
 
 RecordDetail {

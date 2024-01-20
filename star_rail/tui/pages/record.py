@@ -4,7 +4,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, VerticalScroll
+from textual.containers import Center, Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Static, TabbedContent, TabPane
 
@@ -13,7 +13,17 @@ from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui.handler import error_handler, required_account
-from star_rail.tui.widgets import SimpleButton
+from star_rail.tui.widgets import SimpleButton, apply_text_color
+
+RECORD_TMP = """# 抽卡总数: {}\t\t 5星总数: {}\t\t 保底计数: {}"""
+EMPTY_DATA = [
+    r"[O]     \,`/ /      [/O]",
+    r"[O]    _)..  `_     [/O]",
+    r"[O]   ( __  -\      [/O]",
+    r"[O]       '`.       [/O]",
+    r"[O]      ( \>_-_,   [/O]",
+    r"[O]      _||_ ~-/   [G]No data at the moment![/G][/O]",
+]
 
 
 class GachaContent(Horizontal):
@@ -27,7 +37,10 @@ class GachaContent(Horizontal):
         yield Static(self.val, id="value")
 
 
-RECORD_TMP = """# 抽卡总数: {}\t\t 5星总数: {}\t\t 保底计数: {}"""
+class EmptyData(Container):
+    def compose(self) -> ComposeResult:
+        with Center():
+            yield Static(apply_text_color(EMPTY_DATA))
 
 
 class RecordDetail(Container):
@@ -72,12 +85,19 @@ class GachaRecordDialog(Container):
             yield SimpleButton("生成SRGF", id="export_srgf")
 
     def watch_analyze_result(self, new):
-        # 即使没有记录，也会有一个空的统计结果
+        def remove_widgets():
+            empty_data = self.query(EmptyData)
+            if empty_data:
+                empty_data.remove()
+            details = self.query(RecordDetail)
+            if details:
+                details.remove()
+
+        remove_widgets()
+
         if not new:
+            self.mount(EmptyData(id="empty_record"))
             return
-        details = self.query(RecordDetail)
-        if details:
-            details.remove()
 
         self.mount(RecordDetail(new))
 
