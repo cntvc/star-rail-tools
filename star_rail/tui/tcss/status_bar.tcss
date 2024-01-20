@@ -1,0 +1,16 @@
+StatusBar {
+    background: #81a1c1;
+    color: $text;
+    dock: bottom;
+    height: 1;
+}
+
+StatusBar > CurrentUID{
+    dock: left;
+    width: auto;
+}
+
+StatusBar > Info{
+    dock: right;
+    width: auto;
+}

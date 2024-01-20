@@ -40,7 +40,7 @@ class MonthInfoClient(BaseClient):
             _range (int, optional): 默认查询条数. Defaults to 12.
 
         Returns:
-            list[MonthInfoItemMapper]: 月历数据
+            list[MonthInfoItemMapper]: 按时间倒序的月历数据
         """
         mapper_list = await MonthInfoItemMapper.query_by_range(self.user.uid, _range)
         from . import converter

@@ -3,12 +3,10 @@
 Screen {
     layers: base overlay notifications;
     overflow: hidden;
+    background: #252a34;
+    scrollbar-size: 1 1;
 }
 
-Screen>Container {
-    height: 100%;
-    overflow: hidden;
-}
 
 Notification {
     dock: bottom;
@@ -28,22 +26,26 @@ Notification {
 Navigation {
     width: 30;
     dock: left;
-    border: dashed green;
+    border: #81a1c1;
+    box-sizing: border-box;
 }
 
 NavTab {
     margin: 1;
     height: auto;
-    padding: 1 2;
-    background: $boost;
+    padding: 1;
+    background: #2e3440;
     color: $text;
-    box-sizing: content-box;
+    box-sizing: border-box;
     content-align: center middle;
-    
+
+    &:hover {
+        background: $accent;
+        color: $text;
+        text-style: bold;
+    }
 }
 
-NavTab :hover {
-    background: $accent;
-    color: $text;
-    text-style: bold;
+MainDialog {
+    border: #81a1c1;
 }

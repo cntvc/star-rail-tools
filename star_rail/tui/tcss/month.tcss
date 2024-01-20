@@ -1,8 +1,9 @@
 MonthDialog {
-
-}
-
-MonthDialog Button {
     margin: 1;
-    width: 100%
+
+    DataTable  {
+        margin: 1;
+        width: auto;
+        height: auto;
+    }
 }
