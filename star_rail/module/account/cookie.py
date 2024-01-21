@@ -141,14 +141,14 @@ class Cookie(BaseModel):
         Args:
             include (Literal["web", "ltoken", "stoken", "all"], optional):
                 all: all
-                web: login_ticket + login_uid
-                ltoken: ltoken
-                stoken: ltoken + stoken
+                web: login_ticket, login_uid, account_mid, account_id
+                ltoken: ltoken, ltuid, ltmid
+                stoken: ltoken, ltuid, ltmid, stoken, stuid
         """
         group = {
-            "web": ["login_ticket", "login_uid"],
-            "ltoken": ["ltoken", "ltuid", "mid"],
-            "stoken": ["ltoken", "ltuid", "mid", "stoken", "stuid"],
+            "web": ["login_ticket", "login_uid", "account_mid", "account_id"],
+            "ltoken": ["ltoken", "ltuid", "ltmid"],
+            "stoken": ["ltoken", "ltuid", "ltmid", "stoken", "stuid"],
         }
         if include not in group:
             return super().model_dump(exclude_defaults=True)

@@ -125,7 +125,15 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
         )
 
         dump_web = self.cookie.model_dump(include="web")
-        self.assertEqual(dump_web, {"login_ticket": "test_login_ticket", "login_uid": "test_uid"})
+        self.assertEqual(
+            dump_web,
+            {
+                "login_ticket": "test_login_ticket",
+                "login_uid": "test_uid",
+                "account_id": "test_uid",
+                "account_mid": "test_mid",
+            },
+        )
 
     async def test_refresh_multi_token(self):
         cookie = Cookie()
