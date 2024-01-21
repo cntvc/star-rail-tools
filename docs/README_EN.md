@@ -40,7 +40,7 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
   <p>
 
   <p>
-    <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
+    <img src="../docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
   </p>
 
   </p>
