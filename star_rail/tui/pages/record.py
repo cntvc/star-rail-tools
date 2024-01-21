@@ -15,7 +15,7 @@ from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
-RECORD_TMP = """# 抽卡总数: {}\t\t 5星总数: {}\t\t 保底计数: {}"""
+RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}\t 保底计数: {}"""
 EMPTY_DATA = [
     r"[O]     \,`/ /      [/O]",
     r"[O]    _)..  `_     [/O]",
@@ -57,11 +57,15 @@ class RecordDetail(Container):
                 ):
                     continue
                 name = GACHA_TYPE_DICT[result.gacha_type]
+                rank5_count = len(result.rank_5)
+                if rank5_count:
+                    rank5_average = (result.total_count - result.pity_count) / rank5_count
+                    rank5_average = round(rank5_average, 2)
                 with TabPane(name):
                     yield Static(
                         Markdown(
                             RECORD_TMP.format(
-                                result.total_count, len(result.rank_5), result.pity_count
+                                result.total_count, rank5_count, rank5_average, result.pity_count
                             )
                         )
                     )
