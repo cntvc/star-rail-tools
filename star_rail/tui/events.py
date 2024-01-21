@@ -19,3 +19,9 @@ class TaskError(Message, bubble=True):
 
 class LoginAccount(Message, bubble=True):
     pass
+
+
+class ChangeStarterWarp(Message, bubble=True):
+    def __init__(self, value) -> None:
+        super().__init__()
+        self.value = value

@@ -4,13 +4,14 @@ from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
-from textual.widgets import ContentSwitcher, Static
+from textual.widgets import ContentSwitcher, Static, TabbedContent
 
 from star_rail.config import settings
 from star_rail.module import HSRClient, Updater
 from star_rail.module.info import get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
+from star_rail.tui.pages.record import RecordDetail
 from star_rail.utils.logger import logger
 
 from .pages import (
@@ -106,6 +107,16 @@ class HSRApp(App):
     @error_handler
     async def login_account(self):
         await self.reset_account_data()
+
+    @on(events.ChangeStarterWarp)
+    def change_starter_warp(self, event: events.ChangeStarterWarp):
+        record_detail = self.query(RecordDetail)
+        if record_detail:
+            tab_c = record_detail.first().query_one(TabbedContent)
+            if event.value:
+                tab_c.show_tab("STARTER_WARP")
+            else:
+                tab_c.hide_tab("STARTER_WARP")
 
     @work(exclusive=True, exit_on_error=False)
     async def check_update(self):

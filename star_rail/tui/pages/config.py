@@ -1,9 +1,11 @@
+from loguru import logger
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
-from textual.widgets import Select, Static, Switch
+from textual.widgets import Static, Switch
 
 from star_rail.config import settings
+from star_rail.tui import events
 
 
 class ConfigDialog(Container):
@@ -13,16 +15,24 @@ class ConfigDialog(Container):
 
 
 class ConfigSwitchItem(Horizontal):
-    def __init__(self, id: str, desc: str, status: bool, **kwargs) -> None:
-        super().__init__(id=id, **kwargs)
+    def __init__(self, switch_id: str, desc: str, status: bool, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.switch_id = switch_id
         self.desc = desc
         self.status = status
 
     def compose(self) -> ComposeResult:
         yield Static(self.desc)
-        yield Switch(value=self.status)
+        yield Switch(value=self.status, id=self.switch_id)
 
-    @on(Switch.Changed)
-    def update_settings(self, event: Select.Changed):
-        settings.update_config({self.id: event.value})
+    @on(Switch.Changed, "#CHECK_UPDATE")
+    def _change_check_update(self, event: Switch.Changed):
+        settings.CHECK_UPDATE = event.value
+        logger.debug(event.value)
         settings.save_config()
+
+    @on(Switch.Changed, "#DISPLAY_STARTER_WARP")
+    def change_starter_warp(self, event: Switch.Changed):
+        settings.DISPLAY_STARTER_WARP = event.value
+        settings.save_config()
+        self.post_message(events.ChangeStarterWarp(event.value))

@@ -9,6 +9,13 @@ class GachaRecordType(enum.StrEnum):
     CHARACTER_EVENT_WARP = "11"
     LIGHT_CONE_EVENT_WARP = "12"
 
+    @staticmethod
+    def get_by_value(val: str):
+        for member in GachaRecordType.__members__.values():
+            if member.value == val:
+                return member
+        assert False, f"Param value error, got [{val}]."
+
 
 GACHA_TYPE_IDS: list[str] = [member.value for member in GachaRecordType]
 """抽卡类型列表"""

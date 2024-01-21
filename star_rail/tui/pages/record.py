@@ -51,18 +51,16 @@ class RecordDetail(Container):
     def compose(self) -> RenderableType:
         with TabbedContent():
             for result in self.analyze_result.data:
-                if (
-                    not settings.DISPLAY_STARTER_WARP
-                    and result.gacha_type == GachaRecordType.STARTER_WARP.value
-                ):
-                    continue
-                name = GACHA_TYPE_DICT[result.gacha_type]
+                tab_id = GachaRecordType.get_by_value(result.gacha_type).name
+                tab_name = GACHA_TYPE_DICT[result.gacha_type]
+
                 rank5_count = len(result.rank_5)
                 rank5_average = "-"
                 if rank5_count:
                     rank5_average = (result.total_count - result.pity_count) / rank5_count
                     rank5_average = round(rank5_average, 2)
-                with TabPane(name):
+
+                with TabPane(tab_name, id=f"{tab_id}"):
                     yield Static(
                         Markdown(
                             RECORD_TMP.format(
@@ -89,7 +87,7 @@ class GachaRecordDialog(Container):
             yield SimpleButton("生成Execl", id="export_execl")
             yield SimpleButton("生成SRGF", id="export_srgf")
 
-    def watch_analyze_result(self, new: AnalyzeResult):
+    async def watch_analyze_result(self, new: AnalyzeResult):
         def remove_widgets():
             empty_data = self.query(EmptyData)
             if empty_data:
@@ -103,8 +101,9 @@ class GachaRecordDialog(Container):
         if not new or new.empty():
             self.mount(EmptyData(id="empty_record"))
             return
-
-        self.mount(RecordDetail(new))
+        await self.mount(RecordDetail(new))
+        if not settings.DISPLAY_STARTER_WARP:
+            self.query_one(TabbedContent).hide_tab("STARTER_WARP")
 
     @work(exclusive=True)
     @on(SimpleButton.Pressed, "#refresh_with_cache")
