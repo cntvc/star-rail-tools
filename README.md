@@ -11,7 +11,7 @@
 崩坏：星穹铁道小工具，可导出跃迁记录和开拓月历
 
 <p>
-  <img src="docs/image/analyze_result.png" alt="analyze_result" height = 80% width = 80% align="middle">
+  <img src="docs/image/gacha_record.png" alt="gacha_record" height = 80% width = 80% align="middle">
 </p>
 
 
