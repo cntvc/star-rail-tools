@@ -58,6 +58,7 @@ class RecordDetail(Container):
                     continue
                 name = GACHA_TYPE_DICT[result.gacha_type]
                 rank5_count = len(result.rank_5)
+                rank5_average = "-"
                 if rank5_count:
                     rank5_average = (result.total_count - result.pity_count) / rank5_count
                     rank5_average = round(rank5_average, 2)
@@ -83,12 +84,12 @@ class GachaRecordDialog(Container):
     def compose(self) -> ComposeResult:
         with Horizontal():
             yield SimpleButton("刷新记录", id="refresh_with_cache")
-            # yield Button("读取链接", id="refresh_with_url")
+            # yield SimpleButton("读取链接", id="refresh_with_url")
             yield SimpleButton("导入数据", id="import")
             yield SimpleButton("生成Execl", id="export_execl")
             yield SimpleButton("生成SRGF", id="export_srgf")
 
-    def watch_analyze_result(self, new):
+    def watch_analyze_result(self, new: AnalyzeResult):
         def remove_widgets():
             empty_data = self.query(EmptyData)
             if empty_data:
@@ -99,7 +100,7 @@ class GachaRecordDialog(Container):
 
         remove_widgets()
 
-        if not new:
+        if not new or new.empty():
             self.mount(EmptyData(id="empty_record"))
             return
 

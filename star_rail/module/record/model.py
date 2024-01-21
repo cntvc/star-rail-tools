@@ -80,3 +80,9 @@ class AnalyzeResult(BaseModel):
     uid: str = ""
     update_time: str = ""
     data: list[StatisticResult] = []
+
+    def empty(self):
+        for i in self.data:
+            if len(i.rank_5):
+                return False
+        return True

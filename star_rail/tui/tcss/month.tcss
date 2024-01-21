@@ -2,8 +2,9 @@ MonthDialog {
     margin: 1;
 
     EmptyData  {
+        width: auto;
+        height: auto;
         Static{
-            margin: 1;
             width: auto;
             height: auto;
         }

@@ -11,10 +11,8 @@ from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
 DETAIL_TEMP = """
-
 - 星琼 : {}
 - 星轨通票&星轨专票 : {}
-
 ---
 |来源|占比|
 |:----|----:|
