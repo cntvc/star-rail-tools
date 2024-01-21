@@ -20,10 +20,12 @@ class GameLogPath(str, enum.Enum):
 
     @staticmethod
     def get_by_user(user: Account):
-        if user.game_biz == GameBiz.CN.value:
+        if user.game_biz == GameBiz.CN:
             return Path(_MHY_LOG_ROOT_PATH, GameLogPath.CN.value, "Player.log")
-        elif user.game_biz == GameBiz.GLOBAL.value:
+        elif user.game_biz == GameBiz.GLOBAL:
             return Path(_MHY_LOG_ROOT_PATH, GameLogPath.GLOBAL.value, "Player.log")
+        else:
+            assert False, f"Param value error, got [{user.game_biz}]."
 
 
 class GameClient(BaseClient):
