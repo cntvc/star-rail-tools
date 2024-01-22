@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from star_rail import __version__ as app_version
 from star_rail import constants
-from star_rail.utils.time import TimeUtils
+from star_rail.utils.date import Date
 from star_rail.utils.version import get_version
 
 from .mapper import GachaRecordBatchMapper
@@ -42,16 +42,14 @@ class SRGFInfo(BaseModel):
 
     @classmethod
     def create(cls, uid: str, lang: str, region_time_zone: int):
-        local_std_time = TimeUtils.get_local_time()
-        origin_time = TimeUtils.local_time_to_timezone(local_std_time, region_time_zone)
-
+        datetime = Date.convert_timezone(region_time_zone)
         export_app_version = app_version
         return SRGFInfo(
             uid=uid,
             lang=lang,
             region_time_zone=region_time_zone,
-            export_timestamp=TimeUtils.convert_to_timestamp(origin_time),
-            export_time=TimeUtils.get_format_time(TimeUtils.convert_to_time(origin_time)),
+            export_timestamp=datetime.timestamp(),
+            export_time=Date.format_time(datetime),
             export_app=constants.APP_NAME,
             export_app_version=export_app_version,
         )

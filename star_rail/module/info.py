@@ -2,7 +2,7 @@ import platform
 
 from star_rail import __version__
 from star_rail.config import settings
-from star_rail.utils.time import TimeUtils
+from star_rail.utils.date import Date
 
 
 def get_sys_info():
@@ -11,7 +11,7 @@ def get_sys_info():
     return (
         "\n"
         f"Software version:{__version__}\n"
-        f"System time:{TimeUtils.get_format_time(TimeUtils.get_time())}\n"
+        f"System time:{Date.format_time()}\n"
         f"System version:{ platform.platform()}\n"
         f"Config: {s_copy.model_dump()}"
     )

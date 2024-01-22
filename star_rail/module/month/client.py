@@ -5,12 +5,13 @@ from star_rail.core import request
 from star_rail.module import routes
 from star_rail.module.base import BaseClient
 from star_rail.utils.logger import logger
-from star_rail.utils.time import TimeUtils
 
 from .mapper import MonthInfoItemMapper
 from .model import MonthInfoData, MonthInfoItem
 
 __all__ = ["MonthInfoClient"]
+
+from star_rail.utils.date import Date
 
 
 class MonthInfoClient(BaseClient):
@@ -69,7 +70,7 @@ class MonthInfoClient(BaseClient):
         """
         from . import converter
 
-        update_time = TimeUtils.get_format_time(TimeUtils.get_time())
+        update_time = Date.format_time()
         month_mapper_list = converter.convert_to_month_info_mapper(month_info_data, update_time)
         return await MonthInfoItemMapper.save_month_info(month_mapper_list)
 

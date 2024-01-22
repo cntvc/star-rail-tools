@@ -14,8 +14,8 @@ from star_rail.database import AsyncDBClient
 from star_rail.module import routes
 from star_rail.module.base import BaseClient
 from star_rail.utils import functional
+from star_rail.utils.date import Date
 from star_rail.utils.logger import logger
-from star_rail.utils.time import TimeUtils
 
 from . import srgf, types
 from .gacha_url import GachaUrlProvider
@@ -158,11 +158,11 @@ class GachaRecordRepository(BaseClient):
             if cnt == 0:
                 # 数据库无新增记录
                 return 0
-            local_time = TimeUtils.get_local_time()
-            server_time = TimeUtils.local_time_to_timezone(local_time, params["region_time_zone"])
 
             record_batch_mapper = GachaRecordBatchMapper(
-                **params, count=cnt, timestamp=TimeUtils.convert_to_timestamp(server_time)
+                **params,
+                count=cnt,
+                timestamp=Date.convert_timezone(params["region_time_zone"]).timestamp(),
             )
             await db.insert(record_batch_mapper, "ignore")
 
@@ -175,7 +175,7 @@ class GachaRecordAnalyzer(BaseClient):
     def analyze_records(self, gacha_record_list: list[GachaRecordItem]):
         analyze_result = AnalyzeResult(
             uid=self.user.uid,
-            update_time=TimeUtils.get_format_time(TimeUtils.get_time()),
+            update_time=Date.format_time(),
         )
 
         def analyze(gacha_type: str, record_item_list: list[GachaRecordItem]):
