@@ -1,4 +1,3 @@
-from loguru import logger
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -28,7 +27,6 @@ class ConfigSwitchItem(Horizontal):
     @on(Switch.Changed, "#CHECK_UPDATE")
     def _change_check_update(self, event: Switch.Changed):
         settings.CHECK_UPDATE = event.value
-        logger.debug(event.value)
         settings.save_config()
 
     @on(Switch.Changed, "#DISPLAY_STARTER_WARP")
