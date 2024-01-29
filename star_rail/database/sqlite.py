@@ -179,8 +179,8 @@ class AsyncDBClient:
             cursor = await self.connection.execute(sql_statement, values)
         else:
             assert False, (
-                "Param type error. Expected type 'list' or 'DBModel',",
-                f"got [{type(item_or_item_list)}].",
+                "Param type error. Expected type 'list' or 'DBModel',"
+                f"got [{type(item_or_item_list)}]."
             )
 
         return cursor.rowcount

@@ -24,8 +24,8 @@ def convert_to_record_item_mapper(
         )
     else:
         assert False, (
-            "Param type error. Expected type 'list' or 'GachaRecordItemMapper',",
-            f" got [{type(data)}].",
+            "Param type error. Expected type 'list' or 'GachaRecordItemMapper',"
+            f" got [{type(data)}]."
         )
 
 
@@ -50,6 +50,6 @@ def convert_to_record_item(
         )
     else:
         assert False, (
-            "Param type error. Expected type 'list' or 'GachaRecordItemMapper',",
-            f" got [{ type(data)}].",
+            "Param type error. Expected type 'list' or 'GachaRecordItemMapper',"
+            f" got [{ type(data)}]."
         )
