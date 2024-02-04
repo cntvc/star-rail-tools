@@ -46,11 +46,6 @@ def get_tcss_list():
 
 tcss_list = get_tcss_list()
 
-"""调用逻辑
-
-主界面消费 loginAccount，使 status_bar 更新uid，跃迁记录查询本地，开拓月历查询本地
-"""
-
 
 class HSRApp(App):
     TITLE = "StarRailTools"

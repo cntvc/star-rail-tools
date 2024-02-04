@@ -27,10 +27,7 @@ class BaseGachaRecordItem(BaseModel):
 
 
 class GachaRecordItem(BaseGachaRecordItem):
-    """抽卡项
-
-    type: [API Model]
-    """
+    """抽卡项"""
 
     count: str
     name: str
@@ -41,10 +38,7 @@ class GachaRecordItem(BaseGachaRecordItem):
 
 
 class GachaRecordData(BaseModel):
-    """跃迁记录 API 结构
-
-    type: [API Model]
-    """
+    """跃迁记录 API 结构"""
 
     page: int
     size: int
@@ -59,8 +53,8 @@ class GachaRecordData(BaseModel):
 
 
 class StatisticItem(GachaRecordItem):
-    # 添加索引表示抽数
     index: str
+    """物品抽数"""
 
 
 class StatisticResult(BaseModel):

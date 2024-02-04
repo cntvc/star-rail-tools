@@ -2,10 +2,7 @@ from pydantic import BaseModel
 
 
 class GameRecordCard(BaseModel):
-    """mihoyo 账户的游戏角色
-
-    type: [API Model]
-    """
+    """mihoyo 账户的游戏角色"""
 
     has_role: bool
     game_id: int
@@ -24,9 +21,6 @@ class GameRecordCard(BaseModel):
 
 
 class UserGameRecordCards(BaseModel):
-    """mihoyo 账户的游戏角色列表
-
-    type: [API Model]
-    """
+    """mihoyo 账户的游戏角色列表"""
 
     list: list[GameRecordCard]
