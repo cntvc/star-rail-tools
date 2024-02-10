@@ -68,7 +68,7 @@ class MonthDialog(Container):
     def compose(self) -> ComposeResult:
         yield SimpleButton("刷新", id="refresh")
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#refresh")
     @error_handler
     @required_account

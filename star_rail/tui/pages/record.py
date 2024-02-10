@@ -105,7 +105,7 @@ class GachaRecordDialog(Container):
         if not settings.DISPLAY_STARTER_WARP:
             self.query_one(TabbedContent).hide_tab("STARTER_WARP")
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#refresh_with_cache")
     @error_handler
     @required_account
@@ -116,7 +116,7 @@ class GachaRecordDialog(Container):
         self.analyze_result = await client.view_analysis_results()
         self.notify("更新已完成")
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#refresh_with_url")
     @error_handler
     @required_account
@@ -131,7 +131,7 @@ class GachaRecordDialog(Container):
         client: HSRClient = self.app.client
         self.analyze_result = await client.view_analysis_results()
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#import")
     @error_handler
     @required_account
@@ -145,7 +145,7 @@ class GachaRecordDialog(Container):
         if failed_list:
             self.notify("\n".join([f"文件{name }导入失败" for name in failed_list]))
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#export_execl")
     @error_handler
     @required_account
@@ -154,7 +154,7 @@ class GachaRecordDialog(Container):
         await client.export_to_execl()
         self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#export_srgf")
     @error_handler
     @required_account

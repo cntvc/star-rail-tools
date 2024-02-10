@@ -113,7 +113,7 @@ class HSRApp(App):
             else:
                 tab_c.hide_tab("STARTER_WARP")
 
-    @work(exclusive=True, exit_on_error=False)
+    @work(exit_on_error=False)
     async def check_update(self):
         result = await self.updater.check_update()
         if result:

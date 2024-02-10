@@ -19,7 +19,7 @@ class AccountDialog(Container):
             yield SimpleButton("登陆", id="login")
             yield SimpleButton("读取Cookie", id="parse_cookie")
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#parse_cookie")
     @error_handler
     async def parse_cookie_and_login(self):
@@ -32,7 +32,7 @@ class AccountDialog(Container):
         else:
             self.notify("未读取到有效Cookie", severity="warning")
 
-    @work(exclusive=True)
+    @work()
     @on(SimpleButton.Pressed, "#login")
     @error_handler
     async def login_account_by_button(self):
@@ -42,7 +42,7 @@ class AccountDialog(Container):
 
         input.value = ""
 
-    @work(exclusive=True)
+    @work()
     @on(Input.Submitted)
     @error_handler
     async def login_account_by_key(self, event: Input.Submitted):
