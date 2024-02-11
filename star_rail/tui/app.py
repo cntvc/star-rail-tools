@@ -16,6 +16,7 @@ from star_rail.utils.logger import logger
 
 from .pages import (
     AccountDialog,
+    AccountList,
     ConfigDialog,
     CurrentUID,
     GachaRecordDialog,
@@ -56,6 +57,7 @@ class HSRApp(App):
         Binding("ctrl+q", "app.quit", "退出", show=False),
     ]
 
+    SCREENS = {"switch_account": AccountList()}
     client: HSRClient
 
     def __init__(self):
@@ -91,17 +93,25 @@ class HSRApp(App):
         if not self.client.user:
             return
 
-        await self.reset_account_data()
+        await self._refresh_account_data()
+        user_list = await self.client.get_uid_list()
+        self.SCREENS["switch_account"].user_list = user_list
 
-    async def reset_account_data(self):
-        self.query_one(CurrentUID).uid = self.client.user.uid
-        self.query_one(MonthDialog).month_info_list = await self.client.get_month_info_in_range()
-        self.query_one(GachaRecordDialog).analyze_result = await self.client.view_analysis_results()
+    async def _refresh_account_data(self):
+        with self.app.batch_update():
+            self.query_one(CurrentUID).uid = self.client.user.uid
+            self.query_one(
+                MonthDialog
+            ).month_info_list = await self.client.get_month_info_in_range()
+            self.query_one(
+                GachaRecordDialog
+            ).analyze_result = await self.client.view_analysis_results()
 
-    @on(events.LoginAccount)
+    @on(events.SwitchUser)
     @error_handler
     async def login_account(self):
-        await self.reset_account_data()
+        logger.debug("logion account")
+        await self._refresh_account_data()
 
     @on(events.ChangeStarterWarp)
     def change_starter_warp(self, event: events.ChangeStarterWarp):

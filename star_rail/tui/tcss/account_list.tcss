@@ -1,0 +1,30 @@
+AccountList {
+    align: center middle;
+    layout: grid;
+    grid-size:2;
+
+    ListView {
+        height: auto;
+        margin: 2 2;
+        align: center middle;
+
+        ListItem {
+            width: auto;
+
+            Label {
+                width: auto;
+                padding: 1 2;
+            }
+        }
+    }
+
+    Horizontal {
+        height: auto;
+        margin: 2 2;
+        align: center middle;
+
+        SimpleButton{
+            width: 10;
+        }
+    }    
+}

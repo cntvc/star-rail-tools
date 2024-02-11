@@ -28,7 +28,7 @@ class AccountDialog(Container):
         if user:
             await client.login(user.uid)
             self.notify("Cookie解析成功")
-            self.post_message(events.LoginAccount())
+            self.post_message(events.SwitchUser())
         else:
             self.notify("未读取到有效Cookie", severity="warning")
 
@@ -59,6 +59,6 @@ class AccountDialog(Container):
         client: HSRClient = self.app.client
         await client.login(uid)
 
-        self.post_message(events.LoginAccount())
+        self.post_message(events.SwitchUser())
         self.notify("账户设置成功")
         return True

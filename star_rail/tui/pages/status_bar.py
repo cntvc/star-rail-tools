@@ -11,12 +11,10 @@ class CurrentUID(Static):
     def render(self) -> RenderableType:
         return "UID : 未登陆" if not self.uid else f"UID : {self.uid}"
 
-
-class Info(Static):
-    pass
+    def on_click(self):
+        self.app.push_screen("switch_account")
 
 
 class StatusBar(Horizontal):
     def compose(self) -> ComposeResult:
         yield CurrentUID()
-        # yield Info("💬")
