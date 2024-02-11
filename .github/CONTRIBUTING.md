@@ -52,6 +52,27 @@ git checkout -b {BRANCH_NAME}
 
 如果进行新功能的开发或者有破坏性更新，请编写必要的单元测试来验证代码逻辑的正确性
 
+```shell
+# lint
+black star_rail tests
+isort star_rail tests
+flake8 star_rail  tests
+
+# test
+pytest -vs --cov=star_rail tests --no-cov-on-fail
+```
+> [!IMPORTANT]
+> 如果进行UI部分的开发，请参阅[textualize wiki](https://textual.textualize.io/getting_started/)以了解该TUI框架的基本使用方式
+> ```shell
+> # 在终端开启textual控制台
+> textual console
+> ```
+>
+> ```shell
+> # 在另外的终端运行TUI程序并连接控制台以进行界面调试
+> textual run main.py --dev
+> ```
+
 ## 5. 提交 pull request
 
 ```shell
