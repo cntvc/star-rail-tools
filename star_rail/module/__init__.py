@@ -1,7 +1,6 @@
 import os
 
 from star_rail.database import DATABASE_VERSION, DBManager
-from star_rail.module.info import get_sys_info
 from star_rail.utils.logger import logger
 
 from .account import *

@@ -1,4 +1,9 @@
-from star_rail.module import Account
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from star_rail.module import Account
 
 
 class BaseClient:

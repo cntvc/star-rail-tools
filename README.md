@@ -91,7 +91,7 @@
 ## 鸣谢
 
 - 早期开发的参考项目 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
-- [分页查询模块](./star_rail/core/paginator/) [genshin.py](https://github.com/thesadru/genshin.py)
+- 分页查询模块 [**genshin.py**](https://github.com/thesadru/genshin.py)
 
 ### JetBrains 开发工具
 特别感谢 [**JetBrains**](https://jb.gg/OpenSourceSupport) 为开源项目提供的开发许可证

@@ -6,6 +6,8 @@ import time
 import typing
 from enum import Enum
 
+__all__ = ["Header"]
+
 
 class Header:
     _DEFAULT_APP_VERSION = "2.50.1"

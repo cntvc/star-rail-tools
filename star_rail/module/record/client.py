@@ -9,14 +9,14 @@ import yarl
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.core import CursorPaginator, MergedPaginator, Paginator, request
 from star_rail.database import AsyncDBClient
 from star_rail.module import routes
-from star_rail.module.base import BaseClient
 from star_rail.utils import functional
 from star_rail.utils.date import Date
 from star_rail.utils.logger import logger
 
+from ..base import BaseClient
+from ..helper import CursorPaginator, MergedPaginator, Paginator, request
 from . import srgf, types
 from .gacha_url import GachaUrlProvider
 from .mapper import GachaRecordBatchMapper, GachaRecordItemMapper
@@ -162,7 +162,7 @@ class GachaRecordRepository(BaseClient):
             record_batch_mapper = GachaRecordBatchMapper(
                 **params,
                 count=cnt,
-                timestamp=Date.convert_timezone(params["region_time_zone"]).timestamp(),
+                timestamp=int(Date.convert_timezone(params["region_time_zone"]).timestamp()),
             )
             await db.insert(record_batch_mapper, "ignore")
 

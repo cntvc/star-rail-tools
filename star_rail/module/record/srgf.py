@@ -48,7 +48,7 @@ class SRGFInfo(BaseModel):
             uid=uid,
             lang=lang,
             region_time_zone=region_time_zone,
-            export_timestamp=datetime.timestamp(),
+            export_timestamp=int(datetime.timestamp()),
             export_time=Date.format_time(datetime),
             export_app=constants.APP_NAME,
             export_app_version=export_app_version,

@@ -3,11 +3,11 @@ from http import cookies
 
 from pydantic import BaseModel
 
-from star_rail.core import request
 from star_rail.module import routes
-from star_rail.module.header import Header
 from star_rail.module.types import GameBiz
 from star_rail.utils.logger import logger
+
+from ..helper import Header, request
 
 __all__ = ["Cookie"]
 
