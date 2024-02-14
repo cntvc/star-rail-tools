@@ -11,10 +11,10 @@ from star_rail.utils.logger import logger
 
 _CallableT = typing.TypeVar("_CallableT", bound=typing.Callable[..., typing.Awaitable[typing.Any]])
 
-__all__ = ["request", "_request"]
+__all__ = ["request"]
 
 
-def replace_params_values(params: dict, param_names_to_replace: list, placeholder: str) -> dict:
+def _replace_params_values(params: dict, param_names_to_replace: list, placeholder: str) -> dict:
     """
     Replace values of specified parameters in the dictionary with a placeholder.
 
@@ -27,51 +27,6 @@ def replace_params_values(params: dict, param_names_to_replace: list, placeholde
         dict: The updated parameter dictionary.
     """
     return {k: placeholder if k in param_names_to_replace else v for k, v in params.items()}
-
-
-async def _request_hook(
-    method: typing.Literal["GET", "POST"],
-    url: yarl.URL,
-    params: dict[str, str] = None,
-    data: dict[str, str] = None,
-    **kwargs,
-) -> None:
-    log_url = url
-    if params:
-        log_url = url.update_query(replace_params_values(params, ["authkey"], "***"))
-    logger.debug(
-        "[{}] {} {}",
-        method,
-        log_url,
-        "\ndata: " + json.dumps(data, separators=(",", ":")) if data else "",
-    )
-
-
-async def _request(
-    method: typing.Literal["GET", "POST"],
-    url: yarl.URL,
-    params: dict[str, str] = None,
-    data: dict[str, str] = None,
-    cookies: dict[str, str] = None,
-    headers: dict[str, str] = None,
-    **kwargs,
-) -> dict[str, str]:
-    """Default request"""
-    await _request_hook(method, url, params, data, **kwargs)
-
-    async with aiohttp.ClientSession() as session:
-        async with session.request(
-            method=method,
-            url=url,
-            params=params,
-            data=data,
-            cookies=cookies,
-            headers=headers,
-            **kwargs,
-        ) as response:
-            data = await response.json()
-
-    return data
 
 
 def handle_rate_limits(
@@ -105,6 +60,23 @@ def handle_rate_limits(
     return wrapper
 
 
+async def _request_hook(
+    method: typing.Literal["GET", "POST"],
+    url: yarl.URL,
+    params: dict[str, str] = None,
+    data: dict[str, str] = None,
+) -> None:
+    log_url = url
+    if params:
+        log_url = url.update_query(_replace_params_values(params, ["authkey"], "***"))
+    logger.debug(
+        "[{}] {} {}",
+        method,
+        log_url,
+        "\ndata: " + json.dumps(data, separators=(",", ":")) if data else "",
+    )
+
+
 @handle_rate_limits()
 async def request(
     method: typing.Literal["GET", "POST"],
@@ -116,10 +88,20 @@ async def request(
     **kwargs,
 ) -> dict[str, str]:
     """Mihoyo API request"""
-    data = await _request(method, url, params, data, cookies, headers, **kwargs)
+    await _request_hook(method, url, params, data)
 
-    if "retcode" in data:
-        if data["retcode"] == 0:
-            return data["data"]
-        exceptions.raise_for_retcode(data)
-    return data
+    async with aiohttp.ClientSession() as session:
+        async with session.request(
+            method=method,
+            url=url,
+            params=params,
+            data=data,
+            cookies=cookies,
+            headers=headers,
+            **kwargs,
+        ) as response:
+            data = await response.json()
+
+    if data["retcode"] == 0:
+        return data["data"]
+    exceptions.raise_for_retcode(data)
