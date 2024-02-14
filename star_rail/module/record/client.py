@@ -162,7 +162,7 @@ class GachaRecordRepository(BaseClient):
             record_batch_mapper = GachaRecordBatchMapper(
                 **params,
                 count=cnt,
-                timestamp=Date.convert_timezone(params["region_time_zone"]).timestamp(),
+                timestamp=int(Date.convert_timezone(params["region_time_zone"]).timestamp()),
             )
             await db.insert(record_batch_mapper, "ignore")
 
