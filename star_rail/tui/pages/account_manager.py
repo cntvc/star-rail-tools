@@ -7,6 +7,7 @@ from textual.widgets import Label, ListItem, ListView
 from star_rail.module import HSRClient
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
+from star_rail.tui.screens import DeleteAccountScreen
 from star_rail.tui.widgets import SimpleButton
 
 __all__ = ["AccountManagerDialog"]
@@ -19,6 +20,7 @@ class AccountManagerDialog(Container):
         with Vertical():
             yield SimpleButton("添加账号", id="add")
             yield SimpleButton("切换账号", id="switch")
+            yield SimpleButton("删除账号", id="delete")
         with ListView():
             for uid in self.uid_list:
                 yield ListItem(Label(uid), id=f"uid_{uid}")
@@ -46,9 +48,10 @@ class AccountManagerDialog(Container):
                 self.notify("未读取到有效Cookie", severity="warning")
         else:
             await client.create_account_by_uid(opt)
-        self.post_message(events.AddAccount())
+        self.post_message(events.ChangeAccountList())
 
     @on(SimpleButton.Pressed, "#switch")
+    @work(group="add_account")
     @error_handler
     async def switch_account(self):
         if not self.uid_list:
@@ -58,7 +61,7 @@ class AccountManagerDialog(Container):
         index = self.query_one(ListView).index
         uid = self.uid_list[index]
         if not client.user or uid != client.user.uid:
-            self.app.workers.cancel_all()
+            self.app.workers.cancel_group(self.app, group="default")
             await self._login_account(uid)
 
     async def _login_account(self, uid: str):
@@ -66,3 +69,28 @@ class AccountManagerDialog(Container):
         await client.login(uid)
         self.post_message(events.SwitchAccount())
         self.notify(f"切换为账号{uid}")
+
+    @on(SimpleButton.Pressed, "#delete")
+    @work(group="delete_account")
+    @error_handler
+    async def delete_account(self):
+        if not self.uid_list:
+            self.notify("请先添加账号")
+            return
+
+        index = self.query_one(ListView).index
+        uid = self.uid_list[index]
+        opt = await self.app.push_screen_wait(DeleteAccountScreen(uid))
+        if not opt:
+            return
+
+        client: HSRClient = self.app.client
+        if client.user and uid != client.user.uid:
+            await client.delete_account(uid)
+            self.post_message(events.ChangeAccountList())
+        else:
+            # 删除的是当前登陆的账户
+            self.app.workers.cancel_group(self.app, "default")
+            await client.delete_account(uid)
+            client.user = None
+            self.post_message(events.ExitAccount())

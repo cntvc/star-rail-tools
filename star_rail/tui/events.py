@@ -5,7 +5,11 @@ class SwitchAccount(Message, bubble=True):
     pass
 
 
-class AddAccount(Message, bubble=True):
+class ChangeAccountList(Message, bubble=True):
+    pass
+
+
+class ExitAccount(Message, bubble=True):
     pass
 
 

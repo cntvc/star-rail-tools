@@ -110,7 +110,15 @@ class HSRApp(App):
     async def login_account(self):
         await self._refresh_account_data()
 
-    @on(events.AddAccount)
+    @on(events.ExitAccount)
+    async def exit_account(self):
+        with self.app.batch_update():
+            self.query_one(CurrentUID).uid = ""
+            self.query_one(MonthDialog).month_info_list = []
+            self.query_one(GachaRecordDialog).analyze_result = None
+            self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
+
+    @on(events.ChangeAccountList)
     @work()
     @error_handler
     async def add_account(self):
