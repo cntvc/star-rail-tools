@@ -176,8 +176,6 @@ class MergedPaginator(typing.Generic[T], Paginator[T]):
 
     __slots__ = ("iterators", "_heap", "limit", "_key", "_prepared", "_counter")
 
-    # TODO: Use named tuples for the heap
-
     iterators: typing.Sequence[typing.AsyncIterator[T]]
     """Entry iterators.
 

@@ -4,7 +4,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Center, Container, Horizontal, VerticalScroll
+from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Static, TabbedContent, TabPane
 
@@ -37,10 +37,9 @@ class GachaContent(Horizontal):
         yield Static(self.val, id="value")
 
 
-class EmptyData(Container):
-    def compose(self) -> ComposeResult:
-        with Center():
-            yield Static(apply_text_color(EMPTY_DATA))
+class EmptyData(Static):
+    def render(self) -> RenderableType:
+        return apply_text_color(EMPTY_DATA)
 
 
 class RecordDetail(Container):
@@ -105,8 +104,8 @@ class GachaRecordDialog(Container):
         if not settings.DISPLAY_STARTER_WARP:
             self.query_one(TabbedContent).hide_tab("STARTER_WARP")
 
-    @work()
     @on(SimpleButton.Pressed, "#refresh_with_cache")
+    @work()
     @error_handler
     @required_account
     async def refresh_with_webcache(self):
@@ -116,8 +115,8 @@ class GachaRecordDialog(Container):
         self.analyze_result = await client.view_analysis_results()
         self.notify("更新已完成")
 
-    @work()
     @on(SimpleButton.Pressed, "#refresh_with_url")
+    @work()
     @error_handler
     @required_account
     async def refresh_with_url(self):
@@ -131,8 +130,8 @@ class GachaRecordDialog(Container):
         client: HSRClient = self.app.client
         self.analyze_result = await client.view_analysis_results()
 
-    @work()
     @on(SimpleButton.Pressed, "#import")
+    @work()
     @error_handler
     @required_account
     async def import_srgf(self):
@@ -145,8 +144,8 @@ class GachaRecordDialog(Container):
         if failed_list:
             self.notify("\n".join([f"文件{name }导入失败" for name in failed_list]))
 
-    @work()
     @on(SimpleButton.Pressed, "#export_execl")
+    @work()
     @error_handler
     @required_account
     async def export_to_execl(self):
@@ -154,8 +153,8 @@ class GachaRecordDialog(Container):
         await client.export_to_execl()
         self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
 
-    @work()
     @on(SimpleButton.Pressed, "#export_srgf")
+    @work()
     @error_handler
     @required_account
     async def export_to_srgf(self):

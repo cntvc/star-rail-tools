@@ -1,7 +1,7 @@
 from textual.message import Message
 
 
-class SwitchUser(Message, bubble=True):
+class SwitchAccount(Message, bubble=True):
     pass
 
 

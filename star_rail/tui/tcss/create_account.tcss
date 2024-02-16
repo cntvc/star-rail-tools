@@ -1,0 +1,14 @@
+CreateAccountScreen {
+    align: center middle;
+    layout: grid;
+    grid-size: 4;
+    background: #81a1c1 40%;
+
+    Vertical {
+        height: auto;
+        margin: 2 2;
+        align: center middle;
+        border:thick $background 80%;
+
+    }
+}

@@ -1,3 +1,4 @@
+from rich.console import RenderableType
 from rich.markdown import Markdown
 from textual import on, work
 from textual.app import ComposeResult
@@ -56,10 +57,9 @@ class MonthList(Select):
     pass
 
 
-class EmptyData(Container):
-    def compose(self) -> ComposeResult:
-        with Center():
-            yield Static(apply_text_color(EMPTY_DATA))
+class EmptyData(Static):
+    def render(self) -> RenderableType:
+        return apply_text_color(EMPTY_DATA)
 
 
 class MonthDialog(Container):
@@ -68,8 +68,8 @@ class MonthDialog(Container):
     def compose(self) -> ComposeResult:
         yield SimpleButton("刷新", id="refresh")
 
-    @work()
     @on(SimpleButton.Pressed, "#refresh")
+    @work()
     @error_handler
     @required_account
     async def refresh_month_info(self):

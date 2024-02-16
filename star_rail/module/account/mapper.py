@@ -22,7 +22,7 @@ class AccountMapper(DBModel):
             return db.convert(await cursor.fetchone(), AccountMapper)
 
     @staticmethod
-    async def query_all_user() -> list[str]:
+    async def query_all_uid() -> list[str]:
         sql = """select uid from user order by uid;"""
         async with AsyncDBClient() as db:
             cursor = await db.execute(sql)

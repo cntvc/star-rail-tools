@@ -1,13 +1,11 @@
 MonthDialog {
     margin: 1;
-
+    align-horizontal:center;
     EmptyData  {
+        align-horizontal:center;
         width: auto;
         height: auto;
-        Static{
-            width: auto;
-            height: auto;
-        }
+        dock:bottom;
     }
 
     MonthInfoDetail {

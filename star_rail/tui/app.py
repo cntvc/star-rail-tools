@@ -15,15 +15,14 @@ from star_rail.tui.pages.record import RecordDetail
 from star_rail.utils.logger import logger
 
 from .pages import (
-    AccountDialog,
-    AccountList,
+    AccountManagerDialog,
     ConfigDialog,
     CurrentUID,
     GachaRecordDialog,
     MonthDialog,
-    Sidebar,
     StatusBar,
 )
+from .screens import CreateAccountScreen
 
 
 class Navigation(Container):
@@ -52,12 +51,13 @@ class HSRApp(App):
     TITLE = "StarRailTools"
     CSS_PATH = tcss_list
     BINDINGS = [
-        ("ctrl+b", "toggle_sidebar", "关于..."),
         ("ctrl+p", "command_palette", "命令行"),
         Binding("ctrl+q", "app.quit", "退出", show=False),
     ]
 
-    SCREENS = {"switch_account": AccountList()}
+    SCREENS = {
+        "create_account_screen": CreateAccountScreen(),
+    }
     client: HSRClient
 
     def __init__(self):
@@ -67,14 +67,13 @@ class HSRApp(App):
 
     def compose(self) -> ComposeResult:
         with Container():
-            yield Sidebar(classes="-hidden")
             with Navigation():
-                yield NavTab("账户管理", id="account_manager")
+                yield NavTab("账号管理", id="account_manager")
                 yield NavTab("跃迁记录", id="gacha_record")
                 yield NavTab("开拓月历", id="month")
                 yield NavTab("设置", id="config")
             with MainDialog(initial="account_manager"):
-                yield AccountDialog(id="account_manager")
+                yield AccountManagerDialog(id="account_manager")
                 yield GachaRecordDialog(id="gacha_record")
                 yield MonthDialog(id="month")
                 yield ConfigDialog(id="config")
@@ -92,10 +91,8 @@ class HSRApp(App):
 
         if not self.client.user:
             return
-
+        # 在client初始化后再对显示账号数据相关组件进行刷新
         await self._refresh_account_data()
-        user_list = await self.client.get_uid_list()
-        self.SCREENS["switch_account"].user_list = user_list
 
     async def _refresh_account_data(self):
         with self.app.batch_update():
@@ -106,11 +103,11 @@ class HSRApp(App):
             self.query_one(
                 GachaRecordDialog
             ).analyze_result = await self.client.view_analysis_results()
+            self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
 
-    @on(events.SwitchUser)
+    @on(events.SwitchAccount)
     @error_handler
     async def login_account(self):
-        logger.debug("logion account")
         await self._refresh_account_data()
 
     @on(events.ChangeStarterWarp)
@@ -128,19 +125,3 @@ class HSRApp(App):
         result = await self.updater.check_update()
         if result:
             self.notify("软件发现新版本.")
-
-    def action_toggle_sidebar(self) -> None:
-        sidebar = self.query_one(Sidebar)
-        self.set_focus(None)
-        if sidebar.has_class("-hidden"):
-            sidebar.remove_class("-hidden")
-        else:
-            if sidebar.query("*:focus"):
-                self.screen.set_focus(None)
-            sidebar.add_class("-hidden")
-
-    def action_open_link(self, link: str) -> None:
-        self.app.bell()
-        import webbrowser
-
-        webbrowser.open(link)

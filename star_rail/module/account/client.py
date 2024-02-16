@@ -37,7 +37,15 @@ class AccountClient(BaseClient):
         settings.save_config()
         logger.debug("Login: {}", uid)
 
-    async def create_account_with_cookie(self):
+    async def create_account_by_uid(self, uid: str):
+        """根据UID创建一个账户"""
+        account_mapper = await AccountMapper.query_by_uid(uid)
+        if not account_mapper:
+            await Account(uid).save_profile()
+        return uid
+
+    async def parse_account_cookie(self):
+        """解析Cookie并将其关联到对应账户，若账户不存在则会创建一个账户"""
         logger.debug("Add cookies to account.")
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
@@ -90,4 +98,4 @@ class AccountClient(BaseClient):
 
     @staticmethod
     async def get_uid_list():
-        return await AccountMapper.query_all_user()
+        return await AccountMapper.query_all_uid()

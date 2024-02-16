@@ -11,7 +11,7 @@ from .updater import Updater
 __all__ = ["HSRClient", "Updater"]
 
 
-class HSRClient(GachaRecordClient, MonthInfoClient, AccountClient):
+class HSRClient(AccountClient, GachaRecordClient, MonthInfoClient):
     async def start(self):
         db_manager = DBManager()
         if not os.path.exists(db_manager.db_path):
