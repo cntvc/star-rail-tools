@@ -89,10 +89,10 @@ class HSRApp(App):
         if settings.CHECK_UPDATE:
             self.check_update()
 
-        if not self.client.user:
-            return
         # 在client初始化后再对显示账号数据相关组件进行刷新
-        await self._refresh_account_data()
+        await self._refresh_user_list()
+        if self.client.user:
+            await self._refresh_account_data()
 
     async def _refresh_account_data(self):
         with self.app.batch_update():
@@ -103,12 +103,27 @@ class HSRApp(App):
             self.query_one(
                 GachaRecordDialog
             ).analyze_result = await self.client.view_analysis_results()
-            self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
 
     @on(events.SwitchAccount)
     @error_handler
     async def login_account(self):
         await self._refresh_account_data()
+
+    async def _refresh_user_list(self):
+        self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
+
+    @on(events.ExitAccount)
+    async def exit_account(self):
+        with self.app.batch_update():
+            self.query_one(CurrentUID).uid = ""
+            self.query_one(MonthDialog).month_info_list = []
+            self.query_one(GachaRecordDialog).analyze_result = None
+
+    @on(events.ChangeAccountList)
+    @work()
+    @error_handler
+    async def add_account(self):
+        await self._refresh_user_list()
 
     @on(events.ChangeStarterWarp)
     def change_starter_warp(self, event: events.ChangeStarterWarp):
