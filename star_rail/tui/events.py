@@ -5,6 +5,10 @@ class SwitchAccount(Message, bubble=True):
     pass
 
 
+class AddAccount(Message, bubble=True):
+    pass
+
+
 class ChangeStarterWarp(Message, bubble=True):
     """是否显示新手池"""
 

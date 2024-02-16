@@ -110,6 +110,12 @@ class HSRApp(App):
     async def login_account(self):
         await self._refresh_account_data()
 
+    @on(events.AddAccount)
+    @work()
+    @error_handler
+    async def add_account(self):
+        self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
+
     @on(events.ChangeStarterWarp)
     def change_starter_warp(self, event: events.ChangeStarterWarp):
         record_detail = self.query(RecordDetail)
