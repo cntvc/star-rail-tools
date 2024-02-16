@@ -8,7 +8,6 @@ DeleteAccountScreen {
         width: 40;
         height: 12;
         border: thick $background 80%;
-        background: $surface;
 
         Label {
             column-span: 2;
@@ -16,8 +15,17 @@ DeleteAccountScreen {
             width: 1fr;
             content-align: center middle;
         }
-        SimpleButton{
-            width:100%;
+        #confirm{
+            background: #bf616a 60%;
+            &:hover {
+                background: #bf616a ;
+            }
+        }
+        #cancel{
+            background: #a3be8c 60%;
+            &:hover {
+                background: #a3be8c ;
+            }
         }
     }
 }

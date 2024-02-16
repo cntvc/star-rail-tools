@@ -19,7 +19,7 @@ class AccountManagerDialog(Container):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield SimpleButton("添加账号", id="add")
-            yield SimpleButton("切换账号", id="switch")
+            yield SimpleButton("登陆账号", id="switch")
             yield SimpleButton("删除账号", id="delete")
         with ListView():
             for uid in self.uid_list:
