@@ -94,3 +94,4 @@ class AccountManagerDialog(Container):
             await client.delete_account(uid)
             client.user = None
             self.post_message(events.ExitAccount())
+            self.post_message(events.ChangeAccountList())
