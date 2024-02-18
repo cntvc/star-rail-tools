@@ -60,10 +60,3 @@ jobs:
           ${{ env.file-name }}.exe
           ${{ env.file-name }}.zip
         fail_on_unmatched_files: true
-
-    - name: Upload to Coding.net
-      if: ${{ ! github.event.release.prerelease }}
-      run: |
-        npm install coding-generic -g
-        Copy-Item -Path ${{ env.file-name }}.exe -Destination ${{ env.PROJECT_NAME }}.exe
-        coding-generic -u="${{ secrets.CODING_ARTIFACTS_NAME }}:${{ secrets.CODING_ARTIFACTS_PASSWD }}" -p="${{ env.PROJECT_NAME }}.exe" -r="https://cntvc-generic.pkg.coding.net/star-rail-tools/releases/chunks/${{ env.PROJECT_NAME }}.exe?version=${{ github.ref_name }}"
