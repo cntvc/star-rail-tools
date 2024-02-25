@@ -81,7 +81,7 @@ class MonthInfoClient(BaseClient):
             int: 成功更新的月份数量
         """
         logger.debug("Refresh month info.")
-        if not self.user.cookie.verify_cookie_token():
+        if not self.user.cookie.empty_cookie_token():
             raise error.HsrException("Empty cookie value.")
         try:
             cur_month_info_data = await self._request_month_info()

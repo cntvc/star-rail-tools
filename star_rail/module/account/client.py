@@ -53,12 +53,12 @@ class AccountClient(BaseClient):
         if cookie.empty():
             logger.debug("Empty cookies.")
             return None
-        if not cookie.verify_login_ticket():
+        if not cookie.empty_login_ticket():
             logger.debug("Invalid cookies.")
             return None
-        if not cookie.verify_stoken():
+        if not cookie.empty_stoken():
             await cookie.refresh_multi_token(self.user.game_biz)
-        if not cookie.verify_cookie_token():
+        if not cookie.empty_cookie_token():
             await cookie.refresh_cookie_token(self.user.game_biz)
         roles = await AccountClient.get_game_record_card(cookie)
         user = None

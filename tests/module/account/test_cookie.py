@@ -70,22 +70,22 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(getattr(cookie, k), "")
 
     def test_verify_login_ticket(self):
-        self.assertTrue(self.cookie.verify_login_ticket())
+        self.assertTrue(self.cookie.empty_login_ticket())
 
         self.cookie.login_ticket = ""
-        self.assertFalse(self.cookie.verify_login_ticket())
+        self.assertFalse(self.cookie.empty_login_ticket())
 
     def test_verify_stoken(self):
-        self.assertTrue(self.cookie.verify_stoken())
+        self.assertTrue(self.cookie.empty_stoken())
 
         self.cookie.stoken = ""
-        self.assertFalse(self.cookie.verify_stoken())
+        self.assertFalse(self.cookie.empty_stoken())
 
     def test_verify_cookie_token(self):
-        self.assertTrue(self.cookie.verify_cookie_token())
+        self.assertTrue(self.cookie.empty_cookie_token())
 
         self.cookie.cookie_token = ""
-        self.assertFalse(self.cookie.verify_cookie_token())
+        self.assertFalse(self.cookie.empty_cookie_token())
 
     def test_cookie_ne(self):
         ck_dict_1 = {

@@ -91,13 +91,13 @@ class Cookie(BaseModel):
         cookie = Cookie.model_validate(cookie_dict)
         return cookie
 
-    def verify_login_ticket(self):
+    def empty_login_ticket(self):
         return True if self.login_ticket and self.login_uid else False
 
-    def verify_stoken(self):
+    def empty_stoken(self):
         return True if self.stoken and self.stuid else False
 
-    def verify_cookie_token(self):
+    def empty_cookie_token(self):
         return True if self.cookie_token else False
 
     async def refresh_multi_token(self, game_biz: GameBiz):
