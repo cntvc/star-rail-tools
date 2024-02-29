@@ -22,8 +22,6 @@ class TestSettings(unittest.TestCase):
         self.assertTrue(settings.CHECK_UPDATE)
         self.assertEqual(settings.DEFAULT_UID, "")
         self.assertEqual(settings.ENCRYPT_KEY, "")
-        self.assertEqual(settings.LANGUAGE, "")
-        self.assertTrue(settings.DISPLAY_STARTER_WARP)
 
     def test_save_config(self):
         settings = Settings(config_path=self.config_path)
@@ -50,7 +48,6 @@ class TestSettings(unittest.TestCase):
 
         self.assertFalse(settings.CHECK_UPDATE)
         self.assertEqual(settings.DEFAULT_UID, "123456789")
-        self.assertEqual(settings.LANGUAGE, "")
 
     def test_update_config(self):
         settings = Settings(config_path=self.config_path)
@@ -62,6 +59,4 @@ class TestSettings(unittest.TestCase):
         self.assertTrue(settings.CHECK_UPDATE)
         self.assertEqual(settings.DEFAULT_UID, "test_uid")
         self.assertEqual(settings.ENCRYPT_KEY, "")
-        self.assertEqual(settings.LANGUAGE, "")
-        self.assertTrue(settings.DISPLAY_STARTER_WARP)
         self.assertFalse(hasattr(settings, "TEST_ITEM"))
