@@ -8,7 +8,6 @@ from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Static, TabbedContent, TabPane
 
-from star_rail.config import settings
 from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
@@ -101,8 +100,6 @@ class GachaRecordDialog(Container):
             self.mount(EmptyData(id="empty_record"))
             return
         await self.mount(RecordDetail(new))
-        if not settings.DISPLAY_STARTER_WARP:
-            self.query_one(TabbedContent).hide_tab("STARTER_WARP")
 
     @on(SimpleButton.Pressed, "#refresh_with_cache")
     @work()

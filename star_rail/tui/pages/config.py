@@ -4,13 +4,11 @@ from textual.containers import Container, Horizontal
 from textual.widgets import Static, Switch
 
 from star_rail.config import settings
-from star_rail.tui import events
 
 
 class ConfigDialog(Container):
     def compose(self) -> ComposeResult:
         yield ConfigSwitchItem("CHECK_UPDATE", "自动检测更新", settings.CHECK_UPDATE)
-        yield ConfigSwitchItem("DISPLAY_STARTER_WARP", "显示新手池数据", settings.DISPLAY_STARTER_WARP)
 
 
 class ConfigSwitchItem(Horizontal):
@@ -28,9 +26,3 @@ class ConfigSwitchItem(Horizontal):
     def _change_check_update(self, event: Switch.Changed):
         settings.CHECK_UPDATE = event.value
         settings.save_config()
-
-    @on(Switch.Changed, "#DISPLAY_STARTER_WARP")
-    def change_starter_warp(self, event: Switch.Changed):
-        settings.DISPLAY_STARTER_WARP = event.value
-        settings.save_config()
-        self.post_message(events.ChangeStarterWarp(event.value))

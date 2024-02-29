@@ -41,10 +41,5 @@ class Settings(BaseSetting):
     ENCRYPT_KEY: str = ""
     """加密 key"""
 
-    LANGUAGE: str = ""
-
-    DISPLAY_STARTER_WARP: bool = True
-    """显示新手池"""
-
 
 settings = Settings(config_path=_default_config_path)
