@@ -11,7 +11,7 @@
 崩坏：星穹铁道小工具，可导出跃迁记录和开拓月历
 
 <p>
-  <img src="docs/image/gacha_record.png" alt="gacha_record" height = 80% width = 80% align="middle">
+  <img src="docs/image/star_rail_tools_cover.png" alt="cover" height = 80% width = 80% align="middle">
 </p>
 
 
@@ -20,7 +20,8 @@
 
 ### 添加或更新账号 Cookie
 
-  **注意：Cookie 是非常重要的账号凭据，请勿泄漏以免导致可能的账号安全问题**
+  > [!WARNING]
+  > **注意：Cookie 是非常重要的账号凭据，请勿泄漏以免导致可能的账号安全问题**
 
   首先登陆[**米哈游通行证**](https://user.mihoyo.com/)（国际服用户登陆[**hoyolab**](https://www.hoyolab.com/)）页面，点击F12按键，选择控制台，粘贴以下代码，在弹出的对话框复制 cookie
 
@@ -42,7 +43,7 @@
   </details>
 
 ### 数据迁移
-  本软件为 [UIGF](https://uigf.org/zh) 组织成员，支持 [SRGF](https://uigf.org/zh/standards/SRGF.html) 标准格式的导入导出
+  本软件为 [UIGF](https://uigf.org/zh) 组织成员，支持 [SRGF](https://uigf.org/zh/standards/SRGF.html) 格式的跃迁记录文件导入导出
 
   **导入 SRGF 格式数据**: 
   将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击"导入数据"按钮即可
