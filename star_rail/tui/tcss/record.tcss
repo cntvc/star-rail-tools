@@ -1,11 +1,15 @@
 GachaRecordDialog {
-    margin:1;
     align-horizontal:center;
-    Horizontal {
+    margin:1;
+    Grid {
         dock:top;
-        max-height: 5;
+        grid-size:4;
+        grid-gutter:1;
+        max-height: 3;
+
         SimpleButton {
-            width: auto;
+            margin:0;
+            width: 1fr;
             height: auto;
         }
     }
@@ -15,23 +19,11 @@ GachaRecordDialog {
         height: auto;
         dock:bottom;
     }
-}
-
-RecordDetail {
-    width: 100%;
-    height:  100%;
-    GachaContent{
-        width:30;
-        height:5;
-    
-        &#desc{
-            dock:left;
-            width: auto;
-        }
-    
-        &#value{
-            dock:right;
-            width:auto;
+    RecordDetail {
+        width: 100%;
+        height:  100%;
+        VerticalScroll{
+            scrollbar-size: 1 1;
         }
     }
 }

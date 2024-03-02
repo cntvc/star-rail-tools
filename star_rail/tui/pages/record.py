@@ -4,7 +4,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, VerticalScroll
+from textual.containers import Container, Grid, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Static, TabbedContent, TabPane
 
@@ -24,17 +24,6 @@ EMPTY_DATA = [
     r"[O]      ( \>_-_,   [/O]",
     r"[O]      _||_ ~-/   [G]No data at the moment![/G][/O]",
 ]
-
-
-class GachaContent(Horizontal):
-    def __init__(self, desc: str, val, **kwargs):
-        super().__init__(**kwargs)
-        self.desc = desc
-        self.val = val
-
-    def compose(self) -> ComposeResult:
-        yield Static(self.desc, id="desc")
-        yield Static(self.val, id="value")
 
 
 class EmptyData(Static):
@@ -81,7 +70,7 @@ class GachaRecordDialog(Container):
     analyze_result: reactive[AnalyzeResult] = reactive(None, layout=True)
 
     def compose(self) -> ComposeResult:
-        with Horizontal():
+        with Grid():
             yield SimpleButton("刷新记录", id="refresh_with_cache")
             # yield SimpleButton("读取链接", id="refresh_with_url")
             yield SimpleButton("导入数据", id="import")

@@ -4,7 +4,6 @@ Screen {
     layers: base overlay notifications;
     overflow: hidden;
     background: #252a34;
-    scrollbar-size: 1 1;
 }
 
 
@@ -26,7 +25,7 @@ Notification {
 Navigation {
     width: 30;
     dock: left;
-    border: #81a1c1;
+    border: heavy #81a1c1;
     box-sizing: border-box;
 }
 
@@ -47,5 +46,5 @@ NavTab {
 }
 
 MainDialog {
-    border: #81a1c1;
+    border: heavy #81a1c1;
 }
