@@ -15,8 +15,8 @@ DETAIL_TEMP = """
 - 星琼 : {}
 - 星轨通票&星轨专票 : {}
 ---
-|来源|占比|
-|:----|----:|
+|来源|占比|数量|
+|:----|:----:|----:|
 {}
 """
 
@@ -44,7 +44,7 @@ class MonthInfoDetail(VerticalScroll):
                         self.month_detail.rails_pass,
                         "\n".join(
                             [
-                                f"|{source.action_name}|{source.percent}%|"
+                                f"|{source.action_name}|{source.percent}%|{source.num}|"
                                 for source in self.month_detail.source
                             ]
                         ),

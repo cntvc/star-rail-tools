@@ -13,7 +13,7 @@ MonthDialog {
             margin: 1;
             width: auto;
             height: auto;
-            max-width: 40;
+            max-width: 30;
         }
     }
 }
