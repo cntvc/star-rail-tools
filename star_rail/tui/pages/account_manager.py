@@ -19,7 +19,7 @@ class AccountManagerDialog(Container):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield SimpleButton("添加账号", id="add")
-            yield SimpleButton("登陆账号", id="switch")
+            yield SimpleButton("切换账号", id="switch")
             yield SimpleButton("删除账号", id="delete")
         with ListView():
             for uid in self.uid_list:
@@ -42,10 +42,13 @@ class AccountManagerDialog(Container):
             return
         elif opt == "cookie":
             user = await client.parse_account_cookie()
-            if user:
-                self.notify("Cookie 解析成功")
-            else:
+            if not user:
                 self.notify("未读取到有效Cookie", severity="warning")
+            else:
+                self.notify(f"已更新账号 {user.uid} 的Cookie")
+                # Cookie 对应的账号是当前已登陆账号时，直接替换以更新Cookie
+                if user.uid == client.user.uid:
+                    client.user = user
         else:
             await client.create_account_by_uid(opt)
         self.post_message(events.ChangeAccountList())
