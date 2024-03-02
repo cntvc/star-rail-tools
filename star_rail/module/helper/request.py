@@ -67,8 +67,9 @@ async def _request_hook(
     data: dict[str, str] = None,
 ) -> None:
     log_url = url
+    hide_value_key = ["authkey", "login_ticket", "ltoken", "stoken", "cookie_token"]
     if params:
-        log_url = url.update_query(_replace_params_values(params, ["authkey"], "***"))
+        log_url = url.update_query(_replace_params_values(params, hide_value_key, "***"))
     logger.debug(
         "[{}] {} {}",
         method,
