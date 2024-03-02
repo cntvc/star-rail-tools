@@ -9,7 +9,6 @@ import yarl
 
 from star_rail import constants
 from star_rail import exceptions as error
-from star_rail.database import AsyncDBClient
 from star_rail.module import routes
 from star_rail.utils import functional
 from star_rail.utils.date import Date
@@ -19,8 +18,8 @@ from ..base import BaseClient
 from ..helper import CursorPaginator, MergedPaginator, Paginator, request
 from . import srgf, types
 from .gacha_url import GachaUrlProvider
-from .mapper import GachaRecordBatchMapper, GachaRecordItemMapper
 from .model import AnalyzeResult, GachaRecordData, GachaRecordItem, StatisticItem, StatisticResult
+from .repository import GachaRecordRepository
 
 __all__ = ["GachaRecordClient"]
 
@@ -102,73 +101,10 @@ class GachaRecordAPIClient(BaseClient):
 
         if len(iterators) == 1:
             return iterators[0]
-        # 从大到小的迭代器，迭代器使用小顶堆排序，比较条件需使用 `-int(x.id)` 按从大到小输出，
+
+        # 合并迭代器时使用小顶堆排序，每个迭代器数据按id从大到小的顺序排列
+        # 比较条件使用 `-int(x.id)` 使其按id从大到小输出保证顺序一致
         return MergedPaginator(iterators, key=lambda x: -int(x.id))
-
-
-class GachaRecordRepository(BaseClient):
-    async def get_next_batch_id(self) -> int:
-        """从批次表中获取下一个可用的批次ID"""
-        return await GachaRecordBatchMapper.query_next_batch_id()
-
-    async def get_all_batch(self):
-        """查询所有批次信息"""
-
-    async def get_latest_batch(self) -> GachaRecordBatchMapper | None:
-        return await GachaRecordBatchMapper.query_latest_batch(self.user.uid)
-
-    async def get_latest_gacha_record_by_uid(self) -> typing.Optional[GachaRecordItem]:
-        """根据UID从数据库查询出最大的一条记录"""
-        record_mapper = await GachaRecordItemMapper.query_latest_gacha_record(self.user.uid)
-        if not record_mapper:
-            return None
-        from . import converter
-
-        return converter.convert_to_record_item(record_mapper)
-
-    async def get_all_gacha_record(self) -> list[GachaRecordItem]:
-        """查询账户的所有抽卡记录"""
-        record_mapper_list = await GachaRecordItemMapper.query_all_gacha_record(self.user.uid)
-        from . import converter
-
-        return converter.convert_to_record_item(record_mapper_list)
-
-    async def insert_gacha_record(self, gacha_record_list: list[GachaRecordItem], params: dict):
-        """批量插入抽卡记录
-
-        Args:
-            gacha_record_list (list[GachaRecordItem]): 抽卡记录
-            params (dict): 抽卡记录归档信息
-                required: (uid, batch_id, lang, region_time_zone, source)
-
-        Raises:
-            error.HsrException: 保存数据出现错误
-        """
-        logger.debug("Insert gacha record data.")
-        from . import converter
-
-        record_item_mapper_list = converter.convert_to_record_item_mapper(
-            gacha_record_list, params["batch_id"]
-        )
-
-        async with AsyncDBClient() as db:
-            await db.start_transaction()
-            cnt = await db.insert(record_item_mapper_list, mode="ignore")
-
-            if cnt == 0:
-                # 数据库无新增记录
-                return 0
-
-            record_batch_mapper = GachaRecordBatchMapper(
-                **params,
-                count=cnt,
-                timestamp=int(Date.convert_timezone(params["region_time_zone"]).timestamp()),
-            )
-            await db.insert(record_batch_mapper, "ignore")
-
-            await db.commit_transaction()
-        logger.debug("Add {} new gacha records.", cnt)
-        return cnt
 
 
 class GachaRecordAnalyzer(BaseClient):
