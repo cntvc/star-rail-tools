@@ -52,18 +52,32 @@ class RecordDetail(Container):
                     yield Static(
                         Markdown(RECORD_TMP.format(result.total_count, rank5_count, rank5_average))
                     )
-                    #
                     with VerticalScroll():
                         rank_5_list = [
-                            Panel(f"{i}. {item.name} : {item.index}抽", expand=True)
+                            Panel(
+                                f"{i}. {item.name} : {item.index}抽",
+                                expand=True,
+                                style=self._gacha_item_color(item.index),
+                            )
                             for i, item in enumerate(result.rank_5, start=1)
                         ]
                         rank_5_list.append(
-                            Panel(f"{len(rank_5_list)+1}. 保底计数 : {result.pity_count}抽", expand=True)
+                            Panel(
+                                f"{len(rank_5_list)+1}. 保底计数 : {result.pity_count}抽",
+                                expand=True,
+                                style="#81a1c1",
+                            )
                         )
                         if settings.REVERSE_ORDER:
                             rank_5_list.reverse()
                         yield Static(Columns(rank_5_list))
+
+    def _gacha_item_color(self, count: int):
+        """根据抽数进行着色"""
+        if count < 70:
+            return "#a3be8c"
+        else:
+            return "#bf616a"
 
 
 class GachaRecordDialog(Container):

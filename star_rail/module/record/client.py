@@ -131,7 +131,7 @@ class GachaRecordAnalyzer(BaseClient):
                 ]
                 # 将5星列表与抽数列表对应
                 rank_5_item_list = [
-                    StatisticItem(index=str(rank_5_index), **rank_5_item.model_dump())
+                    StatisticItem(index=rank_5_index, **rank_5_item.model_dump())
                     for rank_5_item, rank_5_index in zip(rank_5_list, rank_5_index)
                 ]
 

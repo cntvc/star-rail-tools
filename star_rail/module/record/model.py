@@ -53,7 +53,7 @@ class GachaRecordData(BaseModel):
 
 
 class StatisticItem(GachaRecordItem):
-    index: str
+    index: int
     """物品抽数"""
 
 
