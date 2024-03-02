@@ -129,3 +129,7 @@ class HSRApp(App):
         result = await self.updater.check_update()
         if result:
             self.notify("软件发现新版本.")
+
+    @on(events.ReverseGachaRecord)
+    async def reverse_gacha_record(self):
+        await self.query(GachaRecordDialog).last().reverse_record()

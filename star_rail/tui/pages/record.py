@@ -8,13 +8,14 @@ from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Static, TabbedContent, TabPane
 
+from star_rail.config import settings
 from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
-RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}\t 保底计数: {}"""
+RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}"""
 EMPTY_DATA = [
     r"[O]     \,`/ /      [/O]",
     r"[O]    _)..  `_     [/O]",
@@ -60,17 +61,19 @@ class RecordDetail(Container):
 
                 with TabPane(tab_name, id=f"{tab_id}"):
                     yield Static(
-                        Markdown(
-                            RECORD_TMP.format(
-                                result.total_count, rank5_count, rank5_average, result.pity_count
-                            )
-                        )
+                        Markdown(RECORD_TMP.format(result.total_count, rank5_count, rank5_average))
                     )
+                    #
                     with VerticalScroll():
                         rank_5_list = [
-                            Panel(f"{i}. " + item.name + " : " + item.index + "抽", expand=True)
+                            Panel(f"{i}. {item.name} : {item.index}抽", expand=True)
                             for i, item in enumerate(result.rank_5, start=1)
                         ]
+                        rank_5_list.append(
+                            Panel(f"{len(rank_5_list)+1}. 保底计数 : {result.pity_count}抽", expand=True)
+                        )
+                        if settings.REVERSE_ORDER:
+                            rank_5_list.reverse()
                         yield Static(Columns(rank_5_list))
 
 
@@ -84,6 +87,15 @@ class GachaRecordDialog(Container):
             yield SimpleButton("导入数据", id="import")
             yield SimpleButton("生成Execl", id="export_execl")
             yield SimpleButton("生成SRGF", id="export_srgf")
+
+    async def reverse_record(self):
+        """反转显示跃迁记录"""
+        if self.query(EmptyData):
+            return
+        details = self.query(RecordDetail)
+        if details:
+            details.remove()
+        await self.mount(RecordDetail(self.analyze_result))
 
     async def watch_analyze_result(self, new: AnalyzeResult):
         def remove_widgets():
