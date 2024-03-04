@@ -74,7 +74,7 @@ class RecordDetail(Container):
 
     def _gacha_item_color(self, count: int = None):
         """根据抽数进行着色"""
-        if not settings.COLOR_GACHA_RECORD:
+        if not settings.SHOW_LUCK_LEVEL:
             return "none"
 
         if not count:
@@ -102,7 +102,7 @@ class GachaRecordDialog(Container):
         """反转跃迁记录"""
         await self._remount_data(self.analyze_result)
 
-    async def change_gacha_record_color(self):
+    async def show_luck_level(self):
         await self._remount_data(self.analyze_result)
 
     async def watch_analyze_result(self, new_data: AnalyzeResult):

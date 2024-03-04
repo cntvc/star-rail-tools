@@ -134,6 +134,6 @@ class HSRApp(App):
     async def reverse_gacha_record(self):
         await self.query_one(GachaRecordDialog).reverse_record()
 
-    @on(events.ColorGachaRecord)
-    async def change_gacha_record_color(self):
-        await self.query_one(GachaRecordDialog).change_gacha_record_color()
+    @on(events.ShowLuckLevel)
+    async def show_luck_level(self):
+        await self.query_one(GachaRecordDialog).show_luck_level()

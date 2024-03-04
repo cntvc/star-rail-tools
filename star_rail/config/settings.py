@@ -44,8 +44,8 @@ class Settings(BaseSetting):
     REVERSE_ORDER: bool = True
     """按时间倒序显示跃迁记录"""
 
-    COLOR_GACHA_RECORD: bool = True
-    """为跃迁记录着色"""
+    SHOW_LUCK_LEVEL: bool = True
+    """显示欧非程度"""
 
 
 settings = Settings(config_path=_default_config_path)

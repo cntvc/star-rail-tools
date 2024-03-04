@@ -4,7 +4,7 @@ from textual.containers import Container, Horizontal
 from textual.widgets import Static, Switch
 
 from star_rail.config import settings
-from star_rail.tui.events import ColorGachaRecord, ReverseGachaRecord
+from star_rail.tui.events import ReverseGachaRecord, ShowLuckLevel
 
 
 class ConfigDialog(Container):
@@ -16,7 +16,7 @@ class ConfigDialog(Container):
             switch_id="REVERSE_ORDER", desc="倒序显示跃迁记录", status=settings.REVERSE_ORDER
         )
         yield ConfigSwitchItem(
-            switch_id="COLOR_GACHA_RECORD", desc="根据次数为跃迁记录着色", status=settings.COLOR_GACHA_RECORD
+            switch_id="SHOW_LUCK_LEVEL", desc="显示欧非程度", status=settings.SHOW_LUCK_LEVEL
         )
 
 
@@ -42,8 +42,8 @@ class ConfigSwitchItem(Horizontal):
         settings.save_config()
         self.post_message(ReverseGachaRecord(event.value))
 
-    @on(Switch.Changed, "#COLOR_GACHA_RECORD")
-    def _color_gacha_record(self, event: Switch.Changed):
-        settings.COLOR_GACHA_RECORD = event.value
+    @on(Switch.Changed, "#SHOW_LUCK_LEVEL")
+    def _show_luck_level(self, event: Switch.Changed):
+        settings.SHOW_LUCK_LEVEL = event.value
         settings.save_config()
-        self.post_message(ColorGachaRecord(event.value))
+        self.post_message(ShowLuckLevel(event.value))
