@@ -13,7 +13,7 @@ from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui.handler import error_handler, required_account
-from star_rail.tui.widgets import SimpleButton, apply_text_color
+from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
 
 RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}"""
 EMPTY_DATA = [
@@ -65,19 +65,26 @@ class RecordDetail(Container):
                             Panel(
                                 f"{len(rank_5_list)+1}. 保底计数 : {result.pity_count}抽",
                                 expand=True,
-                                style="#81a1c1",
+                                style=self._gacha_item_color(),
                             )
                         )
                         if settings.REVERSE_ORDER:
                             rank_5_list.reverse()
                         yield Static(Columns(rank_5_list))
 
-    def _gacha_item_color(self, count: int):
+    def _gacha_item_color(self, count: int = None):
         """根据抽数进行着色"""
+        if not settings.COLOR_GACHA_RECORD:
+            return "none"
+
+        if not count:
+            # 默认颜色
+            return Color.BLUE
+
         if count < 70:
-            return "#a3be8c"
+            return Color.GREEN
         else:
-            return "#bf616a"
+            return Color.RED
 
 
 class GachaRecordDialog(Container):
@@ -92,15 +99,18 @@ class GachaRecordDialog(Container):
             yield SimpleButton("生成SRGF", id="export_srgf")
 
     async def reverse_record(self):
-        """反转显示跃迁记录"""
-        if self.query(EmptyData):
-            return
-        details = self.query(RecordDetail)
-        if details:
-            details.remove()
-        await self.mount(RecordDetail(self.analyze_result))
+        """反转跃迁记录"""
+        await self._remount_data(self.analyze_result)
 
-    async def watch_analyze_result(self, new: AnalyzeResult):
+    async def change_gacha_record_color(self):
+        await self._remount_data(self.analyze_result)
+
+    async def watch_analyze_result(self, new_data: AnalyzeResult):
+        await self._remount_data(new_data)
+
+    async def _remount_data(self, data: AnalyzeResult):
+        """重新挂载数据显示区域"""
+
         def remove_widgets():
             empty_data = self.query(EmptyData)
             if empty_data:
@@ -111,10 +121,10 @@ class GachaRecordDialog(Container):
 
         remove_widgets()
 
-        if not new or new.empty():
-            self.mount(EmptyData(id="empty_record"))
+        if not data or data.empty():
+            await self.mount(EmptyData())
             return
-        await self.mount(RecordDetail(new))
+        await self.mount(RecordDetail(data))
 
     @on(SimpleButton.Pressed, "#refresh_with_cache")
     @work()

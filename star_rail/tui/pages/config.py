@@ -4,7 +4,7 @@ from textual.containers import Container, Horizontal
 from textual.widgets import Static, Switch
 
 from star_rail.config import settings
-from star_rail.tui.events import ReverseGachaRecord
+from star_rail.tui.events import ColorGachaRecord, ReverseGachaRecord
 
 
 class ConfigDialog(Container):
@@ -14,6 +14,9 @@ class ConfigDialog(Container):
         )
         yield ConfigSwitchItem(
             switch_id="REVERSE_ORDER", desc="倒序显示跃迁记录", status=settings.REVERSE_ORDER
+        )
+        yield ConfigSwitchItem(
+            switch_id="COLOR_GACHA_RECORD", desc="根据次数为跃迁记录着色", status=settings.COLOR_GACHA_RECORD
         )
 
 
@@ -38,3 +41,9 @@ class ConfigSwitchItem(Horizontal):
         settings.REVERSE_ORDER = event.value
         settings.save_config()
         self.post_message(ReverseGachaRecord(event.value))
+
+    @on(Switch.Changed, "#COLOR_GACHA_RECORD")
+    def _color_gacha_record(self, event: Switch.Changed):
+        settings.COLOR_GACHA_RECORD = event.value
+        settings.save_config()
+        self.post_message(ColorGachaRecord(event.value))

@@ -19,3 +19,9 @@ class ReverseGachaRecord(Message, bubble=True):
     def __init__(self, value) -> None:
         super().__init__()
         self.value = value
+
+
+class ColorGachaRecord(Message, bubble=True):
+    def __init__(self, value) -> None:
+        super().__init__()
+        self.value = value
