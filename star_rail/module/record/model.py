@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from pydantic import BaseModel
 
 
@@ -80,3 +82,12 @@ class AnalyzeResult(BaseModel):
             if len(i.rank_5):
                 return False
         return True
+
+
+@dataclass
+class GachaRecordArchiveInfo:
+    uid: int
+    batch_id: str
+    lang: str
+    region_time_zone: int
+    source: str

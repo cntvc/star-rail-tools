@@ -15,8 +15,8 @@ from star_rail.utils.date import Date
 
 
 class MonthInfoClient(BaseClient):
-    async def _request_month_info(self, month: str = "") -> MonthInfoData:
-        """请求指定月份的月历数据
+    async def _fetch_month_info(self, month: str = "") -> MonthInfoData:
+        """获取指定月份的月历数据
 
         Args:
             month (str): 格式 'YYYYMM', 默认 '' 时查询当前月份
@@ -34,8 +34,8 @@ class MonthInfoClient(BaseClient):
         )
         return MonthInfoData(**data)
 
-    async def get_month_info_in_range(self, month_nums: int = 12) -> list[MonthInfoItem]:
-        """查询 最近 month_nums 条月历信息
+    async def get_month_info_history(self, month_nums: int = 12) -> list[MonthInfoItem]:
+        """查询最近 month_nums 条月历信息的历史数据
 
         Args:
             month_nums (int, optional): 默认查询条数. Defaults to 12.
@@ -84,16 +84,16 @@ class MonthInfoClient(BaseClient):
         if self.user.cookie.empty_cookie_token():
             raise error.HsrException("Empty cookie value.")
         try:
-            cur_month_info_data = await self._request_month_info()
+            cur_month_info_data = await self._fetch_month_info()
         except error.InvalidCookieError:
             # cookie_token 有效期比stoken短，因此尝试刷新一次
             logger.debug("The cookie_token value has expired.")
             await self.user.cookie.refresh_cookie_token(self.user.game_biz)
             await self.user.save_profile()
-            cur_month_info_data = await self._request_month_info()
+            cur_month_info_data = await self._fetch_month_info()
 
         datas = [cur_month_info_data]
         for month in cur_month_info_data.optional_month[1:]:
-            cur_month_info_data = await self._request_month_info(month)
+            cur_month_info_data = await self._fetch_month_info(month)
             datas.append(cur_month_info_data)
         return await self._save_month_info(datas)

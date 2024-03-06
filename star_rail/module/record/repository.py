@@ -9,7 +9,7 @@ from ..base import BaseClient
 from .mapper import GachaRecordBatchMapper, GachaRecordItemMapper
 
 if typing.TYPE_CHECKING:
-    from .model import GachaRecordItem
+    from .model import GachaRecordItem, GachaRecordArchiveInfo
 
 from star_rail.database import AsyncDBClient
 
@@ -41,22 +41,20 @@ class GachaRecordRepository(BaseClient):
 
         return converter.convert_to_record_item(record_mapper_list)
 
-    async def insert_gacha_record(self, gacha_record_list: list[GachaRecordItem], params: dict):
+    async def insert_gacha_record(
+        self, gacha_record_list: list[GachaRecordItem], info: GachaRecordArchiveInfo
+    ):
         """批量插入抽卡记录
 
         Args:
             gacha_record_list (list[GachaRecordItem]): 抽卡记录
-            params (dict): 抽卡记录归档信息
-                required: (uid, batch_id, lang, region_time_zone, source)
-
-        Raises:
-            error.HsrException: 保存数据出现错误
+            info (GachaRecordArchiveInfo): 抽卡记录归档信息
         """
         logger.debug("Insert gacha record data.")
         from . import converter
 
         record_item_mapper_list = converter.convert_to_record_item_mapper(
-            gacha_record_list, params["batch_id"]
+            gacha_record_list, info.batch_id
         )
 
         async with AsyncDBClient() as db:
@@ -68,9 +66,13 @@ class GachaRecordRepository(BaseClient):
                 return 0
 
             record_batch_mapper = GachaRecordBatchMapper(
-                **params,
+                uid=info.uid,
+                batch_id=info.batch_id,
+                lang=info.lang,
+                region_time_zone=info.region_time_zone,
+                source=info.source,
                 count=cnt,
-                timestamp=int(Date.convert_timezone(params["region_time_zone"]).timestamp()),
+                timestamp=int(Date.convert_timezone(info.region_time_zone).timestamp()),
             )
             await db.insert(record_batch_mapper, "ignore")
 

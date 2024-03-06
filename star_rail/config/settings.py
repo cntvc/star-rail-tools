@@ -3,7 +3,7 @@ import os
 from pydantic import BaseModel, ConfigDict, Field
 
 from star_rail import constants
-from star_rail.utils.functional import load_json, save_json
+from star_rail.utils.file import load_json, save_json
 
 __all__ = ["settings"]
 
@@ -17,7 +17,7 @@ class BaseSetting(BaseModel):
 
     def __init__(self, config_path: str, **data):
         super().__init__(config_path=config_path, **data)
-        self.refresh_config(config_path)
+        self.refresh_config()
 
     def save_config(self):
         save_json(self.config_path, self.model_dump())
@@ -27,10 +27,10 @@ class BaseSetting(BaseModel):
             if k in config_data:
                 setattr(self, k, config_data[k])
 
-    def refresh_config(self, path: str):
-        if not os.path.exists(path):
+    def refresh_config(self):
+        if not os.path.exists(self.config_path):
             return
-        self.update_config(load_json(path))
+        self.update_config(load_json(self.config_path))
 
 
 class Settings(BaseSetting):
@@ -39,13 +39,15 @@ class Settings(BaseSetting):
     DEFAULT_UID: str = ""
 
     ENCRYPT_KEY: str = ""
-    """加密 key"""
 
     REVERSE_GACHA_RECORD: bool = True
-    """按时间倒序显示跃迁记录"""
+    """按ID大小倒序显示跃迁记录"""
 
     SHOW_LUCK_LEVEL: bool = True
     """显示欧非程度"""
+
+    def __init__(self, config_path: str):
+        super().__init__(config_path=config_path)
 
 
 settings = Settings(config_path=_default_config_path)

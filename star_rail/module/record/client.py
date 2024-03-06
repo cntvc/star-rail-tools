@@ -10,7 +10,7 @@ import yarl
 from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.module import routes
-from star_rail.utils import functional
+from star_rail.utils import file
 from star_rail.utils.date import Date
 from star_rail.utils.logger import logger
 
@@ -18,24 +18,31 @@ from ..base import BaseClient
 from ..helper import CursorPaginator, MergedPaginator, Paginator, request
 from . import srgf, types
 from .gacha_url import GachaUrlProvider
-from .model import AnalyzeResult, GachaRecordData, GachaRecordItem, StatisticItem, StatisticResult
+from .model import (
+    AnalyzeResult,
+    GachaRecordArchiveInfo,
+    GachaRecordData,
+    GachaRecordItem,
+    StatisticItem,
+    StatisticResult,
+)
 from .repository import GachaRecordRepository
 
 __all__ = ["GachaRecordClient"]
 
 
 class GachaRecordAPIClient(BaseClient):
-    def filter_required_params(self, url: yarl.URL):
-        """链接替换请求路径只保留必要的参数"""
+    def build_url(self, url: yarl.URL):
+        """过滤并替换URL的请求路径，只保留必要的参数"""
         required_params = ("authkey", "lang", "game_biz", "authkey_ver")
         filtered_params = {key: value for key, value in url.query.items() if key in required_params}
         return routes.GACHA_LOG_URL.get_url(self.user.game_biz).with_query(filtered_params)
 
     async def get_url_info(self, url: yarl.URL):
-        """获取URL对应的 UID 和 region 等信息"""
+        """获取URL对应的 UID、lang和region"""
         uid, lang, region_time_zone = "", "", ""
         for gacha_type in types.GACHA_TYPE_IDS:
-            data = await self.request_gacha_record_data(url, gacha_type, 1, 0)
+            data = await self._fetch_gacha_record_data(url, gacha_type, 1, 0)
             if data.list:
                 region_time_zone = data.region_time_zone
                 uid = data.list[0].uid
@@ -43,7 +50,7 @@ class GachaRecordAPIClient(BaseClient):
                 break
         return uid, lang, region_time_zone
 
-    async def request_gacha_record_data(
+    async def _fetch_gacha_record_data(
         self, url: yarl.URL, gacha_type: int | str, size: int | str, end_id: int | str
     ) -> GachaRecordData:
         query_params = {
@@ -54,10 +61,10 @@ class GachaRecordAPIClient(BaseClient):
         query_params.update(url.query)
         return GachaRecordData(**await request("GET", url=url, params=query_params))
 
-    async def request_gacha_record_page(
+    async def _fetch_gacha_record_page(
         self, url: yarl.URL, gacha_type: int | str, size: int | str, end_id: int | str
     ) -> typing.Sequence[GachaRecordItem]:
-        gacha_data = await self.request_gacha_record_data(url, gacha_type, size, end_id)
+        gacha_data = await self._fetch_gacha_record_data(url, gacha_type, size, end_id)
         return gacha_data.list
 
     async def get_gacha_record(
@@ -65,17 +72,15 @@ class GachaRecordAPIClient(BaseClient):
         url: yarl.URL,
         *,
         gacha_type_list: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
-        end_id=0,
     ) -> Paginator[GachaRecordItem]:
         """获取跃迁记录
 
         Args:
             url (yarl.URL): 跃迁记录URL
             gacha_type_list: 需要查询的卡池id列表. 默认为 None 时查询全部卡池.
-            end_id (int, optional): 用于翻页的起始查询id. 默认 0 时从第一页开始.
 
         Returns:
-            Paginator[GachaRecordItem]: 从大到小迭代跃迁记录
+            Paginator[GachaRecordItem]: 从大到小迭代的跃迁记录
         """
         gacha_type_list = gacha_type_list or types.GACHA_TYPE_IDS
 
@@ -89,21 +94,19 @@ class GachaRecordAPIClient(BaseClient):
             iterators.append(
                 CursorPaginator(
                     functools.partial(
-                        self.request_gacha_record_page,
+                        self._fetch_gacha_record_page,
                         url=url,
                         gacha_type=gacha_type,
                         size=max_page_size,
-                    ),
-                    end_id=end_id,
-                    page_size=max_page_size,
+                    )
                 )
             )
 
         if len(iterators) == 1:
             return iterators[0]
 
-        # 合并迭代器时使用小顶堆排序，每个迭代器数据按id从大到小的顺序排列
-        # 比较条件使用 `-int(x.id)` 使其按id从大到小输出保证顺序一致
+        # 合并迭代器时使用小顶堆排序，每个迭代器数据按ID从大到小排列
+        # 使用 `-int(x.id)` 比较，确保按ID从大到小排序
         return MergedPaginator(iterators, key=lambda x: -int(x.id))
 
 
@@ -126,13 +129,15 @@ class GachaRecordAnalyzer(BaseClient):
             rank_5_item_list = []
             if rank_5_raw_index:
                 # 计算5星抽数列表（相邻5星的位置差
-                rank_5_index = [rank_5_raw_index[0]] + [
-                    j - i for i, j in zip(rank_5_raw_index, rank_5_raw_index[1:])
+                rank_5_count_list = [rank_5_raw_index[0]] + [
+                    _next_index - _index
+                    for _index, _next_index in zip(rank_5_raw_index, rank_5_raw_index[1:])
                 ]
+
                 # 将5星列表与抽数列表对应
                 rank_5_item_list = [
                     StatisticItem(index=rank_5_index, **rank_5_item.model_dump())
-                    for rank_5_item, rank_5_index in zip(rank_5_list, rank_5_index)
+                    for rank_5_item, rank_5_index in zip(rank_5_list, rank_5_count_list)
                 ]
 
             # 保底计数
@@ -154,40 +159,44 @@ class GachaRecordAnalyzer(BaseClient):
         record_repository = GachaRecordRepository(self.user)
         gacha_record_list = await record_repository.get_all_gacha_record()
         analyze_result = self.analyze_records(gacha_record_list)
-        functional.save_json(self.user.gacha_record_analyze_path, analyze_result.model_dump())
+        file.save_json(self.user.gacha_record_analyze_path, analyze_result.model_dump())
 
     async def load_analyze_result(self):
         if self.user.gacha_record_analyze_path.exists():
             try:
-                return AnalyzeResult(**functional.load_json(self.user.gacha_record_analyze_path))
+                # 捕获异常用于在代码更新后无法加载旧版本数据时，自动刷新数据
+                return AnalyzeResult(**file.load_json(self.user.gacha_record_analyze_path))
             except pydantic.ValidationError:
                 await self.refresh_analyze_result()
-                return AnalyzeResult(**functional.load_json(self.user.gacha_record_analyze_path))
+                return AnalyzeResult(**file.load_json(self.user.gacha_record_analyze_path))
         else:
             await self.refresh_analyze_result()
-            return AnalyzeResult(**functional.load_json(self.user.gacha_record_analyze_path))
+            return AnalyzeResult(**file.load_json(self.user.gacha_record_analyze_path))
 
 
 class GachaRecordClient(BaseClient):
+    def _parse_url(self, source: typing.Literal["webcache", "clipboard"]):
+        if source == "webcache":
+            return GachaUrlProvider().parse_game_web_cache(self.user)
+        elif source == "clipboard":
+            return GachaUrlProvider().parse_clipboard_url()
+        else:
+            assert (
+                False
+            ), f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
+
     async def refresh_gacha_record(self, source: typing.Literal["webcache", "clipboard"]):
         """刷新跃迁记录
 
         Return:
             成功更新的数量
         """
-        if source == "webcache":
-            url = GachaUrlProvider().parse_game_web_cache(self.user)
-        elif source == "clipboard":
-            url = GachaUrlProvider().parse_clipboard_url()
-        else:
-            assert (
-                False
-            ), f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
+        url = self._parse_url(source)
         if url is None:
             raise error.GachaRecordError("Not found valid url.")
 
         api_client = GachaRecordAPIClient(self.user)
-        url = api_client.filter_required_params(url)
+        url = api_client.build_url(url)
         uid, lang, region_time_zone = await api_client.get_url_info(url)
 
         if not uid:
@@ -219,14 +228,14 @@ class GachaRecordClient(BaseClient):
         cnt = 0
         if need_insert:
             next_batch_id = await record_repository.get_next_batch_id()
-            params = dict(
+            info = GachaRecordArchiveInfo(
                 uid=self.user.uid,
                 batch_id=next_batch_id,
                 lang=lang,
                 region_time_zone=region_time_zone,
                 source=source,
             )
-            cnt = await record_repository.insert_gacha_record(need_insert, params)
+            cnt = await record_repository.insert_gacha_record(need_insert, info)
 
         # 查询所有记录并生成统计结果
         await GachaRecordAnalyzer(self.user).refresh_analyze_result()
@@ -349,19 +358,25 @@ class GachaRecordClient(BaseClient):
             return False
         record_batch = await record_repository.get_latest_batch()
         srgf_data = srgf.convert_to_srgf(gacha_record_list, record_batch)
-        functional.save_json(self.user.srgf_path, srgf_data.model_dump())
+        file.save_json(self.user.srgf_path, srgf_data.model_dump())
         return True
 
-    async def _import_srgf_data(self, file_data: srgf.SRGFData):
+    async def _process_srgf_data(self, file_data: srgf.SRGFData):
         logger.debug("SRGF info:{}", file_data.info.model_dump_json())
         record_repository = GachaRecordRepository(self.user)
-        item_list, info = srgf.convert_to_gacha_record_data(file_data)
+        item_list, srgf_info = srgf.convert_to_gacha_record_data(file_data)
 
         next_batch_id = await record_repository.get_next_batch_id()
-        info.update(batch_id=next_batch_id)
+        info = GachaRecordArchiveInfo(
+            uid=srgf_info.uid,
+            batch_id=next_batch_id,
+            lang=srgf_info.lang,
+            region_time_zone=srgf_info.region_time_zone,
+            source=srgf_info.export_app,
+        )
         return await record_repository.insert_gacha_record(item_list, info)
 
-    async def import_srgf_json(self):
+    async def import_srgf_data(self):
         """导入SRGF数据
 
         Return:
@@ -378,7 +393,7 @@ class GachaRecordClient(BaseClient):
 
         for file_name in file_list:
             file_path = os.path.join(import_data_path, file_name)
-            data = functional.load_json(file_path)
+            data = file.load_json(file_path)
             try:
                 srgf_data = srgf.SRGFData.model_validate(data)
             except pydantic.ValidationError:
@@ -388,7 +403,7 @@ class GachaRecordClient(BaseClient):
                 invalid_file_list.append(file_name)
                 continue
 
-            cnt += await self._import_srgf_data(srgf_data)
+            cnt += await self._process_srgf_data(srgf_data)
 
         if cnt:
             await GachaRecordAnalyzer(self.user).refresh_analyze_result()

@@ -158,11 +158,13 @@ class GachaRecordDialog(Container):
     @required_account
     async def handle_import_srgf(self):
         client: HSRClient = self.app.client
-        cnt, failed_list = await client.import_srgf_json()
+        cnt, failed_list = await client.import_srgf_data()
+        # TODO 使用模态框显示导入结果 2024-03-07
         if cnt:
             self.notify(f"新增{cnt}条记录")
         else:
             self.notify("无数据可导入")
+
         if failed_list:
             self.notify("\n".join([f"文件{name }导入失败" for name in failed_list]))
 

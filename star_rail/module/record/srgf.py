@@ -4,8 +4,6 @@ SRGF 星穹铁道抽卡记录标准
 https://uigf.org/zh/standards/SRGF.html
 """
 
-import typing
-
 from pydantic import BaseModel, Field, field_validator
 
 from star_rail import __version__ as app_version
@@ -69,25 +67,18 @@ class SRGFData(BaseModel):
 
 def convert_to_gacha_record_data(
     srgf_data: SRGFData,
-) -> tuple[list[GachaRecordItem], dict[str, typing.Any]]:
+) -> tuple[list[GachaRecordItem], SRGFInfo]:
     """
 
     Returns:
-        tuple[list[GachaRecordItem], dict[str, typing.Any]]: 抽卡记录列表, 抽卡记录信息
-            dict:(uid, lang, region_time_zone, source)
+        tuple[list[GachaRecordItem], SRGFInfo]: 抽卡记录列表, 抽卡记录信息
     """
-    info = {
-        "uid": srgf_data.info.uid,
-        "lang": srgf_data.info.lang,
-        "region_time_zone": srgf_data.info.region_time_zone,
-        "source": srgf_data.info.export_app,
-    }
     item_list = [
         GachaRecordItem(uid=srgf_data.info.uid, lang=srgf_data.info.lang, **item.model_dump())
         for item in srgf_data.list
     ]
     item_list.sort(key=lambda x: x.id)
-    return item_list, info
+    return item_list, srgf_data.info
 
 
 def convert_to_srgf(gacha_record_item: list[GachaRecordItem], batch: GachaRecordBatchMapper):

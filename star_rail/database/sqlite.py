@@ -113,13 +113,13 @@ class AsyncDBClient:
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        if exc_type is None:
-            if self.connection.in_transaction:
+        if self.connection.in_transaction:
+            if exc_type is None:
                 await self.commit_transaction()
-        else:
-            if self.connection.in_transaction:
+            else:
                 await self.rollback_transaction()
-            logger.debug("[SQL traceback]:\n{}", "\n".join(self.sql_queue))
+                logger.debug("[SQL traceback]:\n{}", "\n".join(self.sql_queue))
+
         await self.close()
 
     async def execute(self, sql: str, *params):
@@ -149,6 +149,8 @@ class AsyncDBClient:
             mode = " or ignore "
         elif mode == "update":
             mode = " or replace "
+        else:
+            assert False, f"Param error. Expected 'ignore', 'update' or 'none', got [{mode}]"
 
         if isinstance(item_or_item_list, list):
             item_list = item_or_item_list
@@ -241,7 +243,7 @@ class DBManager:
         async with AsyncDBClient(db_path=self.db_path) as db:
             await db.execute(f"pragma user_version = {db_version};")
 
-    async def upgrade_version(self):
+    async def upgrade_database(self):
         """升级数据库版本"""
         logger.debug("Update database version.")
         local_db_version = await self.user_version()
@@ -254,7 +256,7 @@ class DBManager:
                 await self._perform_upgrade_script(upgrade_script)
                 local_db_version = await self.user_version()
 
-            logger.debug("current database version: {}", local_db_version)
+                logger.debug("current database version: {}", local_db_version)
 
     async def _perform_upgrade_script(self, script: "UpgradeSQL"):
         logger.debug("Upgrade database version to {}", script.target_version)

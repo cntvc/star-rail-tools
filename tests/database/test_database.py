@@ -222,7 +222,7 @@ class TestDBManager(unittest.IsolatedAsyncioTestCase):
             ],
         )
         self.assertEqual(len(UpgradeSQL._register), 2)
-        await self.db_manager.upgrade_version()
+        await self.db_manager.upgrade_database()
         await self.client.connect()
         cursor = await self.client.execute("pragma table_info(user);")
         column_list = await cursor.fetchall()
@@ -240,5 +240,5 @@ class TestDBManager(unittest.IsolatedAsyncioTestCase):
         with patch.object(
             DBManager, "_perform_upgrade_script", new_callable=AsyncMock
         ) as mock_perform_sql:
-            await self.db_manager.upgrade_version()
+            await self.db_manager.upgrade_database()
             mock_perform_sql.assert_not_called()

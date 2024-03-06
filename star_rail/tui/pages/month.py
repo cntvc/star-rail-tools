@@ -79,7 +79,7 @@ class MonthDialog(Container):
             return
         cnt = await client.refresh_month_info()
         self.notify(f"已更新最近{cnt}月的数据")
-        self.month_info_list = await client.get_month_info_in_range()
+        self.month_info_list = await client.get_month_info_history()
 
     def watch_month_info_list(self, new: list[MonthInfoItem]):
         def remove_widgets():

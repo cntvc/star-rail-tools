@@ -44,7 +44,7 @@ class TestSettings(unittest.TestCase):
         with open(self.config_path, "w") as f:
             json.dump(self.default_config, f, ensure_ascii=False, sort_keys=False, indent=4)
 
-        settings.refresh_config(self.config_path)
+        settings.refresh_config()
 
         self.assertFalse(settings.CHECK_UPDATE)
         self.assertEqual(settings.DEFAULT_UID, "123456789")

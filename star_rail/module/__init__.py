@@ -21,6 +21,6 @@ class HSRClient(AccountClient, GachaRecordClient, MonthInfoClient):
         cur_db_version = await db_manager.user_version()
         logger.debug("Current db version: {}.", cur_db_version)
         if cur_db_version < DATABASE_VERSION:
-            await db_manager.upgrade_version()
+            await db_manager.upgrade_database()
 
         await self.init_default_account()

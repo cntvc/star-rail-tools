@@ -7,10 +7,10 @@ class Date:
         YYYY_MM_DD_HHMMSS = "%Y-%m-%d %H:%M:%S"
 
     @staticmethod
-    def format_time(_date: datetime = None, _format: str = Format.YYYY_MM_DD_HHMMSS, /):
+    def format_time(date: datetime = None, format_str: str = Format.YYYY_MM_DD_HHMMSS):
         """格式化时间字符串"""
-        date = _date if _date else datetime.now()
-        return date.strftime(_format)
+        date = date or datetime.now()
+        return date.strftime(format_str)
 
     @staticmethod
     def convert_timezone(_timezone: int):
