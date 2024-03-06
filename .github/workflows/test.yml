@@ -5,6 +5,7 @@ env:
   TEST_CODE: tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
