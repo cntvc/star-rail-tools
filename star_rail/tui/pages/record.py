@@ -162,6 +162,7 @@ class GachaRecordDialog(Container):
         # TODO 使用模态框显示导入结果 2024-03-07
         if cnt:
             self.notify(f"新增{cnt}条记录")
+            self.analyze_result = await client.view_analysis_results()
         else:
             self.notify("无数据可导入")
 
