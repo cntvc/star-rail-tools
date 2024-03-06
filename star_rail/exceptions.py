@@ -65,7 +65,7 @@ class InvalidLangError(ApiException):
 
 class InvalidCookieError(ApiException):
     retcode = -100
-    msg = "无效的Cookie值."
+    msg = "Invalid cookie value."
 
 
 class VisitsTooFrequently(ApiException):
