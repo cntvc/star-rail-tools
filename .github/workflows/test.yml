@@ -5,6 +5,7 @@ env:
   TEST_CODE: tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -34,7 +35,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m pip install isort
+      - run: python -m pip install isort==5.12.0
       - name: isort
         uses: liskin/gh-problem-matcher-wrap@v3
         with:
@@ -52,7 +53,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m pip install flake8
+      - run: python -m pip install flake8==6.1.0
       - name: flake8
         uses: liskin/gh-problem-matcher-wrap@v3
         with:
@@ -65,10 +66,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: black
-        uses: psf/black@stable
+      - name: Set up Python version
+        id: setup-python
+        uses: actions/setup-python@v5
         with:
-          options: "${{ env.SRC_CODE }} ${{ env.TEST_CODE }}"
+          python-version: "3.11"
+      - run: python -m pip install black==23.11.0
+      - name: black
+        run: |
+          black --check --diff ${{ env.SRC_CODE }} ${{ env.TEST_CODE }}
 
   pytest:
     needs: [isort, flake8, black]
