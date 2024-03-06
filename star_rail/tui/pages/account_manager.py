@@ -18,9 +18,9 @@ class AccountManagerDialog(Container):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield SimpleButton("添加账号", id="add")
-            yield SimpleButton("切换账号", id="switch")
-            yield SimpleButton("删除账号", id="delete")
+            yield SimpleButton("添加账户", id="add")
+            yield SimpleButton("切换账户", id="switch")
+            yield SimpleButton("删除账户", id="delete")
         with ListView():
             for uid in self.uid_list:
                 yield ListItem(Label(uid), id=f"uid_{uid}")
@@ -34,57 +34,67 @@ class AccountManagerDialog(Container):
     @on(SimpleButton.Pressed, "#add")
     @work()
     @error_handler
-    async def add_account(self):
+    async def handle_add_account(self):
         opt = await self.app.push_screen_wait("create_account_screen")
 
-        client: HSRClient = self.app.client
         if opt == "cancel":
             return
-        elif opt == "cookie":
-            user = await client.parse_account_cookie()
-            if not user:
+
+        client: HSRClient = self.app.client
+
+        if opt == "cookie":
+            uid = await client.parse_account_cookie()
+            if not uid:
                 self.notify("未读取到有效Cookie", severity="warning")
-            else:
-                self.notify(f"已更新账号 {user.uid} 的Cookie")
-                # Cookie 对应的账号是当前已登陆账号时，直接替换以更新Cookie
-                if user.uid == client.user.uid:
-                    client.user = user
+                return
+            self.notify(f"账户{uid} Cookie已更新")
         else:
-            await client.create_account_by_uid(opt)
-        self.post_message(events.ChangeAccountList())
+            uid = await client.create_account_by_uid(opt)
+
+        # 创建的账户是当前已登陆账户时，更新数据（Cookie）
+        if client.user and uid == client.user.uid:
+            await client.user.load_profile()
+            return
+        else:
+            await self._switch_account(uid)
+
+        if uid not in self.uid_list:
+            self.post_message(events.ChangeAccountList())
 
     @on(SimpleButton.Pressed, "#switch")
     @work(group="add_account")
     @error_handler
-    async def switch_account(self):
+    async def handle_switch_account(self):
         if not self.uid_list:
-            self.notify("请先添加账号")
+            self.notify("请先添加账户")
             return
         client: HSRClient = self.app.client
         index = self.query_one(ListView).index
         uid = self.uid_list[index]
         if not client.user or uid != client.user.uid:
-            self.app.workers.cancel_group(self.app, group="default")
-            await self._login_account(uid)
+            await self._switch_account(uid)
+
+    async def _switch_account(self, uid: str):
+        self.app.workers.cancel_group(self.app, group="default")
+        await self._login_account(uid)
 
     async def _login_account(self, uid: str):
         client: HSRClient = self.app.client
         await client.login(uid)
         self.post_message(events.SwitchAccount())
-        self.notify(f"切换为账号{uid}")
 
     @on(SimpleButton.Pressed, "#delete")
     @work(group="delete_account")
     @error_handler
-    async def delete_account(self):
+    async def handle_delete_account(self):
         if not self.uid_list:
-            self.notify("请先添加账号")
+            self.notify("请先添加账户")
             return
 
         index = self.query_one(ListView).index
         uid = self.uid_list[index]
-        opt = await self.app.push_screen_wait(DeleteAccountScreen(uid))
-        if not opt:
+        deletion_confirmed = await self.app.push_screen_wait(DeleteAccountScreen(uid))
+        if not deletion_confirmed:
             return
 
         client: HSRClient = self.app.client

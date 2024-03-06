@@ -70,7 +70,7 @@ class AccountClient(BaseClient):
 
             user.cookie = cookie
             await user.save_profile()
-        return user
+        return user.uid
 
     @staticmethod
     def is_hsr_role(role: GameRecordCard):

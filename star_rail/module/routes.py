@@ -38,7 +38,7 @@ class InternationalRoute(BaseRoute):
 
 
 ####################################################################
-# 账号Cookie相关
+# 账户Cookie相关
 ####################################################################
 
 MULTI_TOKEN_BY_LOGINTICKET_URL = InternationalRoute(
