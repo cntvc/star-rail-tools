@@ -36,7 +36,7 @@ class RecordDetail(Container):
         super().__init__(**kwargs)
         self.analyze_result = analyze_result
 
-    def compose(self) -> RenderableType:
+    def compose(self) -> ComposeResult:
         with TabbedContent():
             for result in self.analyze_result.data:
                 tab_id = GachaRecordType.get_by_value(result.gacha_type).name
