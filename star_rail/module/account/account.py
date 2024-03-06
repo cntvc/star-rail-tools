@@ -2,7 +2,7 @@ import base64
 import re
 from pathlib import Path
 
-from pydantic import BaseModel, ValidationError, field_serializer, field_validator, model_validator
+from pydantic import BaseModel, ValidationError, field_serializer, field_validator
 
 from star_rail import constants
 from star_rail.config.settings import settings
@@ -41,9 +41,6 @@ class Account(BaseModel):
 
     def __init__(self, uid: str, **data):
         super().__init__(uid=uid, **data)
-
-    @model_validator(mode="after")
-    def init_param(self):
         self._init_datafile_path()
         self._init_game_biz()
         self._init_region()

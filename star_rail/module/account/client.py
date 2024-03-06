@@ -30,8 +30,8 @@ class AccountClient(BaseClient):
 
     async def login(self, uid: str):
         self.user = Account(uid)
-        opt_status = await self.user.load_profile()
-        if not opt_status:
+        load_profile_result = await self.user.load_profile()
+        if not load_profile_result:
             await self.user.save_profile()
         settings.DEFAULT_UID = uid
         settings.save_config()
@@ -53,13 +53,17 @@ class AccountClient(BaseClient):
         if cookie.empty():
             logger.debug("Empty cookies.")
             return None
-        if not cookie.empty_login_ticket():
+
+        if cookie.empty_login_ticket():
             logger.debug("Invalid cookies.")
             return None
-        if not cookie.empty_stoken():
+
+        if cookie.empty_stoken():
             await cookie.refresh_multi_token(self.user.game_biz)
-        if not cookie.empty_cookie_token():
+
+        if cookie.empty_cookie_token():
             await cookie.refresh_cookie_token(self.user.game_biz)
+
         roles = await AccountClient.get_game_record_card(cookie)
         user = None
         for role in roles.list:
@@ -67,7 +71,6 @@ class AccountClient(BaseClient):
                 continue
 
             user = Account(uid=role.game_role_id)
-
             user.cookie = cookie
             await user.save_profile()
         return user.uid

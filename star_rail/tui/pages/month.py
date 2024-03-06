@@ -72,7 +72,7 @@ class MonthDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def refresh_month_info(self):
+    async def handle_refresh_month_info(self):
         client: HSRClient = self.app.client
         if client.user.cookie.empty():
             self.notify("请设置Cookie后再试")
@@ -111,7 +111,7 @@ class MonthDialog(Container):
         self.mount(MonthInfoDetail(new[0]))
 
     @on(Select.Changed)
-    def select_month(self, event: Select.Changed):
+    def handle_select_month(self, event: Select.Changed):
         detail = self.query(MonthInfoDetail)
         if detail:
             detail.remove()

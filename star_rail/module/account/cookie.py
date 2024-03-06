@@ -59,10 +59,13 @@ class Cookie(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
 
-        # init mihoyo uid
+        self._init_mihoyo_uid()
+        self._init_mihoyo_mid()
+
+    def _init_mihoyo_uid(self):
         uid_params = (self.stuid, self.ltuid, self.login_uid, self.account_id)
 
-        mihoyo_uid = next((v for v in uid_params if v), None)
+        mihoyo_uid = self._get_first_non_empty_value(*uid_params)
 
         if mihoyo_uid:
             self.stuid = mihoyo_uid
@@ -70,12 +73,15 @@ class Cookie(BaseModel):
             self.login_uid = mihoyo_uid
             self.account_id = mihoyo_uid
 
-        # init mid
+    def _init_mihoyo_mid(self):
         mid_params = (self.ltmid, self.account_mid)
-        mid = next((v for v in mid_params if v), None)
+        mid = self._get_first_non_empty_value(*mid_params)
         if mid:
             self.ltmid = mid
             self.account_mid = mid
+
+    def _get_first_non_empty_value(self, *args):
+        return next((v for v in args if v), None)
 
     @staticmethod
     def parse(cookie_str: str):
@@ -92,13 +98,13 @@ class Cookie(BaseModel):
         return cookie
 
     def empty_login_ticket(self):
-        return True if self.login_ticket and self.login_uid else False
+        return not bool(self.login_ticket and self.login_uid)
 
     def empty_stoken(self):
-        return True if self.stoken and self.stuid else False
+        return not bool(self.stoken and self.stuid)
 
     def empty_cookie_token(self):
-        return True if self.cookie_token else False
+        return not bool(self.cookie_token)
 
     async def refresh_multi_token(self, game_biz: GameBiz):
         """刷新 Cookie 的 stoken 和 ltoken"""
@@ -151,8 +157,8 @@ class Cookie(BaseModel):
             "stoken": ["ltoken", "ltuid", "ltmid", "stoken", "stuid"],
         }
         if include not in group:
-            return super().model_dump(exclude_defaults=True)
-        return super().model_dump(include={*group[include]}, exclude_defaults=True)
+            return super().model_dump(exclude_defaults=True, **kwargs)
+        return super().model_dump(include={*group[include]}, exclude_defaults=True, **kwargs)
 
     def __str__(self) -> str:
         return "; ".join([f"{key}={value}" for key, value in self.model_dump("all").items()])
@@ -179,4 +185,4 @@ class Cookie(BaseModel):
     def empty(self):
         """为空返回True"""
         ck_dict = self.model_dump("all")
-        return False if ck_dict else True
+        return not bool(ck_dict)

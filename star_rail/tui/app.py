@@ -105,14 +105,14 @@ class HSRApp(App):
 
     @on(events.SwitchAccount)
     @error_handler
-    async def login_account(self):
+    async def handle_switch_account(self):
         await self._refresh_account_data()
 
     async def _refresh_user_list(self):
         self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
 
     @on(events.ExitAccount)
-    async def exit_account(self):
+    async def handle_exit_account(self):
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = ""
             self.query_one(MonthDialog).month_info_list = []
@@ -121,7 +121,7 @@ class HSRApp(App):
     @on(events.ChangeAccountList)
     @work()
     @error_handler
-    async def add_account(self):
+    async def handle_add_account(self):
         await self._refresh_user_list()
 
     @work(exit_on_error=False)
@@ -131,9 +131,9 @@ class HSRApp(App):
             self.notify("软件发现新版本.")
 
     @on(events.ReverseGachaRecord)
-    async def reverse_gacha_record(self):
+    async def handle_reverse_gacha_record(self):
         await self.query_one(GachaRecordDialog).reverse_record()
 
     @on(events.ShowLuckLevel)
-    async def show_luck_level(self):
+    async def handle_show_luck_level(self):
         await self.query_one(GachaRecordDialog).show_luck_level()

@@ -34,16 +34,16 @@ class MonthInfoClient(BaseClient):
         )
         return MonthInfoData(**data)
 
-    async def get_month_info_in_range(self, _range: int = 12) -> list[MonthInfoItem]:
-        """查询 最近 _range 条月历信息
+    async def get_month_info_in_range(self, month_nums: int = 12) -> list[MonthInfoItem]:
+        """查询 最近 month_nums 条月历信息
 
         Args:
-            _range (int, optional): 默认查询条数. Defaults to 12.
+            month_nums (int, optional): 默认查询条数. Defaults to 12.
 
         Returns:
             list[MonthInfoItemMapper]: 按时间倒序的月历数据
         """
-        mapper_list = await MonthInfoItemMapper.query_by_range(self.user.uid, _range)
+        mapper_list = await MonthInfoItemMapper.query_by_range(self.user.uid, month_nums)
         from . import converter
 
         return converter.convert_to_month_info_item(mapper_list)
@@ -81,7 +81,7 @@ class MonthInfoClient(BaseClient):
             int: 成功更新的月份数量
         """
         logger.debug("Refresh month info.")
-        if not self.user.cookie.empty_cookie_token():
+        if self.user.cookie.empty_cookie_token():
             raise error.HsrException("Empty cookie value.")
         try:
             cur_month_info_data = await self._request_month_info()
@@ -91,6 +91,7 @@ class MonthInfoClient(BaseClient):
             await self.user.cookie.refresh_cookie_token(self.user.game_biz)
             await self.user.save_profile()
             cur_month_info_data = await self._request_month_info()
+
         datas = [cur_month_info_data]
         for month in cur_month_info_data.optional_month[1:]:
             cur_month_info_data = await self._request_month_info(month)

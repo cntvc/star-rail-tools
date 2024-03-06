@@ -30,7 +30,7 @@ class CreateAccountScreen(ModalScreen[str]):
 
     @on(Input.Submitted)
     @on(SimpleButton.Pressed, "#create")
-    async def action_create_account(self):
+    async def handle_create_account(self):
         input_widget = self.query_one(Input)
         input_uid = input_widget.value
         if not Account.verify_uid(input_uid):

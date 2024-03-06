@@ -68,7 +68,7 @@ class RecordDetail(Container):
                                 style=self._gacha_item_color(),
                             )
                         )
-                        if settings.REVERSE_ORDER:
+                        if settings.REVERSE_GACHA_RECORD:
                             rank_5_list.reverse()
                         yield Static(Columns(rank_5_list))
 
@@ -130,7 +130,7 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def refresh_with_webcache(self):
+    async def handle_refresh_with_webcache(self):
         client: HSRClient = self.app.client
         self.notify("正在更新数据")
         await client.refresh_gacha_record("webcache")
@@ -141,7 +141,7 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def refresh_with_url(self):
+    async def handle_refresh_with_url(self):
         client: HSRClient = self.app.client
         self.notify("正在更新数据")
         await client.refresh_gacha_record("clipboard")
@@ -156,7 +156,7 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def import_srgf(self):
+    async def handle_import_srgf(self):
         client: HSRClient = self.app.client
         cnt, failed_list = await client.import_srgf_json()
         if cnt:
@@ -170,7 +170,7 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def export_to_execl(self):
+    async def handle_export_to_execl(self):
         client: HSRClient = self.app.client
         await client.export_to_execl()
         self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
@@ -179,7 +179,7 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def export_to_srgf(self):
+    async def handle_export_to_srgf(self):
         client: HSRClient = self.app.client
         await client.export_to_srgf()
         self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")

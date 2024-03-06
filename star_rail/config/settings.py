@@ -41,7 +41,7 @@ class Settings(BaseSetting):
     ENCRYPT_KEY: str = ""
     """加密 key"""
 
-    REVERSE_ORDER: bool = True
+    REVERSE_GACHA_RECORD: bool = True
     """按时间倒序显示跃迁记录"""
 
     SHOW_LUCK_LEVEL: bool = True

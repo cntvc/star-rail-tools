@@ -13,7 +13,7 @@ class ConfigDialog(Container):
             switch_id="CHECK_UPDATE", desc="自动检测更新", status=settings.CHECK_UPDATE
         )
         yield ConfigSwitchItem(
-            switch_id="REVERSE_ORDER", desc="倒序显示跃迁记录", status=settings.REVERSE_ORDER
+            switch_id="REVERSE_GACHA_RECORD", desc="倒序显示跃迁记录", status=settings.REVERSE_GACHA_RECORD
         )
         yield ConfigSwitchItem(
             switch_id="SHOW_LUCK_LEVEL", desc="显示欧非程度", status=settings.SHOW_LUCK_LEVEL
@@ -32,18 +32,18 @@ class ConfigSwitchItem(Horizontal):
         yield Switch(value=self.status, id=self.switch_id)
 
     @on(Switch.Changed, "#CHECK_UPDATE")
-    def _change_check_update(self, event: Switch.Changed):
+    def handle_check_update(self, event: Switch.Changed):
         settings.CHECK_UPDATE = event.value
         settings.save_config()
 
-    @on(Switch.Changed, "#REVERSE_ORDER")
-    def _change_reverse_order(self, event: Switch.Changed):
-        settings.REVERSE_ORDER = event.value
+    @on(Switch.Changed, "#REVERSE_GACHA_RECORD")
+    def handle_reverse_gacha_record(self, event: Switch.Changed):
+        settings.REVERSE_GACHA_RECORD = event.value
         settings.save_config()
         self.post_message(ReverseGachaRecord(event.value))
 
     @on(Switch.Changed, "#SHOW_LUCK_LEVEL")
-    def _show_luck_level(self, event: Switch.Changed):
+    def handle_show_luck_level(self, event: Switch.Changed):
         settings.SHOW_LUCK_LEVEL = event.value
         settings.save_config()
         self.post_message(ShowLuckLevel(event.value))
