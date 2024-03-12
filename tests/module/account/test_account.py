@@ -129,9 +129,6 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result)
         mock_save_config.assert_not_called()
 
-    def test_model_dump(self):
-        pass
-
     def test_account_eq(self):
         user1 = Account(uid="123456789")
         user2 = Account(uid="123456789")

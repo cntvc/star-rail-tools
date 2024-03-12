@@ -117,7 +117,7 @@ class Cookie(BaseModel):
         data = await request(
             "GET",
             url=routes.MULTI_TOKEN_BY_LOGINTICKET_URL.get_url(game_biz),
-            headers=Header.create_header("WEB").value,
+            headers=Header.generate("WEB").headers,
             params=params,
         )
         token_data = data["list"]
@@ -133,7 +133,7 @@ class Cookie(BaseModel):
         data = await request(
             "GET",
             url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(game_biz),
-            headers=Header.create_header("WEB").value,
+            headers=Header.generate("WEB").headers,
             cookies=self.model_dump("web"),
             params={"uid": self.login_uid, "stoken": self.stoken},
         )

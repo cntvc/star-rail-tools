@@ -7,9 +7,12 @@ import pydantic
 import xlsxwriter
 import yarl
 
+from star_rail import __version__ as version
 from star_rail import constants
 from star_rail import exceptions as error
+from star_rail.constants import APP_NAME
 from star_rail.module import routes
+from star_rail.module.types import GameBiz
 from star_rail.utils import file
 from star_rail.utils.date import Date
 from star_rail.utils.logger import logger
@@ -31,18 +34,22 @@ from .repository import GachaRecordRepository
 __all__ = ["GachaRecordClient"]
 
 
-class GachaRecordAPIClient(BaseClient):
-    def build_url(self, url: yarl.URL):
+class GachaRecordAPIClient:
+    def __init__(self, url: str, game_biz: GameBiz) -> None:
+        self.game_biz = game_biz
+        self.url = self._build_url(url)
+
+    def _build_url(self, url: yarl.URL):
         """过滤并替换URL的请求路径，只保留必要的参数"""
         required_params = ("authkey", "lang", "game_biz", "authkey_ver")
         filtered_params = {key: value for key, value in url.query.items() if key in required_params}
-        return routes.GACHA_LOG_URL.get_url(self.user.game_biz).with_query(filtered_params)
+        return routes.GACHA_LOG_URL.get_url(self.game_biz).with_query(filtered_params)
 
-    async def get_url_info(self, url: yarl.URL):
+    async def fetch_url_info(self):
         """获取URL对应的 UID、lang和region"""
         uid, lang, region_time_zone = "", "", ""
         for gacha_type in types.GACHA_TYPE_IDS:
-            data = await self._fetch_gacha_record_data(url, gacha_type, 1, 0)
+            data = await self._fetch_gacha_record_data(gacha_type, 1, 0)
             if data.list:
                 region_time_zone = data.region_time_zone
                 uid = data.list[0].uid
@@ -51,25 +58,24 @@ class GachaRecordAPIClient(BaseClient):
         return uid, lang, region_time_zone
 
     async def _fetch_gacha_record_data(
-        self, url: yarl.URL, gacha_type: int | str, size: int | str, end_id: int | str
+        self, gacha_type: int | str, size: int | str, end_id: int | str
     ) -> GachaRecordData:
         query_params = {
             "size": size,
             "gacha_type": gacha_type,
             "end_id": end_id,
         }
-        query_params.update(url.query)
-        return GachaRecordData(**await request("GET", url=url, params=query_params))
+        query_params.update(self.url.query)
+        return GachaRecordData(**await request("GET", url=self.url, params=query_params))
 
     async def _fetch_gacha_record_page(
-        self, url: yarl.URL, gacha_type: int | str, size: int | str, end_id: int | str
+        self, gacha_type: int | str, size: int | str, end_id: int | str
     ) -> typing.Sequence[GachaRecordItem]:
-        gacha_data = await self._fetch_gacha_record_data(url, gacha_type, size, end_id)
+        gacha_data = await self._fetch_gacha_record_data(gacha_type, size, end_id)
         return gacha_data.list
 
-    async def get_gacha_record(
+    async def fetch_gacha_record(
         self,
-        url: yarl.URL,
         *,
         gacha_type_list: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
     ) -> Paginator[GachaRecordItem]:
@@ -95,7 +101,6 @@ class GachaRecordAPIClient(BaseClient):
                 CursorPaginator(
                     functools.partial(
                         self._fetch_gacha_record_page,
-                        url=url,
                         gacha_type=gacha_type,
                         size=max_page_size,
                     )
@@ -195,9 +200,8 @@ class GachaRecordClient(BaseClient):
         if url is None:
             raise error.GachaRecordError("Not found valid url.")
 
-        api_client = GachaRecordAPIClient(self.user)
-        url = api_client.build_url(url)
-        uid, lang, region_time_zone = await api_client.get_url_info(url)
+        api_client = GachaRecordAPIClient(url, self.user.game_biz)
+        uid, lang, region_time_zone = await api_client.fetch_url_info()
 
         if not uid:
             raise error.GachaRecordError("This url has no gacha record.")
@@ -205,7 +209,7 @@ class GachaRecordClient(BaseClient):
         if self.user.uid != uid:
             raise error.GachaRecordError("The url does not belong to the current account.")
 
-        gacha_record_iter = await api_client.get_gacha_record(url)
+        gacha_record_iter = await api_client.fetch_gacha_record()
         gacha_item_list = list(await gacha_record_iter.flatten())
         # 反转后为从小到大排序
         gacha_item_list.reverse()
@@ -233,7 +237,7 @@ class GachaRecordClient(BaseClient):
                 batch_id=next_batch_id,
                 lang=lang,
                 region_time_zone=region_time_zone,
-                source=source,
+                source=f"{APP_NAME}_{version}",
             )
             cnt = await record_repository.insert_gacha_record(need_insert, info)
 
@@ -372,7 +376,7 @@ class GachaRecordClient(BaseClient):
             batch_id=next_batch_id,
             lang=srgf_info.lang,
             region_time_zone=srgf_info.region_time_zone,
-            source=srgf_info.export_app,
+            source=f"{srgf_info.export_app}_{srgf_info.export_app_version}",
         )
         return await record_repository.insert_gacha_record(item_list, info)
 

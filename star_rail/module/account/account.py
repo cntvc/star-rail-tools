@@ -2,7 +2,7 @@ import base64
 import re
 from pathlib import Path
 
-from pydantic import BaseModel, ValidationError, field_serializer, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_serializer, field_validator
 
 from star_rail import constants
 from star_rail.config.settings import settings
@@ -27,7 +27,7 @@ _UID_RE = re.compile("^[1-9][0-9]{8}$")
 
 class Account(BaseModel):
     uid: str
-    cookie: Cookie = Cookie()
+    cookie: Cookie = Field(default_factory=Cookie)
 
     # 以下成员根据 uid 初始化
     region: Region = None
@@ -67,9 +67,6 @@ class Account(BaseModel):
     @field_serializer("game_biz")
     def serialize_game_biz(self, game_biz: GameBiz):
         return game_biz.value
-
-    def model_dump(self, include={"uid", "cookie", "region", "game_biz"}, **kwargs):
-        return super().model_dump(include=include, **kwargs)
 
     async def load_profile(self) -> bool:
         logger.debug("Load profile. Account: {}", self.uid)

@@ -84,13 +84,13 @@ class AccountClient(BaseClient):
     async def get_game_record_card(cookie: Cookie):
         param = {"uid": cookie.account_id}
 
-        header = Header.create_header("PC")
+        header = Header.generate("PC")
         header.set_ds("v2", Header.Salt.X4, param)
 
         data = await request(
             method="GET",
             url=routes.GAME_RECORD_CARD_URL.get_url(GameBiz.CN),
-            headers=header.value,
+            headers=header.headers,
             params=param,
             cookies=cookie.model_dump("all"),
         )

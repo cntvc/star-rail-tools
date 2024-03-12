@@ -65,27 +65,27 @@ class Header:
         WEB_STATIC_MIHOYO = "https://webstatic.mihoyo.com/"
 
     def __init__(self) -> None:
-        self._headers = {
+        self.headers = {
             "Accept": "application/json",
         }
 
     def set_host(self, host):
-        self._headers["Host"] = host
+        self.headers["Host"] = host
 
     def set_origin(self, origin: Origin):
-        self._headers["Origin"] = origin.value
+        self.headers["Origin"] = origin.value
 
     def set_referer(self, referer: Referer):
-        self._headers["Referer"] = referer.value
+        self.headers["Referer"] = referer.value
 
     def set_user_agent(self, user_agent: UserAgent):
-        self._headers["User-Agent"] = user_agent.value
+        self.headers["User-Agent"] = user_agent.value
 
     def set_x_rpc_app_version(self, app_version: str = _DEFAULT_APP_VERSION):
-        self._headers["x-rpc-app_version"] = app_version
+        self.headers["x-rpc-app_version"] = app_version
 
     def set_x_rpc_client_type(self, client_type: RpcClientType):
-        self._headers["x-rpc-client_type"] = client_type.value
+        self.headers["x-rpc-client_type"] = client_type.value
 
     def set_ds(
         self,
@@ -99,17 +99,13 @@ class Header:
         else:
             ds = self.gen_ds_v1(salt)
 
-        self._headers["DS"] = ds
+        self.headers["DS"] = ds
 
     def update(self, header: dict):
-        self._headers.update(header)
-
-    @property
-    def value(self):
-        return self._headers
+        self.headers.update(header)
 
     @staticmethod
-    def create_header(client_type: typing.Literal["PC", "WEB", "ANDROID"]):
+    def generate(client_type: typing.Literal["PC", "WEB", "ANDROID"]):
         web_header = {
             "Accept": "application/json",
             "Origin": Header.Origin.USER_MIHOYO,
@@ -142,7 +138,7 @@ class Header:
         return header
 
     @staticmethod
-    def _get_random_string(length: int):
+    def _gen_random_string(length: int):
         """生成只包含小写字母和数字的随机字符串"""
         return "".join(random.sample(string.ascii_lowercase + string.digits, length))
 
@@ -161,7 +157,7 @@ class Header:
     def gen_ds_v1(salt: Salt):
         """适用于 x-rpc-client_type = 2 (ClientType.Android)"""
         t = str(int(time.time()))
-        r = Header._get_random_string(6)
+        r = Header._gen_random_string(6)
         c = Header._signature_with_md5(f"salt={salt.value}&t={t}&r={r}")
         return f"{t},{r},{c}"
 
