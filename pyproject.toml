@@ -24,7 +24,7 @@ pycryptodome = "^3.19.1"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"
-black = "^23.11.0"
+black = "^24.3.0"
 flake8 = "^6.1.0"
 pre-commit = "^3.5.0"
 textual-dev = "^1.4.0"

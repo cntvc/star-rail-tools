@@ -1,6 +1,7 @@
 """
 copy form :https://github.com/kraanzu/dooit/blob/main/dooit/utils/default_config.py
 """
+
 from rich.text import Text
 
 __all__ = ["Color", "apply_text_color"]

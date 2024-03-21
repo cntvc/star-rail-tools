@@ -1,4 +1,5 @@
 """跃迁记录 API 来源"""
+
 import os
 import re
 import subprocess
