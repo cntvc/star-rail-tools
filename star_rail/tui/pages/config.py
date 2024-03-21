@@ -13,7 +13,9 @@ class ConfigDialog(Container):
             switch_id="CHECK_UPDATE", desc="自动检测更新", status=settings.CHECK_UPDATE
         )
         yield ConfigSwitchItem(
-            switch_id="REVERSE_GACHA_RECORD", desc="倒序显示跃迁记录", status=settings.REVERSE_GACHA_RECORD
+            switch_id="REVERSE_GACHA_RECORD",
+            desc="倒序显示跃迁记录",
+            status=settings.REVERSE_GACHA_RECORD,
         )
         yield ConfigSwitchItem(
             switch_id="SHOW_LUCK_LEVEL", desc="显示欧非程度", status=settings.SHOW_LUCK_LEVEL

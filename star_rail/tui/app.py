@@ -97,9 +97,9 @@ class HSRApp(App):
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = self.client.user.uid
             self.query_one(MonthDialog).month_info_list = await self.client.get_month_info_history()
-            self.query_one(
-                GachaRecordDialog
-            ).analyze_result = await self.client.view_analysis_results()
+            self.query_one(GachaRecordDialog).analyze_result = (
+                await self.client.view_analysis_results()
+            )
 
     @on(events.SwitchAccount)
     @error_handler
