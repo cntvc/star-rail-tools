@@ -17,7 +17,7 @@ class UpgradeSQL:
         self._register.append(self)
 
 
-UpgradeSQL(
+db_upgrade_v1 = UpgradeSQL(
     1,
     [
         # 修改user表:删除 gacha_url 字段，删除cookie表，新增 cookie 字段
