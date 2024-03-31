@@ -26,7 +26,7 @@ class GachaRecordRepository(BaseClient):
         return await GachaRecordBatchMapper.query_latest_batch(self.user.uid)
 
     async def get_latest_gacha_record_by_uid(self) -> typing.Optional[GachaRecordItem]:
-        """根据UID从数据库查询出最大的一条记录"""
+        """根据UID查询出最近的一条记录"""
         record_mapper = await GachaRecordItemMapper.query_latest_gacha_record(self.user.uid)
         if not record_mapper:
             return None
