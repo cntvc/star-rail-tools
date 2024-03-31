@@ -78,15 +78,16 @@ class GachaRecordAPIClient:
         self,
         *,
         gacha_type_list: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
+        stop_id: typing.Optional[str] = None,
     ) -> Paginator[GachaRecordItem]:
         """获取跃迁记录
 
         Args:
-            url (yarl.URL): 跃迁记录URL
             gacha_type_list: 需要查询的卡池id列表. 默认为 None 时查询全部卡池.
+            stop_id: 停止查询的ID. 默认为 None 时查询全部记录
 
         Returns:
-            Paginator[GachaRecordItem]: 从大到小迭代的跃迁记录
+            Paginator[GachaRecordItem]: 按ID从大到小排列的跃迁记录迭代器
         """
         gacha_type_list = gacha_type_list or types.GACHA_TYPE_IDS
 
@@ -103,7 +104,8 @@ class GachaRecordAPIClient:
                         self._fetch_gacha_record_page,
                         gacha_type=gacha_type,
                         size=max_page_size,
-                    )
+                    ),
+                    stop_id=stop_id,
                 )
             )
 
@@ -209,7 +211,13 @@ class GachaRecordClient(BaseClient):
         if self.user.uid != uid:
             raise error.GachaRecordError("The url does not belong to the current account.")
 
-        gacha_record_iter = await api_client.fetch_gacha_record()
+        record_repository = GachaRecordRepository(self.user)
+        latest_record_item = await record_repository.get_latest_gacha_record_by_uid()
+
+        stop_id = None
+        if latest_record_item:
+            stop_id = latest_record_item.id
+        gacha_record_iter = await api_client.fetch_gacha_record(stop_id=stop_id)
         gacha_item_list = list(await gacha_record_iter.flatten())
         # 反转后为从小到大排序
         gacha_item_list.reverse()
@@ -221,25 +229,25 @@ class GachaRecordClient(BaseClient):
         #     有记录，比较id后只对数据库插入不存在的条目
         # 根据插入操作返回的数量，生成 时间、数据来源、服务器时区、语言等信息，插入到 批次表
 
-        record_repository = GachaRecordRepository(self.user)
-        latest_record = await record_repository.get_latest_gacha_record_by_uid()
-
-        if latest_record:
-            index = bisect.bisect_right(gacha_item_list, latest_record)
+        if latest_record_item:
+            index = bisect.bisect_right(gacha_item_list, latest_record_item)
             need_insert = gacha_item_list[index:]
         else:
             need_insert = gacha_item_list
+
         cnt = 0
-        if need_insert:
-            next_batch_id = await record_repository.get_next_batch_id()
-            info = GachaRecordArchiveInfo(
-                uid=self.user.uid,
-                batch_id=next_batch_id,
-                lang=lang,
-                region_time_zone=region_time_zone,
-                source=f"{APP_NAME}_{version}",
-            )
-            cnt = await record_repository.insert_gacha_record(need_insert, info)
+        if not need_insert:
+            return cnt
+
+        next_batch_id = await record_repository.get_next_batch_id()
+        info = GachaRecordArchiveInfo(
+            uid=self.user.uid,
+            batch_id=next_batch_id,
+            lang=lang,
+            region_time_zone=region_time_zone,
+            source=f"{APP_NAME}_{version}",
+        )
+        cnt = await record_repository.insert_gacha_record(need_insert, info)
 
         # 查询所有记录并生成统计结果
         await GachaRecordAnalyzer(self.user).refresh_analyze_result()

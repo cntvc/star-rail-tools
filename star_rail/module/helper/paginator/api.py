@@ -15,7 +15,7 @@ __all__ = ["CursorPaginator", "PagedPaginator", "TokenPaginator"]
 
 T = typing.TypeVar("T")
 T_co = typing.TypeVar("T_co", covariant=True)
-Model = typing.TypeVar("Model", bound="BaseModel")
+Model = typing.TypeVar("Model", bound=BaseModel)
 
 
 class GetterCallback(typing.Protocol[T_co]):
@@ -147,7 +147,7 @@ class TokenPaginator(typing.Generic[T], APIPaginator[T]):
 class CursorPaginator(typing.Generic[Model], APIPaginator[Model]):
     """Paginator based on end_id cursors."""
 
-    __slots__ = ("_page_size", "end_id")
+    __slots__ = ("_page_size", "end_id", "stop_id")
 
     getter: CursorGetterCallback[Model]
     """Underlying getter that yields the next page."""
@@ -158,6 +158,9 @@ class CursorPaginator(typing.Generic[Model], APIPaginator[Model]):
     end_id: typing.Optional[int]
     """Current end id. If none then exhausted."""
 
+    stop_id: typing.Optional[str]
+    """Stop turn page if end_id is smaller than stop_id."""
+
     def __init__(
         self,
         getter: CursorGetterCallback[Model],
@@ -165,12 +168,14 @@ class CursorPaginator(typing.Generic[Model], APIPaginator[Model]):
         limit: typing.Optional[int] = None,
         end_id: int = 0,
         page_size: typing.Optional[int] = 20,
+        stop_id: typing.Optional[str] = None,
     ) -> None:
         super().__init__(limit=limit)
         self.getter = getter
         self.end_id = end_id
 
         self._page_size = page_size
+        self.stop_id = stop_id
 
     async def next_page(self) -> typing.Optional[typing.Iterable[Model]]:
         """Get the next page of the paginator."""
@@ -186,6 +191,11 @@ class CursorPaginator(typing.Generic[Model], APIPaginator[Model]):
         if len(data) < self._page_size:
             self.end_id = None
             return data
+
+        if self.stop_id is not None:
+            if data[-1].id < self.stop_id:
+                self.end_id = None
+                return data
 
         self.end_id = data[-1].id
         return data
