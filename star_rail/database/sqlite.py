@@ -10,7 +10,6 @@ import aiosqlite
 import pydantic
 
 from star_rail import constants
-from star_rail import exceptions as error
 from star_rail.utils.logger import logger
 
 from .upgrade_sql import DATABASE_VERSION, UpgradeSQL
@@ -59,8 +58,9 @@ class ModelInfo(pydantic.BaseModel):
         table_name = getattr(model_cls, "__table_name__", None)
 
         if table_name is None:
-            raise error.DataBaseError(
-                "DataBase model error. Model name variable not found, cls [{}]", model_cls
+            assert False, (
+                "DataBase model error. Model name variable not found, "
+                "cls [{model_cls.__class__.__name__}]"
             )
 
         model_info = ModelInfo(table_name=table_name)
@@ -86,12 +86,10 @@ class AsyncDBClient:
         self.sql_queue = deque(maxlen=20)
 
     async def connect(self):
-        try:
-            self.connection = await aiosqlite.connect(
-                self.db_path, isolation_level=self._isolation_level
-            )
-        except aiosqlite.Error:
-            raise error.DataBaseError("Database connect error.")
+        self.connection = await aiosqlite.connect(
+            self.db_path, isolation_level=self._isolation_level
+        )
+
         self.connection.row_factory = sqlite3.Row
         await self.connection.set_trace_callback(self.sql_queue.append)
 

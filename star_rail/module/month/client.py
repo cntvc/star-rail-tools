@@ -82,7 +82,7 @@ class MonthInfoClient(BaseClient):
         """
         logger.debug("Refresh month info.")
         if self.user.cookie.empty_cookie_token():
-            raise error.HsrException("Empty cookie value.")
+            raise error.InvalidCookieError()
         try:
             cur_month_info_data = await self._fetch_month_info()
         except error.InvalidCookieError:

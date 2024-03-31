@@ -198,16 +198,16 @@ class GachaRecordClient(BaseClient):
         """
         url = self._parse_url(source)
         if url is None:
-            raise error.GachaRecordError("Not found valid url.")
+            raise error.GachaRecordError("未找到有效链接")
 
         api_client = GachaRecordAPIClient(url, self.user.game_biz)
         uid, lang, region_time_zone = await api_client.fetch_url_info()
 
         if not uid:
-            raise error.GachaRecordError("This url has no gacha record.")
+            raise error.GachaRecordError("无法解析链接信息")
 
         if self.user.uid != uid:
-            raise error.GachaRecordError("The url does not belong to the current account.")
+            raise error.GachaRecordError("该链接不属于当前账号")
 
         gacha_record_iter = await api_client.fetch_gacha_record()
         gacha_item_list = list(await gacha_record_iter.flatten())

@@ -33,7 +33,7 @@ class GameClient(BaseClient):
         """解析日志文件获取游戏路径"""
         log_path = GameLogPath.get_by_user(self.user)
         if not log_path.exists():
-            raise error.HsrException("Game log file not found.")
+            raise error.HsrException("未找到游戏日志文件.")
 
         try:
             log_text = log_path.read_text(encoding="utf8")
@@ -49,11 +49,11 @@ class GameClient(BaseClient):
         """在游戏文件夹中查找 Web 缓存文件"""
         game_path = self.get_game_path()
         if not game_path:
-            raise error.HsrException("Game path not found.")
+            raise error.HsrException("未找到游戏存储路径.")
         cache_root_path = os.path.join(game_path, "webCaches")
         data_2_files = glob.glob(os.path.join(cache_root_path, "*", "Cache/Cache_Data/data_2"))
         if not data_2_files:
-            raise error.HsrException("Game web cache file not found.")
+            raise error.HsrException("未找到 Web 缓存文件.")
         data_2_files = sorted(data_2_files, key=lambda file: os.path.getmtime(file), reverse=True)
 
         return data_2_files[0]
