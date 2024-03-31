@@ -207,7 +207,7 @@ class GachaRecordClient(BaseClient):
 
         if not uid:
             raise error.GachaRecordError("This url has no gacha record.")
-
+        logger.debug(f"url info: uid={uid}, lang={lang}, region_time_zone={region_time_zone}")
         if self.user.uid != uid:
             raise error.GachaRecordError("The url does not belong to the current account.")
 
@@ -220,6 +220,7 @@ class GachaRecordClient(BaseClient):
         gacha_record_iter = await api_client.fetch_gacha_record(stop_id=stop_id)
         gacha_item_list = list(await gacha_record_iter.flatten())
         # 反转后为从小到大排序
+        #       bisect.bisect_right 要求从小到大的顺序
         gacha_item_list.reverse()
 
         # 新增数据插入到数据库：
