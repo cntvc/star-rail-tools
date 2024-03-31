@@ -35,7 +35,7 @@ class GachaUrlProvider:
         try:
             subprocess.run(["powershell", powershell_command], check=True)
         except subprocess.CalledProcessError:
-            raise error.HsrException("复制 Web 缓存文件失败")
+            raise error.HsrException("Copy web cache file error.")
 
         return destination_path
 

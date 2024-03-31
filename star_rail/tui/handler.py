@@ -12,11 +12,11 @@ def error_handler(func):
             result = await func(self, *args, **kwargs)
         except error.ApiException as e:
             logger.debug(traceback.format_exc())
-            self.notify(f"[警告]:{str(e)}", severity="warning")
+            self.notify("[Warning]:" + str(e), severity="warning")
             return
         except Exception as e:
             logger.debug(traceback.format_exc())
-            self.notify(f"[错误]:{str(e)}", severity="error")
+            self.notify("[Error]:" + str(e), severity="error")
             return
         return result
 

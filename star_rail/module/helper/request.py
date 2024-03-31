@@ -30,7 +30,7 @@ def _replace_params_values(params: dict, param_names_to_replace: list, placehold
 
 
 def handle_rate_limits(
-    exception: typing.Type[exceptions.ApiException] = exceptions.VisitsTooFrequently,
+    exception: typing.Type[exceptions.HsrException] = exceptions.VisitsTooFrequently,
     *,
     tries: int = 5,
     delay: float = 0.3,

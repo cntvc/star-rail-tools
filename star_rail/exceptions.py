@@ -7,11 +7,15 @@ class HsrException(Exception):
     msg = "There are some errors in the program."
 
     def __init__(self, msg: str = None, *args) -> None:
-        self.msg = msg.format(*args) if msg else self.msg
+        self.msg = msg.format(*args) if msg is not None else self.msg
         super().__init__(self.msg)
 
     def __str__(self) -> str:
         return self.msg
+
+
+class DataBaseError(HsrException):
+    pass
 
 
 class GachaRecordError(HsrException):
@@ -30,69 +34,68 @@ class ApiException(HsrException):
 
     original: str = ""
 
-    msg: str = "API调用异常"
+    msg: str = ""
 
-    def __init__(self, response=None, msg: typing.Optional[str] = None) -> None:
+    def __init__(
+        self,
+        response=None,
+        msg: typing.Optional[str] = None,
+        *args,
+    ) -> None:
         if response is None:
             response = {}
         self.retcode = response.get("retcode", self.retcode)
         self.original = response.get("message", "")
+        self.msg = msg or self.msg.format(args) or self.original
 
-        self.msg = msg or self.msg or self.original
+        super().__init__(self.msg)
 
-        super().__init__(f"[{self.retcode}] {self.msg}")
-
-    def __repr__(self) -> str:
-        response = {"retcode": self.retcode, "message": self.original}
-        args = [repr(response)]
-        if self.msg != self.original:
-            args.append(repr(self.msg))
-
-        return f"{self.__class__.__name__}({', '.join(args)})"
+    def __str__(self) -> str:
+        if self.retcode:
+            return f"[{self.retcode}] {self.msg}"
+        return self.msg
 
 
 class InvalidLangError(ApiException):
     """未指定语言或不是支持的语言"""
 
     retcode = -108
-    msg = "请求参数 lang 错误"
+    msg = "Invalid lang value."
 
 
 class InvalidCookieError(ApiException):
     retcode = -100
-    msg = "请求参数 cookie 错误"
+    msg = "Invalid cookie value."
 
 
 class VisitsTooFrequently(ApiException):
     retcode = -110
-    msg = "访问过于频繁"
+    msg = "Visits too frequently."
 
 
 class InvalidGameBizError(ApiException):
+    """请求参数game_biz不正确"""
 
     retcode = -111
-    msg = "请求参数game_biz错误"
+    msg = "Invalid game_biz value."
 
 
 class AuthkeyExceptionError(ApiException):
     """"""
 
-    retcode = -100
-    msg = "Authkey 错误"
+    msg = "Invalid authkey value."
 
 
 class InvalidAuthkeyError(AuthkeyExceptionError):
     """Authkey is not valid."""
 
     retcode = -100
-    msg = "无效的Authkey"
 
 
 class AuthkeyTimeoutError(AuthkeyExceptionError):
     """Authkey has timed out."""
 
     retcode = -101
-    msg = "Authkey已过期"
 
 
 _ERRORS: dict[int, type[ApiException]] = {
