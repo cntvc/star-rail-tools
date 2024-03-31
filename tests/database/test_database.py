@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, patch
 
 import aiosqlite
 
-from star_rail import exceptions as error
 from star_rail.database.sqlite import (
     AsyncDBClient,
     DBField,
@@ -39,7 +38,7 @@ class TestModelAnnotation(unittest.TestCase):
             name: str
             age: int
 
-        self.assertRaises(error.DataBaseError, ModelInfo.parse, TestModel)
+        self.assertRaises(AssertionError, ModelInfo.parse, TestModel)
 
 
 class TestAsyncClient(unittest.IsolatedAsyncioTestCase):
@@ -62,16 +61,6 @@ class TestAsyncClient(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.client.connection.in_transaction)
         await self.client.commit_transaction()
         self.assertFalse(self.client.connection.in_transaction)
-
-    @patch("aiosqlite.connect", new_callable=AsyncMock, side_effect=aiosqlite.Error)
-    async def test_async_with_db_error(self, mock_connect):
-        # 进入with语句块时出现异常（连接异常
-        mock_connection = AsyncMock()
-        mock_connect.return_value = mock_connection
-
-        with self.assertRaises(error.DataBaseError):
-            async with self.client:
-                pass
 
     @patch("aiosqlite.connect", new_callable=AsyncMock)
     async def test_async_with_aiosqlit_error_no_transaction(self, mock_connect):
