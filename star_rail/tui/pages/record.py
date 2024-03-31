@@ -22,7 +22,7 @@ EMPTY_DATA = [
     r"[O]   ( __  -\      [/O]",
     r"[O]       '`.       [/O]",
     r"[O]      ( \>_-_,   [/O]",
-    r"[O]      _||_ ~-/   [G]No data at the moment![/G][/O]",
+    r"[O]      _||_ ~-/   [/O]",
 ]
 
 
