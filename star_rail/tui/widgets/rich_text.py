@@ -15,7 +15,7 @@ class Color:
     RED = "#bf616a"
     FROST_GREEN = "#8fbcbb"
     CYAN = "#88c0d0"
-    GREEN = "#a3be8c"
+    GREEN = "#4ebf71"
     YELLOW = "#ebcb8b"
     BLUE = "#81a1c1"
     MAGENTA = "#b48ead"

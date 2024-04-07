@@ -10,18 +10,18 @@ from star_rail.tui.widgets import SimpleButton, apply_text_color
 MENUAL_PART_1 = [
     r"""[B]获取 Cookie:[/B]""",
     (
-        r"""[O]• 1.[/O] 登陆[@click="app.open_link('https://user.mihoyo.com/')"]米哈游通行证[/]"""
+        r"""[G]● 1.[/G] 登陆[@click="app.open_link('https://user.mihoyo.com/')"]米哈游通行证[/]"""
         r"""(国际服用户登陆[@click="app.open_link('https://www.hoyolab.com/')"]HoYoLAB[/]) 页面"""
     ),
-    r"""[O]• 2.[/O] 点击F12按键，选择控制台，粘贴以下代码，在弹出的对话框复制 Cookie""",
+    r"""[G]● 2.[/G] 点击F12按键，选择控制台，粘贴以下代码，在弹出的对话框复制 Cookie""",
 ]
 
 JS_CODE = "\njavascript:(function(){prompt(document.domain,document.cookie)})();\n"
 
 
 MENUAL_PART_3 = [
-    r"""[O]• 3.[/O] 切换到 "账户管理", 点击"添加账户" > "更新Cookie" """,
-    r"""[O]• 4.[/O] 等待Cookie解析完成""",
+    r"""[G]● 3.[/G] 切换到 "账户管理", 点击"添加账户" > "更新Cookie" """,
+    r"""[G]● 4.[/G] 等待Cookie解析完成""",
 ]
 
 
