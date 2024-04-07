@@ -5,6 +5,7 @@ from textual.app import ComposeResult
 from textual.containers import Container, Grid, Horizontal, VerticalScroll
 from textual.widgets import Static
 
+from star_rail import __version__
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
 MENUAL_PART_1 = [
@@ -52,7 +53,7 @@ class HelpMenual(VerticalScroll):
                 yield SimpleButton("复制", id="copy")
             yield Static(apply_text_color(MENUAL_PART_3), id="part_3")
         with Grid(id="footer"):
-            yield Static("相关链接")
+            yield Static(apply_text_color([f"软件版本: [G]{__version__}[/G]"]))
             yield Static(LINK_REPO)
             yield Static(LINK_ISSUE)
             yield Static(LINK_RELEASE)
