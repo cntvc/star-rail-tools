@@ -25,7 +25,7 @@ MENUAL_PART_3 = [
 ]
 
 
-LINK_REPO = """[@click="app.open_link('https://github.com/cntvc/star-rail-tools')"]GitHub 仓库[/]"""
+LINK_REPO = """[@click="app.open_link('https://github.com/cntvc/star-rail-tools')"]项目主页[/]"""
 LINK_ISSUE = (
     """[@click="app.open_link('https://github.com/cntvc/star-rail-tools/issues')"]Bug 反馈[/]"""
 )
