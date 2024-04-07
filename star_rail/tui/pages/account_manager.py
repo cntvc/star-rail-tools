@@ -19,7 +19,7 @@ class AccountManagerDialog(Container):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield SimpleButton("添加账户", id="add")
-            yield SimpleButton("切换账户", id="switch")
+            yield SimpleButton("切换账户", id="login")
             yield SimpleButton("删除账户", id="delete")
         with ListView():
             for uid in self.uid_list:
@@ -28,8 +28,10 @@ class AccountManagerDialog(Container):
     async def watch_uid_list(self, uid_list: list[str]):
         uid_list_widget = self.query_one(ListView)
         await uid_list_widget.clear()
+        uid_list_item = []
         for uid in uid_list:
-            await uid_list_widget.append(ListItem(Label(uid), id=f"uid_{uid}"))
+            uid_list_item.append(ListItem(Label(uid), id=f"uid_{uid}"))
+        uid_list_widget.extend(uid_list_item)
 
     @on(SimpleButton.Pressed, "#add")
     @work()
@@ -56,15 +58,15 @@ class AccountManagerDialog(Container):
             await client.user.load_profile()
             return
         else:
-            await self._switch_account(uid)
+            await self._login_account(uid)
 
         if uid not in self.uid_list:
-            self.post_message(events.ChangeAccountList())
+            self.post_message(events.UpdateAccountList())
 
-    @on(SimpleButton.Pressed, "#switch")
-    @work(group="add_account")
+    @on(SimpleButton.Pressed, "#login")
+    @work()
     @error_handler
-    async def handle_switch_account(self):
+    async def handle_login_account(self):
         if not self.uid_list:
             self.notify("请先添加账户")
             return
@@ -72,19 +74,15 @@ class AccountManagerDialog(Container):
         index = self.query_one(ListView).index
         uid = self.uid_list[index]
         if not client.user or uid != client.user.uid:
-            await self._switch_account(uid)
-
-    async def _switch_account(self, uid: str):
-        self.app.workers.cancel_group(self.app, group="default")
-        await self._login_account(uid)
+            await self._login_account(uid)
 
     async def _login_account(self, uid: str):
         client: HSRClient = self.app.client
         await client.login(uid)
-        self.post_message(events.SwitchAccount())
+        self.post_message(events.LoginAccount())
 
     @on(SimpleButton.Pressed, "#delete")
-    @work(group="delete_account")
+    @work()
     @error_handler
     async def handle_delete_account(self):
         if not self.uid_list:
@@ -100,11 +98,10 @@ class AccountManagerDialog(Container):
         client: HSRClient = self.app.client
         if client.user and uid != client.user.uid:
             await client.delete_account(uid)
-            self.post_message(events.ChangeAccountList())
+            self.post_message(events.UpdateAccountList())
         else:
             # 删除的是当前登陆的账户
-            self.app.workers.cancel_group(self.app, "default")
             await client.delete_account(uid)
             client.user = None
             self.post_message(events.ExitAccount())
-            self.post_message(events.ChangeAccountList())
+            self.post_message(events.UpdateAccountList())

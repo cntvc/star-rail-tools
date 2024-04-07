@@ -1,0 +1,28 @@
+NotificationList {
+    scrollbar-size: 1 1;
+
+    NotificationItem{
+        margin:1;
+        grid-size: 2 1;
+        grid-gutter:1;
+        height:3;
+        background: #2e3440 70%;
+
+        NotificationContent{
+            height:3;
+            padding: 0 1 0 1;
+            &:hover {
+                background: $accent;
+                color: $text;
+            }
+        }
+
+        SimpleButton{
+            dock: right;
+            height: 3;
+            width:8;
+            margin: 0;
+            padding: 0 0;
+        }
+    }
+}

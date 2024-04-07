@@ -1,6 +1,7 @@
 MonthDialog {
     margin: 1;
     align-horizontal:center;
+
     EmptyData  {
         align-horizontal:center;
         width: auto;
@@ -8,18 +9,47 @@ MonthDialog {
         dock:bottom;
     }
 
-    SimpleButton {
+    #refresh {
         margin: 0 0 1 0;
         height: auto;
+        dock:top;
     }
 
-    MonthInfoDetail {
-        scrollbar-size: 1 1;
-        Static{
-            margin: 1;
-            width: auto;
-            height: auto;
-            max-width: 30;
+    MonthInfo {
+        grid-size: 2 1;
+
+        MonthList{
+            scrollbar-size: 1 1;
+
+            ListItem{
+                margin:1;
+                background: #2e3440;
+
+                Static {
+                    width:100%;
+                    padding: 1 1;
+                    content-align: center middle;
+
+                    &:hover {
+                        background: $accent;
+                        color: $text;
+                        text-style: bold;
+                    }
+
+                }
+            }
+        }
+
+        MonthInfoDetail{
+            align:center middle;
+            width:auto;
+
+            Markdown{
+                margin: 1;
+                width: auto;
+                height: auto;
+                max-width: 30;
+            }
         }
     }
 }

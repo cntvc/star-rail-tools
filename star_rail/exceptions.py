@@ -14,10 +14,6 @@ class HsrException(Exception):
         return self.msg
 
 
-class DataBaseError(HsrException):
-    pass
-
-
 class GachaRecordError(HsrException):
     pass
 
@@ -36,24 +32,23 @@ class ApiException(HsrException):
 
     msg: str = ""
 
-    def __init__(
-        self,
-        response=None,
-        msg: typing.Optional[str] = None,
-        *args,
-    ) -> None:
+    def __init__(self, response=None, msg: typing.Optional[str] = None) -> None:
         if response is None:
             response = {}
         self.retcode = response.get("retcode", self.retcode)
         self.original = response.get("message", "")
-        self.msg = msg or self.msg.format(args) or self.original
+
+        self.msg = msg or self.msg or self.original
 
         super().__init__(self.msg)
 
-    def __str__(self) -> str:
-        if self.retcode:
-            return f"[{self.retcode}] {self.msg}"
-        return self.msg
+    def __repr__(self) -> str:
+        response = {"retcode": self.retcode, "message": self.original}
+        args = [repr(response)]
+        if self.msg != self.original:
+            args.append(repr(self.msg))
+
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
 
 class InvalidLangError(ApiException):
@@ -129,7 +124,7 @@ def raise_for_retcode(data: dict[str, typing.Any]) -> typing.NoReturn:
             raise AuthkeyExceptionError(data)
 
     if retcode in _ERRORS:
-        exc_type = _ERRORS[retcode]
-        raise exc_type(data)
+        exception_type = _ERRORS[retcode]
+        raise exception_type(data)
 
     raise ApiException(data)

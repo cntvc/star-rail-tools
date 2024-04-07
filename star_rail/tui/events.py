@@ -1,11 +1,11 @@
 from textual.message import Message
 
 
-class SwitchAccount(Message, bubble=True):
+class LoginAccount(Message, bubble=True):
     pass
 
 
-class ChangeAccountList(Message, bubble=True):
+class UpdateAccountList(Message, bubble=True):
     pass
 
 
@@ -25,3 +25,25 @@ class ShowLuckLevel(Message, bubble=True):
     def __init__(self, value) -> None:
         super().__init__()
         self.value = value
+
+
+class TaskStatus(Message, bubble=True):
+    def __init__(self, name) -> None:
+        super().__init__()
+        self.name = name
+
+
+class TaskRunning(TaskStatus):
+    pass
+
+
+class TaskCancel(TaskStatus):
+    pass
+
+
+class TaskComplete(TaskStatus):
+    pass
+
+
+class TaskError(TaskStatus):
+    pass

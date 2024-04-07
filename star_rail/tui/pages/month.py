@@ -1,10 +1,9 @@
 from rich.console import RenderableType
-from rich.markdown import Markdown
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Center, Container, VerticalScroll
+from textual.containers import Container, Grid
 from textual.reactive import reactive
-from textual.widgets import Select, Static
+from textual.widgets import ListItem, ListView, Markdown, Static
 
 from star_rail.module import HSRClient
 from star_rail.module.month.model import MonthInfoItem
@@ -26,35 +25,57 @@ EMPTY_DATA = [
     r"[O]   ( __  -\      [/O]",
     r"[O]       '`.       [/O]",
     r"[O]      ( \>_-_,   [/O]",
-    r"[O]      _||_ ~-/   [G]No data at the moment![/G][/O]",
+    r"[O]      _||_ ~-/   [/O]",
 ]
 
 
-class MonthInfoDetail(VerticalScroll):
-    def __init__(self, month_detail: MonthInfoItem, **kwargs):
+class MonthInfoDetail(Container):
+    def __init__(self, month_item: MonthInfoItem, **kwargs):
         super().__init__(**kwargs)
-        self.month_detail = month_detail
+        self.month_item = month_item
 
     def compose(self) -> ComposeResult:
-        with Center():
-            yield Static(
-                Markdown(
-                    DETAIL_TEMP.format(
-                        self.month_detail.hcoin,
-                        self.month_detail.rails_pass,
-                        "\n".join(
-                            [
-                                f"|{source.action_name}|{source.percent}%|{source.num}|"
-                                for source in self.month_detail.source
-                            ]
-                        ),
-                    )
-                )
+        yield Markdown(
+            DETAIL_TEMP.format(
+                self.month_item.hcoin,
+                self.month_item.rails_pass,
+                "\n".join(
+                    [
+                        f"|{source.action_name}|{source.percent}%|{source.num}|"
+                        for source in self.month_item.source
+                    ]
+                ),
             )
+        )
 
 
-class MonthList(Select):
-    pass
+class MonthList(ListView):
+    def __init__(self, month_list: list[str], **kwargs):
+        super().__init__(**kwargs)
+        self.month_list = month_list
+
+    def compose(self) -> ComposeResult:
+        for month in self.month_list[::-1]:
+            yield ListItem(Static(month), name=month)
+
+
+class MonthInfo(Grid):
+    def __init__(self, month_info: dict[str, MonthInfoItem], **kwargs):
+        super().__init__(**kwargs)
+        self.month_info = month_info
+        # 这里是时间顺序
+        self.month_list = [month for month in sorted(self.month_info.keys())]
+
+    def compose(self) -> ComposeResult:
+        yield MonthList(self.month_list)
+
+    @on(ListView.Highlighted)
+    def handle_listview_select(self, event: ListView.Highlighted):
+        detail = self.query(MonthInfoDetail)
+        if detail:
+            detail.remove()
+
+        self.mount(MonthInfoDetail(self.month_info[event.item.name]))
 
 
 class EmptyData(Static):
@@ -63,7 +84,7 @@ class EmptyData(Static):
 
 
 class MonthDialog(Container):
-    month_info_list: reactive[list[MonthInfoItem]] = reactive([], layout=True)
+    month_info: dict[str, MonthInfoItem] = reactive({})
 
     def compose(self) -> ComposeResult:
         yield SimpleButton("刷新", id="refresh")
@@ -79,21 +100,22 @@ class MonthDialog(Container):
             return
         cnt = await client.refresh_month_info()
         self.notify(f"已更新最近{cnt}月的数据")
-        self.month_info_list = await client.get_month_info_history()
+        await self.refresh_data()
 
-    def watch_month_info_list(self, new: list[MonthInfoItem]):
+    async def refresh_data(self):
+        client: HSRClient = self.app.client
+        month_info_list = await client.get_month_info_history()
+        self.month_info = {item.month: item for item in month_info_list}
+
+    def watch_month_info(self, new: list[MonthInfoItem]):
         def remove_widgets():
             empty_data = self.query(EmptyData)
             if empty_data:
                 empty_data.remove()
 
-            g_month_info = self.query(MonthList)
-            if g_month_info:
-                g_month_info.remove()
-
-            detail = self.query(MonthInfoDetail)
-            if detail:
-                detail.remove()
+            month_info = self.query(MonthInfo)
+            if month_info:
+                month_info.remove()
 
         remove_widgets()
 
@@ -102,17 +124,4 @@ class MonthDialog(Container):
             self.mount(EmptyData(id="empty_month"))
             return
 
-        month_list = [item.month for item in self.month_info_list]
-        self.mount(
-            MonthList(
-                [(x, i) for i, x in enumerate(month_list)], prompt=month_list[0], allow_blank=False
-            )
-        )
-        self.mount(MonthInfoDetail(new[0]))
-
-    @on(Select.Changed)
-    def handle_select_month(self, event: Select.Changed):
-        detail = self.query(MonthInfoDetail)
-        if detail:
-            detail.remove()
-        self.mount(MonthInfoDetail(self.month_info_list[event.value]))
+        self.mount(MonthInfo(self.month_info))

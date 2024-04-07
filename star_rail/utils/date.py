@@ -17,3 +17,8 @@ class Date:
         """本地时间转为对应时区的时间"""
         utc = timezone(timedelta(hours=_timezone))
         return datetime.now().astimezone(utc)
+
+    @staticmethod
+    def now():
+        """获取当前时间"""
+        return datetime.now()
