@@ -133,10 +133,9 @@ class GachaRecordDialog(Container):
     @required_account
     async def handle_refresh_with_webcache(self):
         client: HSRClient = self.app.client
-        self.notify("正在更新数据")
         await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.view_analysis_results()
-        self.notify("更新已完成")
+        self.notify("跃迁记录更新成功")
 
     async def view_record(self):
         client: HSRClient = self.app.client
@@ -150,10 +149,10 @@ class GachaRecordDialog(Container):
         client: HSRClient = self.app.client
         cnt, failed_list = await client.import_srgf_data()
         if cnt:
-            self.notify(f"新增{cnt}条记录")
+            self.notify(f"本次导入新增{cnt}条记录")
             self.analyze_result = await client.view_analysis_results()
         else:
-            self.notify("无新增数据")
+            self.notify("本次导入无新增数据")
 
         if failed_list:
             self.notify(

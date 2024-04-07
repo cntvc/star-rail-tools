@@ -73,7 +73,7 @@ class HSRApp(App):
     def compose(self) -> ComposeResult:
         with Container():
             with Navigation():
-                yield NavTab("账户管理", id="account_manager")
+                yield NavTab("账号管理", id="account_manager")
                 yield NavTab("跃迁记录", id="gacha_record")
                 yield NavTab("开拓月历", id="month")
                 yield NavTab("设置", id="config")
@@ -98,7 +98,7 @@ class HSRApp(App):
         if settings.CHECK_UPDATE:
             self.check_update()
 
-        # 在client初始化后再对显示账户数据相关组件进行刷新
+        # 在client初始化后再对显示账号数据相关组件进行刷新
         await self._refresh_user_list()
         if self.client.user:
             await self._refresh_account_data()
@@ -116,6 +116,7 @@ class HSRApp(App):
     async def handle_switch_account(self):
         self.app.workers.cancel_all()
         await self._refresh_account_data()
+        self.notify("账号切换成功.")
 
     async def _refresh_user_list(self):
         self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
@@ -188,7 +189,7 @@ class HSRApp(App):
         *,
         title: str = "",
         severity: SeverityLevel = "information",
-        timeout: float = Notification.timeout,
+        timeout: float = 3,
     ) -> None:
 
         notification = Notification(message, title, severity, timeout)

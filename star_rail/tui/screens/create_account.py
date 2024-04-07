@@ -20,7 +20,7 @@ class CreateAccountScreen(ModalScreen[str]):
                 max_length=9,
                 id="uid_input",
             )
-            yield SimpleButton("创建账户", id="create")
+            yield SimpleButton("创建账号", id="create")
             yield SimpleButton("更新Cookie", id="parse_cookie")
             yield SimpleButton("返回", id="cancel")
 

@@ -38,14 +38,14 @@ class AccountClient(BaseClient):
         logger.debug("Login: {}", uid)
 
     async def create_account_by_uid(self, uid: str):
-        """根据UID创建一个账户"""
+        """根据UID创建一个账号"""
         account_mapper = await AccountMapper.query_by_uid(uid)
         if not account_mapper:
             await Account(uid).save_profile()
         return uid
 
     async def parse_account_cookie(self):
-        """解析Cookie并将其关联到对应账户，若账户不存在则会创建一个账户"""
+        """解析Cookie并将其关联到对应账号，若账号不存在则会创建一个账号"""
         logger.debug("Add cookies to account.")
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
@@ -77,7 +77,7 @@ class AccountClient(BaseClient):
 
     @staticmethod
     def is_hsr_role(role: GameRecordCard):
-        """是否为星穹铁道账户"""
+        """是否为星穹铁道账号"""
         return role.game_id == GameType.STAR_RAIL.value
 
     @staticmethod

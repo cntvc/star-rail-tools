@@ -209,7 +209,7 @@ class GachaRecordClient(BaseClient):
             raise error.GachaRecordError("This url has no gacha record.")
         logger.debug(f"url info: uid={uid}, lang={lang}, region_time_zone={region_time_zone}")
         if self.user.uid != uid:
-            raise error.GachaRecordError("The url does not belong to the current account.")
+            raise error.GachaRecordError(f"The url does not belong to {self.user.uid}.")
 
         record_repository = GachaRecordRepository(self.user)
         latest_record_item = await record_repository.get_latest_gacha_record_by_uid()
@@ -220,7 +220,6 @@ class GachaRecordClient(BaseClient):
         gacha_record_iter = await api_client.fetch_gacha_record(stop_id=stop_id)
         gacha_item_list = list(await gacha_record_iter.flatten())
         # 反转后为从小到大排序
-        #       bisect.bisect_right 要求从小到大的顺序
         gacha_item_list.reverse()
 
         # 新增数据插入到数据库：
@@ -258,7 +257,7 @@ class GachaRecordClient(BaseClient):
     async def export_to_execl(self):
         """导出所有数据到ExecL
 
-        即使账户无数据也会正常导出
+        即使账号无数据也会正常导出
         """
         logger.debug("Export gacha record to Execl.")
         record_repository = GachaRecordRepository(self.user)

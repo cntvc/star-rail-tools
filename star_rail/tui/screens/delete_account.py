@@ -17,7 +17,7 @@ class DeleteAccountScreen(ModalScreen[bool]):
 
     def compose(self) -> ComposeResult:
         with Grid():
-            yield Label(f"是否删除账户 {self.uid} 数据?", id="question")
+            yield Label(f"是否删除账号 {self.uid} 数据?", id="question")
             yield SimpleButton("确认", id="confirm")
             yield SimpleButton("取消", id="cancel")
 

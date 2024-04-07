@@ -20,7 +20,7 @@ JS_CODE = "\njavascript:(function(){prompt(document.domain,document.cookie)})();
 
 
 MENUAL_PART_3 = [
-    r"""[G]● 3.[/G] 切换到 "账户管理", 点击"添加账户" > "更新Cookie" """,
+    r"""[G]● 3.[/G] 切换到 "账号管理", 点击"添加账号" > "更新Cookie" """,
     r"""[G]● 4.[/G] 等待Cookie解析完成""",
 ]
 

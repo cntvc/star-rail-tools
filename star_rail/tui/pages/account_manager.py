@@ -18,9 +18,9 @@ class AccountManagerDialog(Container):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield SimpleButton("添加账户", id="add")
-            yield SimpleButton("切换账户", id="login")
-            yield SimpleButton("删除账户", id="delete")
+            yield SimpleButton("添加账号", id="add")
+            yield SimpleButton("切换账号", id="login")
+            yield SimpleButton("删除账号", id="delete")
         with ListView():
             for uid in self.uid_list:
                 yield ListItem(Label(uid), id=f"uid_{uid}")
@@ -49,11 +49,11 @@ class AccountManagerDialog(Container):
             if not uid:
                 self.notify("未读取到有效Cookie", severity="warning")
                 return
-            self.notify(f"账户{uid} Cookie已更新")
+            self.notify(f"账号{uid} Cookie已更新")
         else:
             uid = await client.create_account_by_uid(opt)
 
-        # 创建的账户是当前已登陆账户时，更新数据（Cookie）
+        # 创建的账号是当前已登陆账号时，更新数据（Cookie）
         if client.user and uid == client.user.uid:
             await client.user.load_profile()
             return
@@ -68,7 +68,7 @@ class AccountManagerDialog(Container):
     @error_handler
     async def handle_login_account(self):
         if not self.uid_list:
-            self.notify("请先添加账户")
+            self.notify("请先添加账号")
             return
         client: HSRClient = self.app.client
         index = self.query_one(ListView).index
@@ -86,7 +86,7 @@ class AccountManagerDialog(Container):
     @error_handler
     async def handle_delete_account(self):
         if not self.uid_list:
-            self.notify("请先添加账户")
+            self.notify("请先添加账号")
             return
 
         index = self.query_one(ListView).index
@@ -100,7 +100,7 @@ class AccountManagerDialog(Container):
             await client.delete_account(uid)
             self.post_message(events.UpdateAccountList())
         else:
-            # 删除的是当前登陆的账户
+            # 删除的是当前登陆的账号
             await client.delete_account(uid)
             client.user = None
             self.post_message(events.ExitAccount())

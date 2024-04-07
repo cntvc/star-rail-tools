@@ -35,7 +35,7 @@ class GachaRecordRepository(BaseClient):
         return converter.convert_to_record_item(record_mapper)
 
     async def get_all_gacha_record(self) -> list[GachaRecordItem]:
-        """查询账户的所有抽卡记录"""
+        """查询账号的所有抽卡记录"""
         record_mapper_list = await GachaRecordItemMapper.query_all_gacha_record(self.user.uid)
         from . import converter
 
