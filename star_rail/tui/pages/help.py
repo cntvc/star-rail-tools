@@ -60,4 +60,4 @@ class HelpMenual(VerticalScroll):
     @on(SimpleButton.Pressed)
     def copy_code(self):
         pyperclip.copy(JS_CODE)
-        self.notify("代码复制成功")
+        self.notify("已复制到剪贴板")
