@@ -34,11 +34,11 @@ class MonthInfoClient(BaseClient):
         )
         return MonthInfoData(**data)
 
-    async def get_month_info_history(self, month_nums: int = 12) -> list[MonthInfoItem]:
+    async def get_month_info_history(self, month_nums: int | None = None) -> list[MonthInfoItem]:
         """查询最近 month_nums 条月历信息的历史数据
 
         Args:
-            month_nums (int, optional): 默认查询条数. Defaults to 12.
+            month_nums (int, optional): 查询最近数据的数量，为空查询全部数据.
 
         Returns:
             list[MonthInfoItemMapper]: 按时间倒序的月历数据

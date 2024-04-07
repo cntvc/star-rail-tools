@@ -32,10 +32,17 @@ class MonthInfoItemMapper(DBModel):
             return db.convert(row, MonthInfoItemMapper)
 
     @staticmethod
-    async def query_by_range(uid: str, _range: int) -> list["MonthInfoItemMapper"]:
-        sql = """select * from month_info_item where uid = ? order by month desc limit ?;"""
+    async def query_by_range(uid: str, _range: int | None) -> list["MonthInfoItemMapper"]:
+        sql = """select * from month_info_item where uid = ? order by month desc"""
+
+        params = [uid]
+        if _range is not None:
+            sql += " limit ?"
+            params.append(_range)
+        sql += ";"
+
         async with AsyncDBClient() as db:
-            cursor = await db.execute(sql, uid, _range)
+            cursor = await db.execute(sql, *params)
             row = await cursor.fetchall()
             return db.convert(row, MonthInfoItemMapper)
 
