@@ -28,7 +28,7 @@ HelpMenual{
     }
     
     #footer{
-        border:dashed $accent;
+        border:dashed #2e3440;
         dock: bottom;
         grid-size: 4 1;
         height:auto;
