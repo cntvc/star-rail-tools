@@ -1,6 +1,6 @@
 from star_rail.utils.version import get_version
 
-VERSION = (2, 2, 3)
+VERSION = (2, 2, 4)
 
 
 __author__ = "cntvc"
