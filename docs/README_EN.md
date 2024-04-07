@@ -10,9 +10,10 @@
 
 Honkai: Star Rail Tools, a small utility for exporting gacha records and exporting calendar.
 
-<p>
-  <img src="image/star_rail_tools_cover.png" alt="cover" height = 80% width = 80% align="middle">
-</p>
+
+![cover](image/star_rail_tools_cover.png) | ![cover_month_info](image/month.png)
+|:------------: | :-------------|
+
 
 ## Basic Usage
 

@@ -10,10 +10,9 @@
 
 崩坏：星穹铁道小工具，可导出跃迁记录和开拓月历
 
-<p>
-  <img src="docs/image/star_rail_tools_cover.png" alt="cover" height = 80% width = 80% align="middle">
-</p>
 
+![cover](docs/image/star_rail_tools_cover.png) | ![cover_month_info](docs/image/month.png)
+|:------------: | :-------------|
 
 ## 基本使用
 
