@@ -11,9 +11,11 @@ from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
 DETAIL_TEMP = """
+##### 月份 : {}
+
 - 星琼 : {}
 - 星轨通票&星轨专票 : {}
----
+
 |来源|占比|数量|
 |:----|:----:|----:|
 {}
@@ -37,6 +39,7 @@ class MonthInfoDetail(Container):
     def compose(self) -> ComposeResult:
         yield Markdown(
             DETAIL_TEMP.format(
+                self.month_item.month,
                 self.month_item.hcoin,
                 self.month_item.rails_pass,
                 "\n".join(

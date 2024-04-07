@@ -47,7 +47,7 @@ class NotificationContent(Static):
         self.notification = notification
 
     def render(self):
-        return f"{self.notification.time}\n{self.notification.content}"
+        return f"{self.notification.time}\n\n{self.notification.content}"
 
     async def on_click(self):
         """打开窗口显示消息详情"""

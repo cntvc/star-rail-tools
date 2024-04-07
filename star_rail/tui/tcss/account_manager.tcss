@@ -14,7 +14,6 @@ AccountManagerDialog {
         scrollbar-size: 1 1;
         ListItem {
             margin:1;
-            background: #2e3440;
             Label {
                 width:100%;
                 padding: 1 1;

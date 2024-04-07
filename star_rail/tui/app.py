@@ -84,9 +84,9 @@ class HSRApp(App):
                 yield MonthDialog(id="month")
                 yield ConfigDialog(id="config")
                 yield HelpMenual(id="help")
+            yield Sidebar(classes="-hidden")
 
         yield StatusBar()
-        yield Sidebar(classes="-hidden")
 
     @error_handler
     async def on_mount(self):
