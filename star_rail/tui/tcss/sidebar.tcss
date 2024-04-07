@@ -1,0 +1,20 @@
+Sidebar {
+    width: 40;
+    background: $panel;
+    transition: offset 200ms in_out_cubic;
+    layer: overlay;
+    dock:right;
+
+    &:focus-within {
+        offset: 0 0;
+    }
+
+    &.-hidden {
+        offset-y: -100%;
+    }    
+    
+    #buttons {
+        dock: bottom;
+        height:auto;
+    }
+}

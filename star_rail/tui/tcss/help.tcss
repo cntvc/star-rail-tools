@@ -1,0 +1,41 @@
+HelpMenual{
+    scrollbar-size: 1 1;
+    #title{
+        margin: 1;
+        padding: 1;
+        background: #2e3440;
+        color: $text;
+        box-sizing: content-box;
+        content-align: center middle;
+    }
+    #content{
+        padding: 0 0 0 1;
+        
+        min-height:8;
+        height:auto;
+
+        #part_2{
+            height:auto;
+            padding: 0 0 0 2;
+            #part_2_code{
+                width:auto;
+            }
+            #copy{
+                margin:0;
+                width: 4;
+            }
+        }
+    }
+    
+    #footer{
+        border:dashed $accent;
+        dock: bottom;
+        grid-size: 4 1;
+        height:auto;
+        grid-gutter:1;
+        Static{
+            text-align:center;
+            width:1fr;
+        }
+    }
+}

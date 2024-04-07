@@ -2,11 +2,44 @@ StatusBar {
     background: #81a1c1;
     color: $text;
     dock: bottom;
-    height: 1;
+    max-height: 1;
+
+    #progress_status{
+        width:100%;
+        padding: 0 1 0 0;
+
+        TaskStatus{
+            dock:right;
+            height:auto;
+            max-width: 30;
+            width:auto;
+
+            Static{   
+                width:auto;
+                height:auto;
+                max-width:16;
+            }
+
+            ProgressBar{
+                width:15;
+                height:auto;
+            }
+        }
+    }
 
     CurrentUID {
         dock: left;
-        width: auto;
-        padding-left:1;
+        width:auto;
+        padding-left: 1;
+    }
+
+    Notice {
+        width:auto;
+        dock: right;
+
+        &:hover {
+            background: $primary 40%;
+            color: $text;
+        }
     }
 }

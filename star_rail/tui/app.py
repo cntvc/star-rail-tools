@@ -4,6 +4,7 @@ from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Container
+from textual.notifications import Notification, Notify, SeverityLevel
 from textual.widgets import ContentSwitcher, Static
 
 from star_rail.config import settings
@@ -11,6 +12,7 @@ from star_rail.module import HSRClient, Updater
 from star_rail.module.info import get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
+from star_rail.tui.widgets.notification import HSRNotification, NotificationList
 from star_rail.utils.logger import logger
 
 from .pages import (
@@ -18,7 +20,9 @@ from .pages import (
     ConfigDialog,
     CurrentUID,
     GachaRecordDialog,
+    HelpMenual,
     MonthDialog,
+    Sidebar,
     StatusBar,
 )
 from .screens import CreateAccountScreen
@@ -51,6 +55,7 @@ class HSRApp(App):
     CSS_PATH = tcss_list
     BINDINGS = [
         ("ctrl+p", "command_palette", "命令行"),
+        ("ctrl+b", "toggle_sidebar", "Sidebar"),
         Binding("ctrl+q", "app.quit", "退出", show=False),
     ]
 
@@ -63,6 +68,7 @@ class HSRApp(App):
         super().__init__()
         self.client = HSRClient(None)
         self.updater = Updater()
+        self.task_queue = set()
 
     def compose(self) -> ComposeResult:
         with Container():
@@ -71,12 +77,16 @@ class HSRApp(App):
                 yield NavTab("跃迁记录", id="gacha_record")
                 yield NavTab("开拓月历", id="month")
                 yield NavTab("设置", id="config")
+                yield NavTab("帮助", id="help")
             with MainDialog(initial="account_manager"):
                 yield AccountManagerDialog(id="account_manager")
                 yield GachaRecordDialog(id="gacha_record")
                 yield MonthDialog(id="month")
                 yield ConfigDialog(id="config")
+                yield HelpMenual(id="help")
+
         yield StatusBar()
+        yield Sidebar(classes="-hidden")
 
     @error_handler
     async def on_mount(self):
@@ -101,9 +111,10 @@ class HSRApp(App):
                 await self.client.view_analysis_results()
             )
 
-    @on(events.SwitchAccount)
+    @on(events.LoginAccount)
     @error_handler
     async def handle_switch_account(self):
+        self.app.workers.cancel_all()
         await self._refresh_account_data()
 
     async def _refresh_user_list(self):
@@ -111,13 +122,13 @@ class HSRApp(App):
 
     @on(events.ExitAccount)
     async def handle_exit_account(self):
+        self.app.workers.cancel_all()
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = ""
             self.query_one(MonthDialog).month_info_list = []
             self.query_one(GachaRecordDialog).analyze_result = None
 
-    @on(events.ChangeAccountList)
-    @work()
+    @on(events.UpdateAccountList)
     @error_handler
     async def handle_add_account(self):
         await self._refresh_user_list()
@@ -135,3 +146,51 @@ class HSRApp(App):
     @on(events.ShowLuckLevel)
     async def handle_show_luck_level(self):
         await self.query_one(GachaRecordDialog).show_luck_level()
+
+    def action_toggle_sidebar(self) -> None:
+        self._toggle_sidebar()
+
+    def _toggle_sidebar(self):
+        sidebar = self.query_one(Sidebar)
+        self.set_focus(None)
+        if sidebar.has_class("-hidden"):
+            sidebar.remove_class("-hidden")
+        else:
+            if sidebar.query("*:focus"):
+                self.screen.set_focus(None)
+            sidebar.add_class("-hidden")
+
+    def action_open_link(self, link: str) -> None:
+        import webbrowser
+
+        webbrowser.open(link)
+
+    @on(events.TaskRunning)
+    def handle_task_running(self, event: events.TaskRunning):
+        self.task_queue.add(event.name)
+        self.query_one(StatusBar).add_task_bar(name=event.name)
+
+    @on(events.TaskCancel)
+    @on(events.TaskError)
+    @on(events.TaskComplete)
+    def handle_task_complete(self, event: events.TaskComplete):
+        self.task_queue.remove(event.name)
+
+        if len(self.task_queue) == 0:
+            self.query_one(StatusBar).remove_task_bar()
+        else:
+            name = next(iter(self.app.workers))
+            self.query_one(StatusBar).update_task_bar(name=name)
+
+    def notify(
+        self,
+        message: str,
+        *,
+        title: str = "",
+        severity: SeverityLevel = "information",
+        timeout: float = Notification.timeout,
+    ) -> None:
+
+        notification = Notification(message, title, severity, timeout)
+        self.post_message(Notify(notification))
+        self.query_one("Sidebar > NotificationList", NotificationList).add(HSRNotification(message))

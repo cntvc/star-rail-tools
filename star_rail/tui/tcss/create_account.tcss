@@ -1,7 +1,7 @@
 CreateAccountScreen {
     align: center middle;
     layout: grid;
-    grid-size: 4;
+    grid-size: 4 1;
     background: #81a1c1 40%;
 
     Vertical {

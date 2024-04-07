@@ -7,11 +7,13 @@ from textual.app import ComposeResult
 from textual.containers import Container, Grid, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Static, TabbedContent, TabPane
+from textual.worker import Worker, WorkerState
 
 from star_rail.config import settings
 from star_rail.module import HSRClient
 from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
+from star_rail.tui import events
 from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
 
@@ -93,7 +95,6 @@ class GachaRecordDialog(Container):
     def compose(self) -> ComposeResult:
         with Grid():
             yield SimpleButton("刷新记录", id="refresh_with_cache")
-            # yield SimpleButton("读取链接", id="refresh_with_url")
             yield SimpleButton("导入数据", id="import")
             yield SimpleButton("生成Execl", id="export_execl")
             yield SimpleButton("生成SRGF", id="export_srgf")
@@ -127,24 +128,13 @@ class GachaRecordDialog(Container):
         await self.mount(RecordDetail(data))
 
     @on(SimpleButton.Pressed, "#refresh_with_cache")
-    @work()
+    @work(name="更新跃迁记录", group="refresh_gacha_record")
     @error_handler
     @required_account
     async def handle_refresh_with_webcache(self):
         client: HSRClient = self.app.client
         self.notify("正在更新数据")
         await client.refresh_gacha_record("webcache")
-        self.analyze_result = await client.view_analysis_results()
-        self.notify("更新已完成")
-
-    @on(SimpleButton.Pressed, "#refresh_with_url")
-    @work()
-    @error_handler
-    @required_account
-    async def handle_refresh_with_url(self):
-        client: HSRClient = self.app.client
-        self.notify("正在更新数据")
-        await client.refresh_gacha_record("clipboard")
         self.analyze_result = await client.view_analysis_results()
         self.notify("更新已完成")
 
@@ -159,15 +149,17 @@ class GachaRecordDialog(Container):
     async def handle_import_srgf(self):
         client: HSRClient = self.app.client
         cnt, failed_list = await client.import_srgf_data()
-        # TODO 使用模态框显示导入结果 2024-03-07
         if cnt:
             self.notify(f"新增{cnt}条记录")
             self.analyze_result = await client.view_analysis_results()
         else:
-            self.notify("无数据可导入")
+            self.notify("无新增数据")
 
         if failed_list:
-            self.notify("\n".join([f"文件{name }导入失败" for name in failed_list]))
+            self.notify(
+                f"有{len(failed_list)}个文件导入失败\n---\n"
+                + "\n".join([f"- {name}" for name in failed_list])
+            )
 
     @on(SimpleButton.Pressed, "#export_execl")
     @work()
@@ -186,3 +178,18 @@ class GachaRecordDialog(Container):
         client: HSRClient = self.app.client
         await client.export_to_srgf()
         self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")
+
+    @on(Worker.StateChanged)
+    def handle_state_change(self, event: Worker.StateChanged):
+        # 其他任务执行时间几乎可以忽略，这里只捕获查询跃迁记录的任务
+        # 暂时没想到更好的方法筛选任务
+        if not event.worker.name:
+            return
+        if event.state == WorkerState.RUNNING:
+            self.app.post_message(events.TaskRunning(event.worker.name))
+        elif event.state == WorkerState.SUCCESS:
+            self.app.post_message(events.TaskComplete(event.worker.name))
+        elif event.state == WorkerState.ERROR:
+            self.app.post_message(events.TaskError(event.worker.name))
+        else:
+            pass
