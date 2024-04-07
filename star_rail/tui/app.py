@@ -12,7 +12,7 @@ from star_rail.module import HSRClient, Updater
 from star_rail.module.info import get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
-from star_rail.tui.widgets.notification import HSRNotification, NotificationList
+from star_rail.tui.widgets.notification import HSRNotification
 from star_rail.utils.logger import logger
 
 from .pages import (
@@ -194,4 +194,7 @@ class HSRApp(App):
 
         notification = Notification(message, title, severity, timeout)
         self.post_message(Notify(notification))
-        self.query_one("Sidebar > NotificationList", NotificationList).add(HSRNotification(message))
+        # 模态对话框发出通知，但是通知栏在下层屏幕，无法捕获消息
+        # 因为对话框的通知一般是校验提示信息，这里不进行特殊处理，不加入通知栏
+        if notice_list := self.query("Sidebar > NotificationList"):
+            notice_list.first().add(HSRNotification(message))
