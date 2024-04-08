@@ -13,7 +13,7 @@ repos:
     -   id: check-case-conflict
 
 -   repo: https://github.com/psf/black
-    rev: 23.11.0
+    rev: 24.3.0
     hooks:
     -   id: black
         args: ["star_rail", "tests"]
