@@ -133,9 +133,9 @@ class GachaRecordDialog(Container):
     @required_account
     async def handle_refresh_with_webcache(self):
         client: HSRClient = self.app.client
-        await client.refresh_gacha_record("webcache")
+        cnt = await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.view_analysis_results()
-        self.notify("跃迁记录更新成功")
+        self.notify(f"新增{cnt}条记录")
 
     async def view_record(self):
         client: HSRClient = self.app.client
