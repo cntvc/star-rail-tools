@@ -1,5 +1,7 @@
-import pyperclip
 import os
+
+import pyperclip
+
 from star_rail.config.settings import settings
 from star_rail.module import routes
 from star_rail.module.base import BaseClient
