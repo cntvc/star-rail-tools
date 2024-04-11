@@ -1,7 +1,17 @@
+from __future__ import annotations
+
+import typing
+
 from textual.message import Message
+from textual.reactive import reactive
 from textual.widgets import Static
 
-__all__ = ["SimpleButton"]
+if typing.TYPE_CHECKING:
+    from textual.timer import Timer
+
+from time import monotonic
+
+__all__ = ["SimpleButton", "CountdownButton"]
 
 
 class SimpleButton(Static):
@@ -19,3 +29,31 @@ class SimpleButton(Static):
 
     def on_click(self):
         self.post_message(self.Pressed(self))
+
+
+class CountdownButton(SimpleButton):
+    start_time = reactive(monotonic)
+    time = reactive(monotonic)
+    timer: Timer
+
+    def __init__(self, label: str, count: int, disabled=True, **kwargs):
+        super().__init__(**kwargs, disabled=disabled)
+        self.label = label
+        self.count = count
+        self.timer = None
+
+    def on_mount(self):
+        self.timer = self.set_interval(1 / 30, self.update_time)
+
+    def update_time(self):
+        self.time = monotonic()
+
+    def watch_time(self, time: float):
+        second = (time - self.start_time) % 60
+        count = 5 - second
+        if count <= 0:
+            self.disabled = False
+            self.timer.stop()
+            self.renderable = self.label
+        else:
+            self.renderable = f"{self.label} ({count:.0f}秒)"

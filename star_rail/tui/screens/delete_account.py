@@ -3,7 +3,7 @@ from textual.containers import Grid
 from textual.screen import ModalScreen
 from textual.widgets import Label
 
-from star_rail.tui.widgets import SimpleButton
+from star_rail.tui.widgets import CountdownButton, SimpleButton
 
 __all__ = ["DeleteAccountScreen"]
 
@@ -18,7 +18,7 @@ class DeleteAccountScreen(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         with Grid():
             yield Label(f"是否删除账号 {self.uid} 数据?", id="question")
-            yield SimpleButton("确认", id="confirm")
+            yield CountdownButton("确认", 10, id="confirm")
             yield SimpleButton("取消", id="cancel")
 
     def on_simple_button_pressed(self, event: SimpleButton.Pressed):

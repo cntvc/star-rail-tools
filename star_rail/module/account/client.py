@@ -11,6 +11,7 @@ from .account import Account
 from .cookie import Cookie
 from .mapper import AccountMapper
 from .model import GameRecordCard, UserGameRecordCards
+from .repository import AccountRepository
 
 __all__ = ["AccountClient"]
 
@@ -97,7 +98,7 @@ class AccountClient(BaseClient):
         return UserGameRecordCards(**data)
 
     async def delete_account(self, uid: str):
-        await AccountMapper.delete_account(uid)
+        await AccountRepository().delete_account(uid)
 
     @staticmethod
     async def get_uid_list():
