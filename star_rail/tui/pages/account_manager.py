@@ -32,6 +32,8 @@ class AccountManagerDialog(Container):
         for uid in uid_list:
             uid_list_item.append(ListItem(Label(uid), id=f"uid_{uid}"))
         uid_list_widget.extend(uid_list_item)
+        if uid_list:
+            uid_list_widget.index = 0
 
     @on(SimpleButton.Pressed, "#add")
     @work()
