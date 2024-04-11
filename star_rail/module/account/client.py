@@ -1,5 +1,5 @@
 import pyperclip
-
+import os
 from star_rail.config.settings import settings
 from star_rail.module import routes
 from star_rail.module.base import BaseClient
@@ -99,6 +99,8 @@ class AccountClient(BaseClient):
 
     async def delete_account(self, uid: str):
         await AccountRepository().delete_account(uid)
+        user = Account(uid)
+        os.remove(user.gacha_record_analyze_path)
 
     @staticmethod
     async def get_uid_list():
