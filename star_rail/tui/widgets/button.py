@@ -50,7 +50,7 @@ class CountdownButton(SimpleButton):
 
     def watch_time(self, time: float):
         second = (time - self.start_time) % 60
-        count = 5 - second
+        count = self.count - second
         if count <= 0:
             self.disabled = False
             self.timer.stop()
