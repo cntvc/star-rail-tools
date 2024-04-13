@@ -9,6 +9,7 @@ __all__ = ["Sidebar"]
 
 class Sidebar(Container):
     BORDER_TITLE = "通知"
+
     def compose(self) -> ComposeResult:
         yield NotificationList()
         with Container(id="buttons"):
