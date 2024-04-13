@@ -59,6 +59,7 @@ class HelpMenual(VerticalScroll):
             yield Static(LINK_RELEASE)
 
     @on(SimpleButton.Pressed)
-    def copy_code(self):
+    def copy_code(self, event: SimpleButton.Pressed) -> None:
+        event.stop()
         pyperclip.copy(JS_CODE)
         self.notify("已复制到剪贴板")

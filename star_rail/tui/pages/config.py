@@ -35,17 +35,20 @@ class ConfigSwitchItem(Horizontal):
 
     @on(Switch.Changed, "#CHECK_UPDATE")
     def handle_check_update(self, event: Switch.Changed):
+        event.stop()
         settings.CHECK_UPDATE = event.value
         settings.save_config()
 
     @on(Switch.Changed, "#REVERSE_GACHA_RECORD")
     def handle_reverse_gacha_record(self, event: Switch.Changed):
+        event.stop()
         settings.REVERSE_GACHA_RECORD = event.value
         settings.save_config()
         self.post_message(ReverseGachaRecord(event.value))
 
     @on(Switch.Changed, "#SHOW_LUCK_LEVEL")
     def handle_show_luck_level(self, event: Switch.Changed):
+        event.stop()
         settings.SHOW_LUCK_LEVEL = event.value
         settings.save_config()
         self.post_message(ShowLuckLevel(event.value))

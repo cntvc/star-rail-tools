@@ -7,6 +7,7 @@ from textual.reactive import reactive
 from textual.widgets import Static
 
 if typing.TYPE_CHECKING:
+    from textual import events
     from textual.timer import Timer
 
 from time import monotonic
@@ -27,7 +28,8 @@ class SimpleButton(Static):
         def control(self):
             return self.button
 
-    def on_click(self):
+    def on_click(self, event: events.Click):
+        event.stop()
         self.post_message(self.Pressed(self))
 
 

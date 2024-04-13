@@ -15,10 +15,12 @@ class Sidebar(Container):
             yield SimpleButton("返回", id="hide")
 
     @on(SimpleButton.Pressed, "#clear")
-    def clear(self):
+    def clear(self, event: SimpleButton.Pressed):
+        event.stop()
         self.query_one(NotificationList).clear()
 
     @on(SimpleButton.Pressed, "#hide")
-    def hide_sidebar(self):
+    def hide_sidebar(self, event: SimpleButton.Pressed):
+        event.stop()
         self.screen.set_focus(None)
         self.add_class("-hidden")

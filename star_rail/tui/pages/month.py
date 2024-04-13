@@ -74,6 +74,7 @@ class MonthInfo(Grid):
 
     @on(ListView.Highlighted)
     def handle_listview_select(self, event: ListView.Highlighted):
+        event.stop()
         detail = self.query(MonthInfoDetail)
         if detail:
             detail.remove()
@@ -96,7 +97,8 @@ class MonthDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def handle_refresh_month_info(self):
+    async def handle_refresh_month_info(self, event: SimpleButton.Pressed):
+        event.stop()
         client: HSRClient = self.app.client
         if client.user.cookie.empty():
             self.notify("请设置Cookie后再试")

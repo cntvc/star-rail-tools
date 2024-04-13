@@ -1,4 +1,5 @@
 from rich.console import RenderableType
+from textual import events
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.reactive import reactive
@@ -19,7 +20,8 @@ class Notice(Static):
     def render(self) -> RenderableType:
         return "通知"
 
-    def on_click(self) -> None:
+    def on_click(self, event: events.Click) -> None:
+        event.stop()
         self.app._toggle_sidebar()
 
 

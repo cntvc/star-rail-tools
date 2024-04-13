@@ -38,7 +38,8 @@ class AccountManagerDialog(Container):
     @on(SimpleButton.Pressed, "#add")
     @work()
     @error_handler
-    async def handle_add_account(self):
+    async def handle_add_account(self, event: SimpleButton.Pressed):
+        event.stop()
         opt = await self.app.push_screen_wait("create_account_screen")
 
         if opt == "cancel":
@@ -68,7 +69,8 @@ class AccountManagerDialog(Container):
     @on(SimpleButton.Pressed, "#login")
     @work()
     @error_handler
-    async def handle_login_account(self):
+    async def handle_login_account(self, event: SimpleButton.Pressed):
+        event.stop()
         if not self.uid_list:
             self.notify("请先添加账号")
             return
@@ -86,7 +88,8 @@ class AccountManagerDialog(Container):
     @on(SimpleButton.Pressed, "#delete")
     @work()
     @error_handler
-    async def handle_delete_account(self):
+    async def handle_delete_account(self, event: SimpleButton.Pressed):
+        event.stop()
         if not self.uid_list:
             self.notify("请先添加账号")
             return

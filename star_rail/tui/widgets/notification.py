@@ -2,7 +2,7 @@ import random
 import string
 from uuid import uuid4
 
-from textual import on
+from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.message import Message
@@ -49,7 +49,8 @@ class NotificationContent(Static):
     def render(self):
         return f"{self.notification.time}\n\n{self.notification.content}"
 
-    async def on_click(self):
+    async def on_click(self, event: events.Click):
+        event.stop()
         """打开窗口显示消息详情"""
         if not self.notification.clickable:
             return
@@ -80,7 +81,9 @@ class NotificationItem(Horizontal):
         yield SimpleButton("删除", id="delete")
 
     @on(SimpleButton.Pressed, "#delete")
-    def delete(self):
+    def delete(self, event: SimpleButton.Pressed):
+        event.stop()
+
         self.post_message(NotificationItem.Delete(self))
 
 
@@ -99,5 +102,6 @@ class NotificationList(VerticalScroll):
 
     @on(NotificationItem.Delete)
     def delete(self, event: NotificationItem.Delete):
+        event.stop()
         await_remove = self.query(f"#{event.item.notification.id}").remove()
         return await_remove

@@ -131,7 +131,8 @@ class GachaRecordDialog(Container):
     @work(name="更新跃迁记录", group="refresh_gacha_record")
     @error_handler
     @required_account
-    async def handle_refresh_with_webcache(self):
+    async def handle_refresh_with_webcache(self, event: SimpleButton.Pressed):
+        event.stop()
         client: HSRClient = self.app.client
         cnt = await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.view_analysis_results()
@@ -145,7 +146,8 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def handle_import_srgf(self):
+    async def handle_import_srgf(self, event: SimpleButton.Pressed):
+        event.stop()
         client: HSRClient = self.app.client
         cnt, failed_list = await client.import_srgf_data()
         if cnt:
@@ -164,7 +166,8 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def handle_export_to_execl(self):
+    async def handle_export_to_execl(self, event: SimpleButton.Pressed):
+        event.stop()
         client: HSRClient = self.app.client
         await client.export_to_execl()
         self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
@@ -173,13 +176,15 @@ class GachaRecordDialog(Container):
     @work()
     @error_handler
     @required_account
-    async def handle_export_to_srgf(self):
+    async def handle_export_to_srgf(self, event: SimpleButton.Pressed):
+        event.stop()
         client: HSRClient = self.app.client
         await client.export_to_srgf()
         self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")
 
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):
+        event.stop()
         # 其他任务执行时间几乎可以忽略，这里只捕获查询跃迁记录的任务
         # 暂时没想到更好的方法筛选任务
         if not event.worker.name:
