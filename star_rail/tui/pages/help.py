@@ -9,7 +9,7 @@ from star_rail import __version__
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
 MENUAL_PART_1 = [
-    r"""[B]获取 Cookie:[/B]""",
+    r"""[B]# 如何获取 Cookie[/B]""",
     (
         r"""[G]● 1.[/G] 登陆[@click="app.open_link('https://user.mihoyo.com/')"]米哈游通行证[/]"""
         r"""(国际服用户登陆[@click="app.open_link('https://www.hoyolab.com/')"]HoYoLAB[/]) 页面"""
@@ -21,8 +21,8 @@ JS_CODE = "\njavascript:(function(){prompt(document.domain,document.cookie)})();
 
 
 MENUAL_PART_3 = [
-    r"""[G]● 3.[/G] 切换到 "账号管理", 点击"添加账号" > "更新Cookie" """,
-    r"""[G]● 4.[/G] 等待Cookie解析完成""",
+    r"""[G]● 3.[/G] 切换到 "账号管理", 点击"添加账号" > "更新 Cookie" """,
+    r"""[G]● 4.[/G] 等待 Cookie 解析完成""",
 ]
 
 

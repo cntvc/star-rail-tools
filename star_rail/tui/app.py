@@ -116,7 +116,7 @@ class HSRApp(App):
     async def handle_switch_account(self):
         self.app.workers.cancel_all()
         await self._refresh_account_data()
-        self.notify("账号切换成功.")
+        self.notify(f"账号已切换为 {self.client.user.uid}")
 
     async def _refresh_user_list(self):
         self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
@@ -136,9 +136,9 @@ class HSRApp(App):
 
     @work(exit_on_error=False)
     async def check_update(self):
-        result = await self.updater.check_update()
+        result, latest_version = await self.updater.check_update()
         if result:
-            self.notify("软件发现新版本.")
+            self.notify(f"软件发现新版本: {latest_version}")
 
     @on(events.ReverseGachaRecord)
     async def handle_reverse_gacha_record(self):

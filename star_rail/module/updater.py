@@ -13,7 +13,7 @@ class Updater:
         """检测是否需要更新
 
         Returns:
-            bool: 需要更新：True
+            tuple[bool, str | None]: 需要更新：True, latest_version
         """
         logger.debug("Check update.")
         url = yarl.URL("https://api.github.com/repos/cntvc/star-rail-tools/releases/latest")
@@ -23,4 +23,6 @@ class Updater:
                 data = await response.json()
 
         latest_version = data["tag_name"]
-        return compare_versions(app_version, latest_version) == -1
+        if compare_versions(app_version, latest_version) == -1:
+            return True, latest_version
+        return False, None

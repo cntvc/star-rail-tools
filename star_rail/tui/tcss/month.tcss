@@ -22,7 +22,7 @@ MonthDialog {
             scrollbar-size: 1 1;
 
             ListItem{
-                margin:1;
+                margin:0 1 1 0;
                 background: #2e3440;
 
                 Static {
@@ -43,7 +43,6 @@ MonthDialog {
         MonthInfoDetail{
             align:center middle;
             width:auto;
-
             Markdown{
                 margin: 1;
                 width: auto;

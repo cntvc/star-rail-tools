@@ -4,6 +4,7 @@ Sidebar {
     transition: offset 200ms in_out_cubic;
     layer: overlay;
     dock:right;
+    border: heavy #81a1c1;
 
     &:focus-within {
         offset: 0 0;
