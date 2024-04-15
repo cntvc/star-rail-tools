@@ -102,13 +102,14 @@ class AccountList(Container):
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):
 
-        if not event.worker.name:
+        if event.worker.name != "更新Cookie":
             return
-        if event.state == WorkerState.RUNNING:
-            self.app.post_message(events.TaskRunning(event.worker.name))
-        elif event.state == WorkerState.SUCCESS:
-            self.app.post_message(events.TaskComplete(event.worker.name))
-        elif event.state == WorkerState.ERROR:
-            self.app.post_message(events.TaskError(event.worker.name))
-        else:
-            pass
+
+        state_to_event = {
+            WorkerState.RUNNING: events.TaskRunning,
+            WorkerState.SUCCESS: events.TaskComplete,
+            WorkerState.ERROR: events.TaskError,
+        }
+
+        if event_type := state_to_event.get(event.state):
+            self.post_message(event_type(event.worker.name))

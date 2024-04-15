@@ -174,7 +174,8 @@ class HSRApp(App):
     @on(events.TaskRunning)
     def handle_task_running(self, event: events.TaskRunning):
         self.task_queue.add(event.name)
-        self.query_one(StatusBar).add_progress_bar(name=event.name)
+        if status_bar := self.query(StatusBar):
+            status_bar.first().add_progress_bar(name=event.name)
 
     @on(events.TaskCancel)
     @on(events.TaskError)
