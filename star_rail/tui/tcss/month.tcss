@@ -20,7 +20,7 @@ MonthDialog {
 
         MonthList{
             scrollbar-size: 1 1;
-
+            align:center middle;
             ListItem{
                 margin:0 1 1 0;
                 background: #2e3440;
