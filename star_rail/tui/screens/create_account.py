@@ -21,12 +21,7 @@ class CreateAccountScreen(ModalScreen[str]):
                 id="uid_input",
             )
             yield SimpleButton("创建账号", id="create")
-            yield SimpleButton("更新Cookie", id="parse_cookie")
             yield SimpleButton("返回", id="cancel")
-
-    @on(SimpleButton.Pressed, "#parse_cookie")
-    async def parse_cookie(self):
-        self.dismiss("cookie")
 
     @on(Input.Submitted)
     @on(SimpleButton.Pressed, "#create")

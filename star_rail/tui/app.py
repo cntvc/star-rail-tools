@@ -16,7 +16,7 @@ from star_rail.tui.widgets.notification import HSRNotification
 from star_rail.utils.logger import logger
 
 from .pages import (
-    AccountManagerDialog,
+    AccountList,
     ConfigDialog,
     CurrentUID,
     GachaRecordDialog,
@@ -73,19 +73,17 @@ class HSRApp(App):
     def compose(self) -> ComposeResult:
         with Container():
             with Navigation():
-                yield NavTab("账号管理", id="account_manager")
                 yield NavTab("跃迁记录", id="gacha_record")
                 yield NavTab("开拓月历", id="month")
                 yield NavTab("设置", id="config")
                 yield NavTab("帮助", id="help")
-            with MainDialog(initial="account_manager"):
-                yield AccountManagerDialog(id="account_manager")
+            with MainDialog(initial="gacha_record"):
                 yield GachaRecordDialog(id="gacha_record")
                 yield MonthDialog(id="month")
                 yield ConfigDialog(id="config")
                 yield HelpMenual(id="help")
+            yield AccountList(id="account_manager", classes="-hidden")
             yield Sidebar(classes="-hidden")
-
         yield StatusBar()
 
     @error_handler
@@ -113,17 +111,19 @@ class HSRApp(App):
 
     @on(events.LoginAccount)
     @error_handler
-    async def handle_switch_account(self):
-        self.app.workers.cancel_all()
+    async def handle_switch_account(self, event: events.LoginAccount):
+        self.app.workers.cancel_group(self.app, "default")
+        await self.client.login(event.uid)
         await self._refresh_account_data()
         self.notify(f"账号已切换为 {self.client.user.uid}")
 
     async def _refresh_user_list(self):
-        self.query_one(AccountManagerDialog).uid_list = await self.client.get_uid_list()
+        self.query_one(AccountList).uid_list = await self.client.get_uid_list()
 
     @on(events.ExitAccount)
     async def handle_exit_account(self):
-        self.app.workers.cancel_all()
+        self.client.logout()
+        self.app.workers.cancel_group(self.app, "default")
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = ""
             self.query_one(MonthDialog).month_info_list = []
@@ -148,10 +148,7 @@ class HSRApp(App):
     async def handle_show_luck_level(self):
         await self.query_one(GachaRecordDialog).show_luck_level()
 
-    def action_toggle_sidebar(self) -> None:
-        self._toggle_sidebar()
-
-    def _toggle_sidebar(self):
+    def action_toggle_sidebar(self):
         sidebar = self.query_one(Sidebar)
         self.set_focus(None)
         if sidebar.has_class("-hidden"):
@@ -161,6 +158,14 @@ class HSRApp(App):
                 self.screen.set_focus(None)
             sidebar.add_class("-hidden")
 
+    def toggle_account_list(self):
+        account_list = self.query_one(AccountList)
+        if account_list.is_hidden():
+            self.set_focus(None)
+            account_list.remove_class("-hidden")
+        else:
+            account_list.add_class("-hidden")
+
     def action_open_link(self, link: str) -> None:
         import webbrowser
 
@@ -169,7 +174,7 @@ class HSRApp(App):
     @on(events.TaskRunning)
     def handle_task_running(self, event: events.TaskRunning):
         self.task_queue.add(event.name)
-        self.query_one(StatusBar).add_task_bar(name=event.name)
+        self.query_one(StatusBar).add_progress_bar(name=event.name)
 
     @on(events.TaskCancel)
     @on(events.TaskError)
@@ -178,10 +183,10 @@ class HSRApp(App):
         self.task_queue.remove(event.name)
 
         if len(self.task_queue) == 0:
-            self.query_one(StatusBar).remove_task_bar()
+            self.query_one(StatusBar).remove_progress_bar()
         else:
             name = next(iter(self.app.workers))
-            self.query_one(StatusBar).update_task_bar(name=name)
+            self.query_one(StatusBar).update_progress_bar(name=name)
 
     def notify(
         self,

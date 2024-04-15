@@ -48,7 +48,7 @@ class AccountClient(BaseClient):
         return uid
 
     async def parse_account_cookie(self):
-        """解析Cookie并将其关联到对应账号，若账号不存在则会创建一个账号"""
+        """解析Cookie并将其关联到对应账号"""
         logger.debug("Add cookies to account.")
         cookie_str = pyperclip.paste()
         cookie = Cookie.parse(cookie_str)
@@ -67,16 +67,16 @@ class AccountClient(BaseClient):
         if cookie.empty_cookie_token():
             await cookie.refresh_cookie_token(self.user.game_biz)
 
-        roles = await AccountClient.get_game_record_card(cookie)
-        user = None
+        roles = await AccountClient.get_game_record_card(cookie, self.user.game_biz)
+
         for role in roles.list:
             if not AccountClient.is_hsr_role(role):
                 continue
-
-            user = Account(uid=role.game_role_id)
-            user.cookie = cookie
-            await user.save_profile()
-        return user.uid
+            if role.game_role_id == self.user.uid:
+                self.user.cookie = cookie
+                await self.user.save_profile()
+                return True
+        return False
 
     @staticmethod
     def is_hsr_role(role: GameRecordCard):
@@ -84,7 +84,7 @@ class AccountClient(BaseClient):
         return role.game_id == GameType.STAR_RAIL.value
 
     @staticmethod
-    async def get_game_record_card(cookie: Cookie):
+    async def get_game_record_card(cookie: Cookie, game_biz: GameBiz):
         param = {"uid": cookie.account_id}
 
         header = Header.generate("PC")
@@ -92,7 +92,7 @@ class AccountClient(BaseClient):
 
         data = await request(
             method="GET",
-            url=routes.GAME_RECORD_CARD_URL.get_url(GameBiz.CN),
+            url=routes.GAME_RECORD_CARD_URL.get_url(game_biz),
             headers=header.headers,
             params=param,
             cookies=cookie.model_dump("all"),
@@ -107,3 +107,6 @@ class AccountClient(BaseClient):
     @staticmethod
     async def get_uid_list():
         return await AccountMapper.query_all_uid()
+
+    def logout(self):
+        self.user = None

@@ -5,16 +5,15 @@ StatusBar {
     max-height: 1;
 
     #progress_status{
-        width:100%;
+        width:1fr;
         padding: 0 1 0 0;
-
         TaskStatus{
             dock:right;
             height:auto;
             max-width: 30;
             width:auto;
 
-            Static{   
+            Static{
                 width:auto;
                 height:auto;
                 max-width:16;
@@ -27,16 +26,33 @@ StatusBar {
         }
     }
 
-    CurrentUID {
-        dock: left;
-        width:auto;
-        padding-left: 1;
+    AccountStatus {
+        CurrentUID {
+            width:auto;
+            margin-left:1;
+            &:hover{
+                background: $primary 40%;
+                color: $text;
+                text-style: bold;
+            }
+        }
+
+        AddAccount {
+            color: #252a34;
+            # background: red;
+            width: 3;
+            text-align: center;
+            &:hover{
+                background: $primary 40%;
+                color: $text;
+                text-style: bold;
+            }
+        }
     }
 
     Notice {
         width:auto;
         dock: right;
-
         &:hover {
             background: $primary 40%;
             color: $text;

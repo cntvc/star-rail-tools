@@ -2,7 +2,9 @@ from textual.message import Message
 
 
 class LoginAccount(Message, bubble=True):
-    pass
+    def __init__(self, uid: str) -> None:
+        super().__init__()
+        self.uid = uid
 
 
 class UpdateAccountList(Message, bubble=True):

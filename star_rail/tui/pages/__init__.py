@@ -1,4 +1,4 @@
-from .account_manager import *
+from .account_list import *
 from .config import ConfigDialog
 from .help import HelpMenual
 from .month import MonthDialog

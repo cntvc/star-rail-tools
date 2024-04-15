@@ -1,0 +1,26 @@
+AccountList {
+    layer: overlay;
+    max-width:30;
+    border: heavy #81a1c1;
+    ListView {
+        scrollbar-size: 1 1;
+        ListItem{
+            margin:1;
+            Static{
+                text-align:center;
+                padding:1;
+            }
+        }
+    }
+    #buttons{
+        dock:bottom;
+        height:auto;
+        SimpleButton{
+
+        }
+    }
+
+    &.-hidden {
+        offset-y: -100%;
+    }
+}

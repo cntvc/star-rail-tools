@@ -27,7 +27,7 @@ def required_account(func):
     @functools.wraps(func)
     async def wrapper(self, *args, **kwargs):
         if self.app.client.user is None:
-            self.notify("请先登陆后再试", severity="warning")
+            self.notify("请登陆账号后再试", severity="warning")
             return
         result = await func(self, *args, **kwargs)
         return result
