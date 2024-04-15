@@ -118,7 +118,7 @@ class HSRApp(App):
         self.notify(f"账号已切换为 {self.client.user.uid}")
 
     async def _refresh_user_list(self):
-        self.query_one(AccountList).uid_list = await self.client.get_uid_list()
+        await self.query_one(AccountList).refresh_uid_list()
 
     @on(events.ExitAccount)
     async def handle_exit_account(self):

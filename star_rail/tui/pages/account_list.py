@@ -38,8 +38,14 @@ class AccountList(Container):
         for uid in new_uid_list:
             uid_list_item.append(ListItem(Static(uid), id=f"uid_{uid}"))
         uid_list_widget.extend(uid_list_item)
-        if new_uid_list:
-            uid_list_widget.index = 0
+
+        # 默认高亮当前账号或第一个账号
+        client: HSRClient = self.app.client
+        if not client.user:
+            return
+        uid_list_widget.index = 0
+        if client.user and client.user.uid in new_uid_list:
+            uid_list_widget.index = new_uid_list.index(client.user.uid)
 
     @on(SimpleButton.Pressed, selector="#login")
     @work(group="account")
