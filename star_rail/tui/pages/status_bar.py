@@ -9,6 +9,8 @@ from textual.widgets import ProgressBar, Static
 from star_rail.module import HSRClient
 from star_rail.tui import events as hsr_events
 
+from .account_list import AccountList
+
 __all__ = ["StatusBar", "CurrentUID"]
 
 
@@ -27,7 +29,7 @@ class AddAccount(Static):
     def render(self) -> RenderableType:
         return "+"
 
-    @work()
+    @work(group="account")
     async def on_click(self, event: textual_events.Click) -> None:
         event.stop()
         result = await self.app.push_screen_wait("create_account_screen")
@@ -38,8 +40,12 @@ class AddAccount(Static):
         client: HSRClient = self.app.client
         uid = await client.create_account_by_uid(result)
 
+        if uid in self.app.query_one(AccountList).uid_list:
+            self.notify("账号已存在，请勿重复添加")
+            return
+
         # 创建账号不是已登陆账号时，自动登录新账号
-        if client.user and uid != client.user.uid:
+        if client.user is None or uid != client.user.uid:
             self.post_message(hsr_events.LoginAccount(uid))
 
         self.post_message(hsr_events.UpdateAccountList())
