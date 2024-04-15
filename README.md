@@ -42,9 +42,9 @@
   </details>
 
 ### 数据迁移
-  本软件为 [UIGF](https://uigf.org/zh) 组织成员，支持 [SRGF](https://uigf.org/zh/standards/SRGF.html) 格式的跃迁记录文件导入导出
+  本软件为 [UIGF](https://uigf.org) 组织成员，支持 `SRGF` 格式的跃迁记录文件导入导出
 
-  **导入 SRGF 格式数据**: 
+  **导入 SRGF 格式数据**:
   将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击"导入数据"按钮即可
 
 

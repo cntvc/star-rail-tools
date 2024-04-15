@@ -28,7 +28,7 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
 
   **Note: Cookies are crucial account credentials. Do not disclose them to avoid potential account security issues.**
 
-  Firstly, log in to [MiHoYo](https://user.mihoyo.com/) (International server users log in to [hoyolab](https://www.hoyolab.com/)). Press F12, select the console, paste the following code, copy the cookie from the dialog that appears.
+  Firstly, log in to [miHoYo](https://user.mihoyo.com/) (International server users log in to [HoYoLAB](https://www.hoyolab.com/)). Press F12, select the console, paste the following code, copy the cookie from the dialog that appears.
 
   ```javascript
   javascript:(function(){prompt(document.domain,document.cookie)})();
@@ -48,7 +48,7 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
   </details>
 
 ### Data Migration
-This software is a member of the [UIGF](https://uigf.org) organization, supports import and export of [SRGF](https://uigf.org/en/standards/SRGF.html) format data.
+This software is a member of the [UIGF](https://uigf.org) organization, supports import and export of `SRGF` format data.
 
 Importing SRGF format data:
 Place the data files you want to import into the "Import" folder. You can add multiple files at once. Click the "Import Data" button to proceed.
