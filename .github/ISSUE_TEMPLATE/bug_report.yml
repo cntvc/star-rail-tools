@@ -55,8 +55,6 @@ body:
         Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       placeholder: |
         日志文件路径(Log file path): ./StarRailTools/AppData/log/{YYYY_MM}.log
-    validations:
-      required: true
 
   - type: textarea
     id: additional-information
