@@ -5,8 +5,10 @@ from textual.containers import Container, Grid
 from textual.reactive import reactive
 from textual.widgets import ListItem, ListView, Markdown, Static
 
+from star_rail import exceptions as error
 from star_rail.module import HSRClient
 from star_rail.module.month.model import MonthInfoItem
+from star_rail.module.types import GameBiz
 from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.widgets import SimpleButton, apply_text_color
 
@@ -100,6 +102,9 @@ class MonthDialog(Container):
     async def handle_refresh_month_info(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
+        if client.user.game_biz == GameBiz.GLOBAL:
+            raise error.HsrException("暂不支持国际服账号")
+
         if client.user.cookie.empty():
             self.notify("请设置Cookie后再试")
             return

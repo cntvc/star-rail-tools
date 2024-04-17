@@ -16,10 +16,7 @@ MENUAL_PART_1 = [
     r"""点击左下角 "UID: xx", 选择需要切换的账号, 点击 "切换账号" 按钮""",
     r"",
     r"""[B]如何获取 Cookie[/B]""",
-    (
-        r"""[G]● 1.[/G] 登陆[@click="app.open_link('https://user.mihoyo.com/')"]米哈游通行证[/]"""
-        r"""(国际服用户登陆[@click="app.open_link('https://www.hoyolab.com/')"]HoYoLAB[/]) 页面"""
-    ),
+    r"""[G]● 1.[/G] 登陆[@click="app.open_link('https://user.mihoyo.com/')"]米哈游通行证[/]页面""",
     r"""[G]● 2.[/G] 点击F12按键，选择控制台，粘贴以下代码，在弹出的对话框复制 Cookie""",
 ]
 
