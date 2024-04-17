@@ -18,7 +18,7 @@ from star_rail.utils.date import Date
 from star_rail.utils.logger import logger
 
 from ..base import BaseClient
-from ..helper import CursorPaginator, MergedPaginator, Paginator, request
+from ..web import CursorPaginator, MergedPaginator, Paginator, request
 from . import srgf, types
 from .gacha_url import GachaUrlProvider
 from .model import (

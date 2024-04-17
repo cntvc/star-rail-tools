@@ -7,7 +7,7 @@ from star_rail.module import routes
 from star_rail.module.types import GameBiz
 from star_rail.utils.logger import logger
 
-from ..helper import Header, request
+from ..web import Header, request
 
 __all__ = ["Cookie"]
 

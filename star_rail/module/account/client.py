@@ -8,7 +8,7 @@ from star_rail.module.base import BaseClient
 from star_rail.module.types import GameBiz, GameType
 from star_rail.utils.logger import logger
 
-from ..helper import Header, request
+from ..web import Header, request
 from .account import Account
 from .cookie import Cookie
 from .mapper import AccountMapper

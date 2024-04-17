@@ -5,7 +5,7 @@ from star_rail.module import routes
 from star_rail.module.base import BaseClient
 from star_rail.utils.logger import logger
 
-from ..helper import request
+from ..web import request
 from .mapper import MonthInfoItemMapper
 from .model import MonthInfoData, MonthInfoItem
 
