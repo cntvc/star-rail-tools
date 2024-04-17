@@ -130,6 +130,10 @@ class Cookie(BaseModel):
     async def refresh_cookie_token(self, game_biz: GameBiz):
         """刷新 Cookie 的 cookie_token"""
         logger.debug("Refresh cookie_token.")
+        if game_biz == GameBiz.GLOBAL:
+            # 暂由用户在网页抓取后手动更新
+            return
+
         data = await request(
             "GET",
             url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(game_biz),

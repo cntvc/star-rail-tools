@@ -28,7 +28,7 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
 
   **Note: Cookies are crucial account credentials. Do not disclose them to avoid potential account security issues.**
 
-  Firstly, log in to [miHoYo](https://user.mihoyo.com/) (International server users log in to [HoYoLAB](https://www.hoyolab.com/)). Press F12, select the console, paste the following code, copy the cookie from the dialog that appears.
+  Firstly, log in to [miHoYo](https://user.mihoyo.com/) (International server users log in to [HoYoLAB](https://account.hoyoverse.com/)). Press F12, select the console, paste the following code, copy the cookie from the dialog that appears.
 
   ```javascript
   javascript:(function(){prompt(document.domain,document.cookie)})();

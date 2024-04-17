@@ -47,15 +47,8 @@ class AccountClient(BaseClient):
             await Account(uid).save_profile()
         return uid
 
-    async def parse_account_cookie(self):
-        """解析Cookie并将其关联到对应账号"""
-        logger.debug("Add cookies to account.")
-        cookie_str = pyperclip.paste()
-        cookie = Cookie.parse(cookie_str)
-
-        if cookie.empty():
-            logger.debug("Empty cookies.")
-            return None
+    async def _handle_cookie_cn(self, cookie: Cookie):
+        """解析Cookie，获取所有可更新Cookie字段"""
 
         if cookie.empty_login_ticket():
             logger.debug("Invalid cookies.")
@@ -67,16 +60,40 @@ class AccountClient(BaseClient):
         if cookie.empty_cookie_token():
             await cookie.refresh_cookie_token(self.user.game_biz)
 
-        roles = await AccountClient.get_game_record_card(cookie, self.user.game_biz)
+        roles = await AccountClient._get_game_record_card_cn(cookie, self.user.game_biz)
 
         for role in roles.list:
             if not AccountClient.is_hsr_role(role):
                 continue
             if role.game_role_id == self.user.uid:
-                self.user.cookie = cookie
-                await self.user.save_profile()
-                return True
-        return False
+                return cookie
+        return None
+
+    async def _handle_cookie_os(self, cookie: Cookie):
+        return cookie
+
+    async def parse_account_cookie(self):
+        logger.debug("Add cookies to account.")
+        cookie_str = pyperclip.paste()
+        cookie = Cookie.parse(cookie_str)
+
+        if cookie.empty():
+            logger.debug("Empty cookies.")
+            return False
+
+        if self.user.game_biz == GameBiz.GLOBAL:
+            cookie = await self._handle_cookie_os(cookie)
+        elif self.user.game_biz == GameBiz.CN:
+            cookie = await self._handle_cookie_cn(cookie)
+        else:
+            assert False, "Invalid game_biz"
+
+        if not cookie:
+            return False
+
+        self.user.cookie = cookie
+        await self.user.save_profile()
+        return True
 
     @staticmethod
     def is_hsr_role(role: GameRecordCard):
@@ -84,7 +101,7 @@ class AccountClient(BaseClient):
         return role.game_id == GameType.STAR_RAIL.value
 
     @staticmethod
-    async def get_game_record_card(cookie: Cookie, game_biz: GameBiz):
+    async def _get_game_record_card_cn(cookie: Cookie, game_biz: GameBiz):
         param = {"uid": cookie.account_id}
 
         header = Header.generate("PC")
