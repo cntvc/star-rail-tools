@@ -3,9 +3,7 @@ name: Release
 env:
   PROJECT_NAME: StarRailTools
 
-
 on:
-  workflow_dispatch:
   release:
     types: [published]
 
@@ -17,46 +15,40 @@ jobs:
 
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: 3.11
+          cache: true
+      - name: Install dependencies
+        run: pdm install --with release
 
-    - name: Install poetry
-      run: pipx install poetry
+      - name: Build package
+        run: |
+          pdm run release_d
+          pdm run release_f
 
-    - name: Set up Python version
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-        cache: "poetry"
+      - name: Generate package name
+        run: |
+          echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
 
-    - name: Install dependencies
-      run: poetry install --with release --without test,dev
+      - name: Move and rename exe
+        run: |
+          Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
 
-    - name: Package
-      run: |
-        poetry run pyinstaller --clean ./main_d.spec --noconfirm
-        poetry run pyinstaller --clean ./main_f.spec --noconfirm
+      - name: Archive folder
+        run: |
+          Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
 
-    - name: Generate package name
-      run: |
-        echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
-
-    - name: Move and rename exe
-      run: |
-        Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
-
-    - name: Archive folder
-      run: |
-        Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
-
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      env:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        name: ${{ env.PROJECT_NAME }} ${{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
-        files: |
-          ${{ env.file-name }}.exe
-          ${{ env.file-name }}.zip
-        fail_on_unmatched_files: true
+        with:
+          name: ${{ env.PROJECT_NAME }} ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: |
+            ${{ env.file-name }}.exe
+            ${{ env.file-name }}.zip
+          fail_on_unmatched_files: true

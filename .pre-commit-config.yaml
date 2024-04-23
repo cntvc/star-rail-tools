@@ -1,31 +1,28 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 
+default_install_hook_types:
+  - pre-commit
+
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
         args: ["--maxkb=1024"]
-    -   id: check-case-conflict
+      - id: check-case-conflict
 
--   repo: https://github.com/psf/black
-    rev: 24.3.0
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.2
     hooks:
-    -   id: black
-        args: ["star_rail", "tests"]
+      - id: pyupgrade
 
--   repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.1
     hooks:
-    -   id: isort
-        args: ["star_rail", "tests"]
-
--   repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
-    hooks:
-    -   id: flake8
-        args: ["star_rail", "tests"]
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+      - id: ruff-format

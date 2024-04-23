@@ -15,21 +15,16 @@ git clone https://github.com/{YOUR_USERNAME}/star-rail-tools.git
 
 ## 2. 创建开发环境
 
-如果您不熟悉 poetry 虚拟环境的使用，请参照 [poetry wiki][poetry]
+如果您不熟悉 PDM 工具的使用，请参阅 [PDM Introduction][https://pdm-project.org/en/stable/]
 
 ### 安装开发环境依赖包
 ```bash
-pip install poetry
+pip install pdm
 
 cd star-rail-tools
 
 # 安装开发环境依赖包，这将为当前项目自动创建一个虚拟环境
-poetry install
-```
-
-### 进入虚拟环境
-```bash
-poetry shell
+pdm install
 ```
 
 ### 初始化 git hook（非常重要）
@@ -46,20 +41,24 @@ pre-commit install
 git checkout -b {BRANCH_NAME}
 ```
 
-## 4. 编写代码和测试用例后进行代码测试
+## 4. 编写代码和测试用例后运行代码测试
 
 代码格式请遵循 [PEP8][pep-8]，提交前会强制进行代码格式化，若未通过检测，请根据提示进行修改后再次尝试commit
 
-如果进行新功能的开发或者有破坏性更新，请编写必要的单元测试来验证代码逻辑的正确性
-
 ```shell
-# lint
-black star_rail tests
-isort star_rail tests
-flake8 star_rail  tests
+# 代码格式化
+pdm lint
 
 # test
-pytest -vs --cov=star_rail tests --no-cov-on-fail
+pdm test
+
+# 覆盖率测试
+pdm cov
+
+# 本地构建文件夹版
+pdm release_d
+# 本地构建单文件版
+pdm release_f
 ```
 > [!IMPORTANT]
 > 如果进行UI部分的开发，请参阅[textualize wiki](https://textual.textualize.io/getting_started/)以了解该TUI框架的基本使用方式

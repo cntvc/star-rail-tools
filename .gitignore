@@ -5,6 +5,19 @@
 StarRailTools
 
 
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm-project.org/#use-with-ide
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# Ruff
+.ruff_cache
+
 ### Windows template
 # Windows thumbnail cache files
 Thumbs.db
@@ -97,6 +110,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.nox/
 .coverage
 .coverage.*
 .cache
@@ -105,6 +119,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+cover/
 
 # Translations
 *.mo
@@ -114,6 +129,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -126,6 +142,7 @@ instance/
 docs/_build/
 
 # PyBuilder
+.pybuilder/
 target/
 
 # Jupyter Notebook
@@ -136,6 +153,7 @@ target/
 
 # celery beat schedule file
 celerybeat-schedule
+celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
@@ -162,6 +180,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+.dmypy.json
+dmypy.json
+
 ### Linux template
 *~
 
