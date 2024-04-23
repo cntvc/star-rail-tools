@@ -216,7 +216,7 @@ class TestDBManager(unittest.IsolatedAsyncioTestCase):
         cursor = await self.client.execute("pragma table_info(user);")
         column_list = await cursor.fetchall()
         self.assertEqual(len(column_list), 3)
-        self.assertTrue({"id", "name", "age"}, set(column[1] for column in column_list))
+        self.assertTrue({"id", "name", "age"}, {column[1] for column in column_list})
 
     @patch("star_rail.database.sqlite.DATABASE_VERSION", new=0)
     async def test_upgrade_version_no_opt(self):

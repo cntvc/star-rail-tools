@@ -6,7 +6,7 @@ import yarl
 from star_rail.module.types import GameBiz
 
 
-class BaseRoute(abc.ABC):
+class BaseRoute(abc.ABC):  # ruff: ignore=B024
     pass
 
 

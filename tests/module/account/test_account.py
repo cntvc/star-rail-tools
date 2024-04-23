@@ -110,9 +110,10 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
                 stuid="test_uid",
             ),
         )
-        with patch.object(settings, "ENCRYPT_KEY", new=""), patch.object(
-            BaseSetting, "save_config", new_callable=Mock
-        ) as mock_save_config:
+        with (
+            patch.object(settings, "ENCRYPT_KEY", new=""),
+            patch.object(BaseSetting, "save_config", new_callable=Mock) as mock_save_config,
+        ):
             result = await account.save_profile()
         self.assertTrue(result)
         mock_save_config.assert_called_once()
@@ -122,9 +123,10 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
         account = Account(uid=uid)
         with patch.object(AccountMapper, "add_account", new_callable=AsyncMock) as mock_add_account:
             mock_add_account.return_value = 1
-            with patch.object(settings, "ENCRYPT_KEY", new=AES128.generate_aes_key()), patch.object(
-                BaseSetting, "save_config", new_callable=Mock
-            ) as mock_save_config:
+            with (
+                patch.object(settings, "ENCRYPT_KEY", new=AES128.generate_aes_key()),
+                patch.object(BaseSetting, "save_config", new_callable=Mock) as mock_save_config,
+            ):
                 result = await account.save_profile()
         self.assertTrue(result)
         mock_save_config.assert_not_called()

@@ -184,7 +184,6 @@ class GachaRecordDialog(Container):
 
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):
-
         if event.worker.name != "更新跃迁记录":
             return
 

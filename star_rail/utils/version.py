@@ -3,8 +3,10 @@ from itertools import zip_longest
 __all__ = ["get_version", "compare_versions", "get_version_tuple"]
 
 
-def get_version(version: tuple[int, ...]):
+def get_version(version: tuple[int, ...] = None):
     """(1, 0, 0) -> '1.0.0'"""
+    if version is None:
+        from star_rail import VERSION as version
     return ".".join(str(x) for x in version)
 
 

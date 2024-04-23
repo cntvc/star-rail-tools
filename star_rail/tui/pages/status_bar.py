@@ -58,7 +58,6 @@ class AccountStatus(Horizontal):
 
 
 class Notice(Static):
-
     def render(self) -> RenderableType:
         return "通知"
 

@@ -88,7 +88,6 @@ class NotificationItem(Horizontal):
 
 
 class NotificationList(VerticalScroll):
-
     def add(self, notification: HSRNotification):
         list_widget = self.query("NotificationItem")
         if 0 == len(list_widget):

@@ -31,7 +31,7 @@ class TestSettings(unittest.TestCase):
         settings.ENCRYPT_KEY = "test_salt"
         settings.save_config()
 
-        with open(self.config_path, "r") as config:
+        with open(self.config_path) as config:
             data = json.load(config)
         self.assertFalse(data["CHECK_UPDATE"])
         self.assertEqual(data["DEFAULT_UID"], "test_uid")
