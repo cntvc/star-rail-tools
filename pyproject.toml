@@ -18,11 +18,19 @@ dependencies = [
     "pycryptodome>=3.20.0",
 ]
 
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
 
 # PDM ====================================================================================
 
 [tool.pdm]
-distribution = false
+distribution = true
+
+[tool.pdm.build]
+includes = ["star_rail"]
+excludes = ["tests"]
 
 [tool.pdm.version]
 source = "call"
