@@ -24,7 +24,7 @@ pip install pdm
 cd star-rail-tools
 
 # 安装开发环境依赖包，这将为当前项目自动创建一个虚拟环境
-pdm install
+pdm sync
 ```
 
 ### 初始化 git hook（非常重要）

@@ -35,7 +35,7 @@ jobs:
           python-version: 3.11
           cache: true
       - name: Install dependencies
-        run: pdm install --with lint --no-default
+        run: pdm sync --with lint --no-default
       - name: Run lint
         run: pdm run lint
 
@@ -50,6 +50,6 @@ jobs:
           python-version: 3.11
           cache: true
       - name: Install dependencies
-        run: pdm install --with test
+        run: pdm sync --with test
       - name: Run pytest
         run: pdm run pytest

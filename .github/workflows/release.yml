@@ -22,7 +22,7 @@ jobs:
           python-version: 3.11
           cache: true
       - name: Install dependencies
-        run: pdm install --with release
+        run: pdm sync --with release
 
       - name: Build package
         run: |
