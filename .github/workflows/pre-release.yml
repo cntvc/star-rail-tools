@@ -20,16 +20,17 @@ jobs:
         with:
           python-version: 3.11
           cache: true
+
       - name: Install dependencies
         run: pdm sync --with release
-      - name: Get version
-        run: |
-          echo "project-version=$(pdm show --version)" >> $env:GITHUB_ENV
-      - run: |
-          echo "project-version=${{ env.project-version }}"
+
       - name: Build package
         run: |
           pdm run release_d
+
+      - name: Get version
+        run: |
+          echo "project-version=$(pdm show --version)" >> $env:GITHUB_ENV
 
       - name: Generate package name
         run: |
