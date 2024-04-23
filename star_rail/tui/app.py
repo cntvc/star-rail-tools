@@ -105,9 +105,9 @@ class HSRApp(App):
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = self.client.user.uid
             await self.query_one(MonthDialog).refresh_data()
-            self.query_one(GachaRecordDialog).analyze_result = (
-                await self.client.view_analysis_results()
-            )
+            self.query_one(
+                GachaRecordDialog
+            ).analyze_result = await self.client.view_analysis_results()
 
     @on(events.LoginAccount)
     @error_handler
@@ -197,7 +197,6 @@ class HSRApp(App):
         severity: SeverityLevel = "information",
         timeout: float = 3,
     ) -> None:
-
         notification = Notification(message, title, severity, timeout)
         self.post_message(Notify(notification))
         # 模态对话框发出通知，但是通知栏在下层屏幕，无法捕获消息

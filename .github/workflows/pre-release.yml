@@ -1,11 +1,10 @@
-name: Release
+name: Pre-release
 
 env:
   PROJECT_NAME: StarRailTools
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -31,7 +30,7 @@ jobs:
 
       - name: Generate package name
         run: |
-          echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
+          echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}_DEBUG" >> $env:GITHUB_ENV
 
       - name: Move and rename exe
         run: |
@@ -41,14 +40,10 @@ jobs:
         run: |
           Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Updload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PROJECT_NAME }} ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          files: |
+          name: ${{ env.file-name }}
+          path: |
             ${{ env.file-name }}.exe
             ${{ env.file-name }}.zip
-          fail_on_unmatched_files: true

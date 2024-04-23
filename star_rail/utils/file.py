@@ -11,6 +11,6 @@ def save_json(full_path: str | Path, data):
 
 
 def load_json(full_path: str | Path) -> dict:
-    with open(full_path, "r", encoding="UTF-8") as file:
+    with open(full_path, encoding="UTF-8") as file:
         data = json.load(file)
     return data

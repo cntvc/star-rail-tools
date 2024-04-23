@@ -138,13 +138,17 @@ class GachaRecordAnalyzer(BaseClient):
                 # 计算5星抽数列表（相邻5星的位置差
                 rank_5_count_list = [rank_5_raw_index[0]] + [
                     _next_index - _index
-                    for _index, _next_index in zip(rank_5_raw_index, rank_5_raw_index[1:])
+                    for _index, _next_index in zip(
+                        rank_5_raw_index, rank_5_raw_index[1:], strict=False
+                    )
                 ]
 
                 # 将5星列表与抽数列表对应
                 rank_5_item_list = [
                     StatisticItem(index=rank_5_index, **rank_5_item.model_dump())
-                    for rank_5_item, rank_5_index in zip(rank_5_list, rank_5_count_list)
+                    for rank_5_item, rank_5_index in zip(
+                        rank_5_list, rank_5_count_list, strict=False
+                    )
                 ]
 
             # 保底计数
@@ -188,9 +192,9 @@ class GachaRecordClient(BaseClient):
         elif source == "clipboard":
             return GachaUrlProvider().parse_clipboard_url()
         else:
-            assert (
-                False
-            ), f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
+            raise AssertionError(
+                f"Param value error. Expected value 'webcache' or 'clipboard', got [{source}]."
+            )
 
     async def refresh_gacha_record(self, source: typing.Literal["webcache", "clipboard"]):
         """刷新跃迁记录

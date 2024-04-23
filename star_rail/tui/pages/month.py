@@ -67,7 +67,7 @@ class MonthInfo(Grid):
         super().__init__(**kwargs)
         self.month_info = month_info
         # 这里是时间顺序
-        self.month_list = [month for month in sorted(self.month_info.keys())]
+        self.month_list = sorted(self.month_info.keys())
 
     def compose(self) -> ComposeResult:
         yield MonthList(self.month_list)

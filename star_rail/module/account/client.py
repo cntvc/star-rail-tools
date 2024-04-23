@@ -86,7 +86,7 @@ class AccountClient(BaseClient):
         elif self.user.game_biz == GameBiz.CN:
             cookie = await self._handle_cookie_cn(cookie)
         else:
-            assert False, "Invalid game_biz"
+            raise AssertionError("Invalid game_biz")
 
         if not cookie:
             return False

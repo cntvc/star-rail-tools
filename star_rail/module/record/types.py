@@ -14,7 +14,7 @@ class GachaRecordType(enum.StrEnum):
         for member in GachaRecordType.__members__.values():
             if member.value == val:
                 return member
-        assert False, f"Param value error, got [{val}]."
+        raise AssertionError(f"Param value error, got [{val}].")
 
 
 GACHA_TYPE_IDS: list[str] = [member.value for member in GachaRecordType]

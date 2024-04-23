@@ -23,7 +23,7 @@ def convert_to_record_item_mapper(
             batch_id=batch_id,
         )
     else:
-        assert False, (
+        raise AssertionError(
             "Param type error. Expected type 'list' or 'GachaRecordItemMapper',"
             f" got [{type(data)}]."
         )
@@ -49,7 +49,7 @@ def convert_to_record_item(
             item_type=data.item_type,
         )
     else:
-        assert False, (
+        raise AssertionError(
             "Param type error. Expected type 'list' or 'GachaRecordItemMapper',"
             f" got [{ type(data)}]."
         )

@@ -8,7 +8,6 @@ from typing import Optional
 import yarl
 
 from star_rail import constants
-from star_rail import exceptions as error
 from star_rail.module import Account
 from star_rail.module.game_client import GameClient
 from star_rail.utils.logger import logger
@@ -32,10 +31,7 @@ class GachaUrlProvider:
     def _copy_file_with_powershell(self, source_path, destination_path):
         powershell_command = f"Copy-Item '{source_path}' '{destination_path}'"
 
-        try:
-            subprocess.run(["powershell", powershell_command], check=True)
-        except subprocess.CalledProcessError:
-            raise error.HsrException("Copy web cache file error.")
+        subprocess.run(["powershell", powershell_command], check=True)
 
         return destination_path
 

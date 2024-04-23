@@ -107,7 +107,6 @@ class AccountList(Container):
 
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):
-
         if event.worker.name != "更新Cookie":
             return
 

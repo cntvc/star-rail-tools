@@ -25,7 +25,7 @@ class GameLogPath(str, enum.Enum):
         elif user.game_biz == GameBiz.GLOBAL:
             return Path(_MHY_LOG_ROOT_PATH, GameLogPath.GLOBAL.value, "Player.log")
         else:
-            assert False, f"Param value error, got [{user.game_biz}]."
+            raise AssertionError(f"Param value error, got [{user.game_biz}].")
 
 
 class GameClient(BaseClient):

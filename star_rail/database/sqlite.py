@@ -58,7 +58,7 @@ class ModelInfo(pydantic.BaseModel):
         table_name = getattr(model_cls, "__table_name__", None)
 
         if table_name is None:
-            assert False, (
+            raise AssertionError(
                 "DataBase model error. Model name variable not found, "
                 f"cls [{model_cls.__class__.__name__}]"
             )
@@ -86,7 +86,6 @@ class AsyncDBClient:
         self.sql_queue = deque(maxlen=20)
 
     async def connect(self):
-
         self.connection = await aiosqlite.connect(
             self.db_path, isolation_level=self._isolation_level
         )
@@ -149,7 +148,9 @@ class AsyncDBClient:
         elif mode == "update":
             mode = " or replace "
         else:
-            assert False, f"Param error. Expected 'ignore', 'update' or 'none', got [{mode}]"
+            raise AssertionError(
+                f"Param error. Expected 'ignore', 'update' or 'none', got [{mode}]"
+            )
 
         if isinstance(item_or_item_list, list):
             item_list = item_or_item_list
@@ -179,7 +180,7 @@ class AsyncDBClient:
             )
             cursor = await self.connection.execute(sql_statement, values)
         else:
-            assert False, (
+            raise AssertionError(
                 "Param type error. Expected type 'list' or 'DBModel',"
                 f"got [{type(item_or_item_list)}]."
             )
@@ -209,7 +210,9 @@ class AsyncDBClient:
                 data.append(t)
             return data
         else:
-            assert False, f"Param type error. Expected type 'list' or 'DBModel', got [{type(row)}]."
+            raise AssertionError(
+                f"Param type error. Expected type 'list' or 'DBModel', got [{type(row)}]."
+            )
 
 
 class DBManager:
