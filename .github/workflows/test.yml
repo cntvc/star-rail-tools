@@ -46,5 +46,5 @@ jobs:
           cache: true
       - name: Install dependencies
         run: pdm sync --with test
-      - name: Run pytest
-        run: pdm run pytest
+      - name: Run test
+        run: pdm run test
