@@ -9,13 +9,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "star_rail/**"
-      - "tests/**"
   pull_request:
-    paths:
-      - "star_rail/**"
-      - "tests/**"
+
 
 permissions:
   contents: read
@@ -51,5 +46,5 @@ jobs:
           cache: true
       - name: Install dependencies
         run: pdm sync --with test
-      - name: Run pytest
-        run: pdm run pytest
+      - name: Run test
+        run: pdm run test
