@@ -1,0 +1,49 @@
+name: Pre-release
+
+env:
+  PROJECT_NAME: StarRailTools
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: powershell
+
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: 3.11
+          cache: true
+      - name: Install dependencies
+        run: pdm install --with release
+
+      - name: Build package
+        run: |
+          pdm run release_d
+          pdm run release_f
+
+      - name: Generate package name
+        run: |
+          echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}_DEBUG" >> $env:GITHUB_ENV
+
+      - name: Move and rename exe
+        run: |
+          Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
+
+      - name: Archive folder
+        run: |
+          Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
+
+      - name: Updload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.file-name }}
+          path: |
+            ${{ env.file-name }}.exe
+            ${{ env.file-name }}.zip
