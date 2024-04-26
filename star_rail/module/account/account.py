@@ -127,6 +127,17 @@ class Account(BaseModel):
         cnt = await AccountMapper.add_account(account_mapper)
         return True if cnt else False
 
+    async def refresh_cookie(self):
+        """通过 Stoken 刷新其他 Cookie 值"""
+        if self.cookie.empty_stoken():
+            return False
+        await self.cookie.refresh_cookie_token(self.game_biz)
+        await self.save_profile()
+        return True
+
+    def update_cookie(self, cookie: Cookie):
+        self.cookie.update(cookie)
+
     @staticmethod
     def verify_uid(v):
         return isinstance(v, str) and _UID_RE.fullmatch(v) is not None

@@ -2,7 +2,7 @@ from star_rail.database import AsyncDBClient
 
 
 class AccountRepository:
-    async def delete_account(self, uid: int) -> None:
+    async def delete_account(self, uid: str) -> None:
         """Delete an account by ID."""
         async with AsyncDBClient() as db:
             await db.start_transaction()

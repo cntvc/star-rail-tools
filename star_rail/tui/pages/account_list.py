@@ -37,7 +37,7 @@ class AccountList(Container):
         uid_list_item = []
         for uid in new_uid_list:
             uid_list_item.append(ListItem(Static(uid), id=f"uid_{uid}"))
-        uid_list_widget.extend(uid_list_item)
+        await uid_list_widget.extend(uid_list_item)
 
         # 默认高亮当前账号或第一个账号
         client: HSRClient = self.app.client

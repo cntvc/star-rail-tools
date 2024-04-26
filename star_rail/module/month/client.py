@@ -87,9 +87,9 @@ class MonthInfoClient(BaseClient):
             cur_month_info_data = await self._fetch_month_info()
         except error.InvalidCookieError:
             # cookie_token 有效期比stoken短，因此尝试刷新一次
-            logger.debug("The cookie_token value has expired.")
-            await self.user.cookie.refresh_cookie_token(self.user.game_biz)
-            await self.user.save_profile()
+            logger.debug("The cookie_token has expired.")
+            if not await self.user.refresh_cookie():
+                raise error.InvalidCookieError() from None
             cur_month_info_data = await self._fetch_month_info()
 
         datas = [cur_month_info_data]

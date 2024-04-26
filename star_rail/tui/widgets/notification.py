@@ -58,7 +58,7 @@ class NotificationContent(Static):
         # circular import
         from star_rail.tui.screens.notification_detail import NotificationDetail
 
-        self.app.push_screen(NotificationDetail(self.notification))
+        await self.app.push_screen(NotificationDetail(self.notification))
 
 
 class NotificationItem(Horizontal):

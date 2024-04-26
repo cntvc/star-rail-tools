@@ -54,7 +54,7 @@ class GachaRecordRepository(BaseClient):
         from . import converter
 
         record_item_mapper_list = converter.convert_to_record_item_mapper(
-            gacha_record_list, info.batch_id
+            gacha_record_list, int(info.batch_id)
         )
 
         async with AsyncDBClient() as db:

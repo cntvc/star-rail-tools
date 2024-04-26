@@ -101,7 +101,7 @@ class MonthDialog(Container):
         event.stop()
         client: HSRClient = self.app.client
 
-        if client.user.cookie.empty():
+        if client.user.cookie.empty_cookie_token():
             self.notify("请设置Cookie后再试")
             return
         cnt = await client.refresh_month_info()
