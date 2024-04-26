@@ -186,8 +186,8 @@ class HSRApp(App):
         if len(self.task_queue) == 0:
             self.query_one(StatusBar).remove_progress_bar()
         else:
-            name = next(iter(self.app.workers))
-            self.query_one(StatusBar).update_progress_bar(name=name)
+            worker = next(iter(self.app.workers))
+            self.query_one(StatusBar).update_progress_bar(name=worker.name)
 
     def notify(
         self,

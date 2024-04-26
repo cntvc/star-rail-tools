@@ -72,7 +72,6 @@ class TaskStatus(Horizontal):
         yield ProgressBar(show_percentage=False, show_eta=False)
 
     def update(self, name: str):
-        self.name = name
         self.query_one("#task_name", Static).update(name)
 
 
