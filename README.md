@@ -11,8 +11,8 @@
 崩坏：星穹铁道小工具，可导出跃迁记录和开拓月历
 
 
-![cover](docs/image/star_rail_tools_cover.png) | ![cover_month_info](docs/image/month.png)
-|:------------: | :-------------|
+| ![cover](docs/image/star_rail_tools_cover.png) | ![cover_month_info](docs/image/month.png) |
+|:----------------------------------------------:|:------------------------------------------|
 
 ## 基本使用
 
@@ -34,19 +34,17 @@
 
   <details>
     <summary>Cookie 获取示例</summary>
-  <p>
 
   <p>
     <img src="docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
   </p>
 
-  </p>
   </details>
 
 ### 数据迁移
   本软件为 [UIGF](https://uigf.org) 组织成员，支持 `SRGF` 格式的跃迁记录文件导入导出
 
-  **导入 SRGF 格式数据**:
+  **导入 `SRGF` 格式数据**:
   将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击"导入数据"按钮即可
 
 
@@ -87,8 +85,8 @@
 
 ## 鸣谢
 
-- 早期开发的参考项目 [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
-- 分页查询模块 [**genshin.py**](https://github.com/thesadru/genshin.py)
+- 早期开发的参考项目 : [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
+- 分页查询模块 : [**genshin.py**](https://github.com/thesadru/genshin.py)
 
 ### JetBrains 开发工具
 特别感谢 [**JetBrains**](https://jb.gg/OpenSourceSupport) 为开源项目提供的开发许可证

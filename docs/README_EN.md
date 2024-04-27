@@ -11,15 +11,15 @@
 Honkai: Star Rail Tools, a small utility for exporting gacha records and exporting calendar.
 
 
-![cover](image/star_rail_tools_cover.png) | ![cover_month_info](image/month.png)
-|:------------: | :-------------|
+| ![cover](image/star_rail_tools_cover.png) | ![cover_month_info](image/month.png) |
+|:-----------------------------------------:|:-------------------------------------|
 
 
 ## Basic Usage
 
 ### Download Sources
 
-- [Github][latest_release]: has two releases
+- [GitHub][latest_release]: has two releases
   - zip suffix: folder compressed version, faster startup compared to the single-file version
   - exe suffix: single-file version
 - [Artifact Repository][coding_latest] (faster download in China, includes only the single-file version)
@@ -38,13 +38,11 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
 
   <details>
     <summary>Cookie Retrieval Example</summary>
-  <p>
 
   <p>
     <img src="../docs/image/web_cookie.png" alt="web cookie" height = 80% width = 80% align="middle">
   </p>
 
-  </p>
   </details>
 
 ### Data Migration
@@ -82,7 +80,7 @@ Place the data files you want to import into the "Import" folder. You can add mu
 ## Contributing
 Your contributions to this project are highly appreciated.
 
-- If you have new ideas or feature suggestions, please create a issue.
+- If you have new ideas or feature suggestions, please create an issue.
 - If you find any bugs in the software or would like to update the documentation, feel free to create a pull request.
 
 For more details, please refer to [CONTRIBUTING](../.github/CONTRIBUTING.md)
@@ -91,7 +89,7 @@ For more details, please refer to [CONTRIBUTING](../.github/CONTRIBUTING.md)
 ## Acknowledgments
 
 - Reference project for early development : [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
-- [Pagination module](../star_rail/core/paginator/) : [**genshin.py**](https://github.com/thesadru/genshin.py)
+- Pagination module : [**genshin.py**](https://github.com/thesadru/genshin.py)
 
 ### JetBrains Development Tools
 Thanks to JetBrains for providing development licenses for open-source projects.
