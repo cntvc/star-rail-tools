@@ -40,7 +40,7 @@ jobs:
         run: |
           Move-Item -Path .\dist\${{ env.PROJECT_NAME }} -Destination ${{ env.file-name }}
 
-      - name: Updload artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.file-name }}
