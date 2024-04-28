@@ -86,8 +86,8 @@ class AnalyzeResult(BaseModel):
 
 @dataclass
 class GachaRecordArchiveInfo:
-    uid: int
-    batch_id: str
+    uid: str
+    batch_id: int
     lang: str
     region_time_zone: int
     source: str

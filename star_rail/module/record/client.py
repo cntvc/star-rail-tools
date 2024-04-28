@@ -245,8 +245,8 @@ class GachaRecordClient(BaseClient):
 
         next_batch_id = await record_repository.get_next_batch_id()
         info = GachaRecordArchiveInfo(
-            uid=int(self.user.uid),
-            batch_id=str(next_batch_id),
+            uid=self.user.uid,
+            batch_id=next_batch_id,
             lang=lang,
             region_time_zone=region_time_zone,
             source=f"{APP_NAME}_{version}",
@@ -384,8 +384,8 @@ class GachaRecordClient(BaseClient):
 
         next_batch_id = await record_repository.get_next_batch_id()
         info = GachaRecordArchiveInfo(
-            uid=int(srgf_info.uid),
-            batch_id=str(next_batch_id),
+            uid=srgf_info.uid,
+            batch_id=next_batch_id,
             lang=srgf_info.lang,
             region_time_zone=srgf_info.region_time_zone,
             source=f"{srgf_info.export_app}_{srgf_info.export_app_version}",
