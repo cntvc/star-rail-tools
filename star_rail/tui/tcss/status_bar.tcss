@@ -22,6 +22,9 @@ StatusBar {
             ProgressBar{
                 width:15;
                 height:auto;
+                Bar{
+                    width: 100%;
+                }
             }
         }
     }
