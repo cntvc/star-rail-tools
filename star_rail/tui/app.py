@@ -12,7 +12,7 @@ from star_rail.module import HSRClient, Updater
 from star_rail.module.info import get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
-from star_rail.tui.widgets.notification import HSRNotification
+from star_rail.tui.widgets.notification import HSRNotification, NotificationList
 from star_rail.utils.logger import logger
 
 from .pages import (
@@ -68,7 +68,6 @@ class HSRApp(App):
         super().__init__()
         self.client = HSRClient(None)
         self.updater = Updater()
-        self.task_queue = set()
 
     def compose(self) -> ComposeResult:
         with Container():
@@ -173,21 +172,14 @@ class HSRApp(App):
 
     @on(events.TaskRunning)
     def handle_task_running(self, event: events.TaskRunning):
-        self.task_queue.add(event.name)
-        if status_bar := self.query(StatusBar):
-            status_bar.first().add_progress_bar(name=event.name)
+        self.query_one(StatusBar).add_task(event.worker)
 
     @on(events.TaskCancel)
     @on(events.TaskError)
     @on(events.TaskComplete)
-    def handle_task_complete(self, event: events.TaskComplete):
-        self.task_queue.remove(event.name)
-
-        if len(self.task_queue) == 0:
-            self.query_one(StatusBar).remove_progress_bar()
-        else:
-            worker = next(iter(self.app.workers))
-            self.query_one(StatusBar).update_progress_bar(name=worker.name)
+    def handle_task_done(self, event: events.TaskStatus):
+        status_bar = self.query_one(StatusBar)
+        status_bar.remove_task(event.worker)
 
     def notify(
         self,
@@ -197,9 +189,10 @@ class HSRApp(App):
         severity: SeverityLevel = "information",
         timeout: float = 3,
     ) -> None:
-        notification = Notification(message, title, severity, timeout)
+        notification = Notification(message, title, severity, timeout=timeout)
         self.post_message(Notify(notification))
-        # 模态对话框发出通知，但是通知栏在下层屏幕，无法捕获消息
-        # 因为对话框的通知一般是校验提示信息，这里不进行特殊处理，不加入通知栏
-        if notice_list := self.query("Sidebar > NotificationList"):
-            notice_list.first().add(HSRNotification(message))
+        # 模态对话框发出的通知不加入通知列表
+        if self.app.screen.is_modal:
+            return
+        notice_list = self.query_one("Sidebar > NotificationList", NotificationList)
+        notice_list.add(HSRNotification(message))

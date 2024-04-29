@@ -1,4 +1,5 @@
 from textual.message import Message
+from textual.worker import Worker
 
 
 class LoginAccount(Message, bubble=True):
@@ -30,9 +31,9 @@ class ShowLuckLevel(Message, bubble=True):
 
 
 class TaskStatus(Message, bubble=True):
-    def __init__(self, name) -> None:
+    def __init__(self, worker: Worker) -> None:
         super().__init__()
-        self.name = name
+        self.worker = worker
 
 
 class TaskRunning(TaskStatus):

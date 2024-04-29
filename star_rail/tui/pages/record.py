@@ -191,7 +191,8 @@ class GachaRecordDialog(Container):
             WorkerState.RUNNING: events.TaskRunning,
             WorkerState.SUCCESS: events.TaskComplete,
             WorkerState.ERROR: events.TaskError,
+            WorkerState.CANCELLED: events.TaskCancel,
         }
 
         if event_type := state_to_event.get(event.state):
-            self.post_message(event_type(event.worker.name))
+            self.post_message(event_type(event.worker))

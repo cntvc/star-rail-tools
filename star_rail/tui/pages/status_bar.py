@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from rich.console import RenderableType
 from textual import events as textual_events
 from textual import work
@@ -5,6 +7,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.reactive import reactive
 from textual.widgets import ProgressBar, Static
+from textual.worker import Worker
 
 from star_rail.module import HSRClient
 from star_rail.tui import events as hsr_events
@@ -71,23 +74,36 @@ class TaskStatus(Horizontal):
         yield Static(self.name, id="task_name")
         yield ProgressBar(show_percentage=False, show_eta=False)
 
-    def update(self, name: str):
-        self.query_one("#task_name", Static).update(name)
-
 
 class StatusBar(Horizontal):
+    task_queue: OrderedDict[str, Worker] = OrderedDict()
+
     def compose(self) -> ComposeResult:
         yield AccountStatus()
         yield Horizontal(id="progress_status")
         yield Notice()
 
-    def add_progress_bar(self, **kwargs):
-        self.query_one("#progress_status", Horizontal).mount(TaskStatus(**kwargs))
+    def add_task(self, worker: Worker):
+        self.task_queue[worker.name] = worker
+        self._remove_progress_bar()
+        self._add_progress_bar(worker)
 
-    def remove_progress_bar(self):
-        self.query_one("#progress_status > TaskStatus", TaskStatus).remove()
+    def remove_task(self, worker: Worker):
+        if worker.name in self.task_queue:
+            del self.task_queue[worker.name]
 
-    def update_progress_bar(self, name: str):
-        task_bar = self.query_one("#progress_status", Horizontal)
-        if task_status := task_bar.query(TaskStatus):
-            task_status.first().update(name)
+        self._remove_progress_bar()
+        if len(self.task_queue) != 0:
+            try:
+                task_name = next(iter(self.task_queue))
+            except StopIteration:
+                # 防止不同事件循环的 task_queue 不同步导致的异常
+                return
+            self._add_progress_bar(self.task_queue[task_name])
+
+    def _remove_progress_bar(self):
+        self.query("#progress_status > TaskStatus").remove()
+
+    def _add_progress_bar(self, worker: Worker):
+        self.query("#progress_status > TaskStatus").remove()
+        self.query_one("#progress_status", Horizontal).mount(TaskStatus(name=worker.name))
