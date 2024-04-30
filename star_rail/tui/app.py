@@ -187,9 +187,10 @@ class HSRApp(App):
         *,
         title: str = "",
         severity: SeverityLevel = "information",
-        timeout: float = 3,
+        timeout: int,  # 该参数用于widget的notify方法占位，实际并不使用
     ) -> None:
-        notification = Notification(message, title, severity, timeout=timeout)
+        # 通知固定显示3秒
+        notification = Notification(message, title=title, severity=severity, timeout=3)
         self.post_message(Notify(notification))
         # 模态对话框发出的通知不加入通知列表
         if self.app.screen.is_modal:
