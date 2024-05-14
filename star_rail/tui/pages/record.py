@@ -59,7 +59,7 @@ class RecordDetail(Container):
                             Panel(
                                 f"{i}. {item.name} : {item.index}抽",
                                 expand=True,
-                                style=self._gacha_item_color(item.index),
+                                style=self._gacha_item_color(result.gacha_type, item.index),
                             )
                             for i, item in enumerate(result.rank_5, start=1)
                         ]
@@ -67,14 +67,14 @@ class RecordDetail(Container):
                             Panel(
                                 f"{len(rank_5_list)+1}. 保底计数 : {result.pity_count}抽",
                                 expand=True,
-                                style=self._gacha_item_color(),
+                                style=self._gacha_item_color(result.gacha_type),
                             )
                         )
                         if settings.REVERSE_GACHA_RECORD:
                             rank_5_list.reverse()
                         yield Static(Columns(rank_5_list))
 
-    def _gacha_item_color(self, count: int = None):
+    def _gacha_item_color(self, gacha_type: str, count: int = None):
         """根据抽数进行着色"""
         if not settings.SHOW_LUCK_LEVEL:
             return "none"
@@ -83,7 +83,15 @@ class RecordDetail(Container):
             # 默认颜色
             return Color.BLUE
 
-        if count < 70:
+        # 数据统计来源 https://starrailstation.com/cn
+        if gacha_type == GachaRecordType.STARTER_WARP.value:
+            luck_count = 50
+        elif gacha_type == GachaRecordType.LIGHT_CONE_EVENT_WARP.value:
+            luck_count = 67
+        else:
+            luck_count = 74
+
+        if count < luck_count:
             return Color.GREEN
         else:
             return Color.RED
