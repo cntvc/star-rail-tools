@@ -112,6 +112,8 @@ class MonthDialog(Container):
         client: HSRClient = self.app.client
         month_info_list = await client.get_month_info_history()
         self.month_info = {item.month: item for item in month_info_list}
+        for item in self.month_info.values():
+            item.source.sort(key=lambda x: x.action)
 
     def watch_month_info(self, new: list[MonthInfoItem]):
         def remove_widgets():
