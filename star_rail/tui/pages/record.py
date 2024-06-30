@@ -104,8 +104,8 @@ class GachaRecordDialog(Container):
         with Grid():
             yield SimpleButton("刷新记录", id="refresh_with_cache")
             yield SimpleButton("导入数据", id="import")
-            yield SimpleButton("生成Execl", id="export_execl")
-            yield SimpleButton("生成SRGF", id="export_srgf")
+            yield SimpleButton("导出Execl", id="export_execl")
+            yield SimpleButton("导出JSON", id="export_srgf")
 
     async def reverse_record(self):
         """反转跃迁记录"""
