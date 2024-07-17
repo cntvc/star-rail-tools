@@ -17,7 +17,7 @@ from .model import BaseGachaRecordItem, GachaRecordItem
 __all__ = ["convert_to_gacha_record_data", "convert_to_srgf"]
 
 
-SRGF_VERSION = (1, 0)
+SRGF_VERSION = (1, 0, 0, "final", 0)
 
 
 def get_srgf_version(srgf_version):
