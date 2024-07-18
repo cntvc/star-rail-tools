@@ -87,7 +87,7 @@ class EmptyData(Static):
         return apply_text_color(EMPTY_DATA)
 
 
-class MonthDialog(Container):
+class MonthView(Container):
     month_info: dict[str, MonthInfoItem] = reactive({})
 
     def compose(self) -> ComposeResult:

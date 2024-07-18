@@ -1,4 +1,4 @@
-GachaRecordDialog {
+GachaRecordView {
     align-horizontal:center;
     margin:1;
     Grid {

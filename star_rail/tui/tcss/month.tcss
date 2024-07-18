@@ -1,4 +1,4 @@
-MonthDialog {
+MonthView {
     margin: 1;
     align-horizontal:center;
 

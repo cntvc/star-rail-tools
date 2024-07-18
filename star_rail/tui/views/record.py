@@ -97,7 +97,7 @@ class RecordDetail(Container):
             return Color.RED
 
 
-class GachaRecordDialog(Container):
+class GachaRecordView(Container):
     analyze_result: reactive[AnalyzeResult] = reactive(None, layout=True)
 
     def compose(self) -> ComposeResult:

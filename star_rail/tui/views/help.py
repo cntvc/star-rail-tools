@@ -42,7 +42,7 @@ LINK_RELEASE = (
 )
 
 
-class HelpMenual(VerticalScroll):
+class HelpManual(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Static("Star Rail Tools", id="title")
         with Container(id="content"):

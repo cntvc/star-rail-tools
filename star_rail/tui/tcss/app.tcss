@@ -45,6 +45,6 @@ NavTab {
     }
 }
 
-MainDialog {
+MainView {
     border: heavy #81a1c1;
 }

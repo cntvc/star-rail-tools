@@ -15,17 +15,17 @@ from star_rail.tui.handler import error_handler
 from star_rail.tui.widgets.notification import HSRNotification, NotificationList
 from star_rail.utils.logger import logger
 
-from .pages import (
+from .screens import CreateAccountScreen
+from .views import (
     AccountList,
-    ConfigDialog,
+    ConfigView,
     CurrentUID,
-    GachaRecordDialog,
-    HelpMenual,
-    MonthDialog,
+    GachaRecordView,
+    HelpManual,
+    MonthView,
     Sidebar,
     StatusBar,
 )
-from .screens import CreateAccountScreen
 
 
 class Navigation(Container):
@@ -34,10 +34,10 @@ class Navigation(Container):
 
 class NavTab(Static):
     def on_click(self):
-        self.app.query_one(MainDialog).current = self.id
+        self.app.query_one(MainView).current = self.id
 
 
-class MainDialog(ContentSwitcher):
+class MainView(ContentSwitcher):
     pass
 
 
@@ -76,11 +76,11 @@ class HSRApp(App):
                 yield NavTab("开拓月历", id="month")
                 yield NavTab("设置", id="config")
                 yield NavTab("帮助", id="help")
-            with MainDialog(initial="gacha_record"):
-                yield GachaRecordDialog(id="gacha_record")
-                yield MonthDialog(id="month")
-                yield ConfigDialog(id="config")
-                yield HelpMenual(id="help")
+            with MainView(initial="gacha_record"):
+                yield GachaRecordView(id="gacha_record")
+                yield MonthView(id="month")
+                yield ConfigView(id="config")
+                yield HelpManual(id="help")
             yield AccountList(id="account_manager", classes="-hidden")
             yield Sidebar(classes="-hidden")
         yield StatusBar()
@@ -103,9 +103,9 @@ class HSRApp(App):
     async def _refresh_account_data(self):
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = self.client.user.uid
-            await self.query_one(MonthDialog).refresh_data()
+            await self.query_one(MonthView).refresh_data()
             self.query_one(
-                GachaRecordDialog
+                GachaRecordView
             ).analyze_result = await self.client.view_analysis_results()
 
     @on(events.LoginAccount)
@@ -125,8 +125,8 @@ class HSRApp(App):
         self.app.workers.cancel_group(self.app, "default")
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = ""
-            self.query_one(MonthDialog).month_info_list = []
-            self.query_one(GachaRecordDialog).analyze_result = None
+            self.query_one(MonthView).month_info_list = []
+            self.query_one(GachaRecordView).analyze_result = None
 
     @on(events.UpdateAccountList)
     @error_handler
@@ -141,11 +141,11 @@ class HSRApp(App):
 
     @on(events.ReverseGachaRecord)
     async def handle_reverse_gacha_record(self):
-        await self.query_one(GachaRecordDialog).reverse_record()
+        await self.query_one(GachaRecordView).reverse_record()
 
     @on(events.ShowLuckLevel)
     async def handle_show_luck_level(self):
-        await self.query_one(GachaRecordDialog).show_luck_level()
+        await self.query_one(GachaRecordView).show_luck_level()
 
     def action_toggle_sidebar(self):
         sidebar = self.query_one(Sidebar)
@@ -187,12 +187,12 @@ class HSRApp(App):
         *,
         title: str = "",
         severity: SeverityLevel = "information",
-        timeout: int,  # 该参数用于widget的notify方法占位，实际并不使用
+        timeout: float = Notification.timeout,
     ) -> None:
-        # 通知固定显示3秒
+        # 通知固定显示3秒，这里不使用传入的 timeout 参数是由于调用时 widget 基类的 notify 方法会覆盖该值
         notification = Notification(message, title=title, severity=severity, timeout=3)
         self.post_message(Notify(notification))
-        # 模态对话框发出的通知不加入通知列表
+
         if self.app.screen.is_modal:
             return
         notice_list = self.query_one("Sidebar > NotificationList", NotificationList)

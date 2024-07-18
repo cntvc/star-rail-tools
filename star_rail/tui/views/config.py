@@ -7,7 +7,7 @@ from star_rail.config import settings
 from star_rail.tui.events import ReverseGachaRecord, ShowLuckLevel
 
 
-class ConfigDialog(Container):
+class ConfigView(Container):
     def compose(self) -> ComposeResult:
         yield ConfigSwitchItem(
             switch_id="CHECK_UPDATE", desc="自动检测更新", status=settings.CHECK_UPDATE
