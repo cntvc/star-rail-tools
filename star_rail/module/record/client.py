@@ -238,11 +238,22 @@ class GachaRecordClient(BaseClient):
             return cnt
 
         next_batch_id = await record_repository.get_next_batch_id()
+        latest_batch_record = await record_repository.get_latest_batch()
+        timezone = latest_batch_record.region_time_zone
+
+        def convert_timezone(data: list[GachaRecordItem], from_tz: int, target_tz: int):
+            if from_tz == target_tz:
+                return
+            for item in data:
+                item.time = Date.convert_timezone(item.time, from_tz, target_tz)
+
+        convert_timezone(need_insert, region_time_zone, timezone)
+
         info = GachaRecordArchiveInfo(
             uid=self.user.uid,
             batch_id=next_batch_id,
             lang=lang,
-            region_time_zone=region_time_zone,
+            region_time_zone=timezone,
             source=f"{APP_NAME}_{version}",
         )
         cnt = await record_repository.insert_gacha_record(need_insert, info)
