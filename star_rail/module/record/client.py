@@ -1,3 +1,4 @@
+import asyncio
 import bisect
 import functools
 import os
@@ -19,7 +20,7 @@ from star_rail.utils.logger import logger
 
 from ..base import BaseClient
 from ..web import CursorPaginator, MergedPaginator, Paginator, request
-from . import srgf, types
+from . import srgf, types, uigf
 from .gacha_url import GachaUrlProvider
 from .model import (
     AnalyzeResult,
@@ -226,13 +227,6 @@ class GachaRecordClient(BaseClient):
         # 反转后为从小到大排序
         gacha_item_list.reverse()
 
-        # 新增数据插入到数据库：
-        # 首先查询批次表，获取下一个批次ID
-        # 根据UID从数据库查询出最大的一条记录
-        #     如果无记录，直接全部插入
-        #     有记录，比较id后只对数据库插入不存在的条目
-        # 根据插入操作返回的数量，生成 时间、数据来源、服务器时区、语言等信息，插入到 批次表
-
         if latest_record_item:
             index = bisect.bisect_right(gacha_item_list, latest_record_item)
             need_insert = gacha_item_list[index:]
@@ -259,10 +253,7 @@ class GachaRecordClient(BaseClient):
         return cnt
 
     async def export_to_execl(self):
-        """导出所有数据到ExecL
-
-        即使账号无数据也会正常导出
-        """
+        """导出所有数据到ExecL"""
         logger.debug("Export gacha record to Execl.")
         record_repository = GachaRecordRepository(self.user)
 
@@ -270,7 +261,6 @@ class GachaRecordClient(BaseClient):
         os.makedirs(self.user.gacha_record_xlsx_path.parent.as_posix(), exist_ok=True)
         workbook = xlsxwriter.Workbook(self.user.gacha_record_xlsx_path.as_posix())
 
-        # 初始化单元格样式
         content_css = workbook.add_format(
             {
                 "align": "left",
@@ -377,55 +367,170 @@ class GachaRecordClient(BaseClient):
         file.save_json(self.user.srgf_path, srgf_data.model_dump())
         return True
 
-    async def _process_srgf_data(self, file_data: srgf.SRGFData):
-        logger.debug("SRGF info:{}", file_data.info.model_dump_json())
+    async def export_to_uigf(self):
+        logger.debug("Export gacha record to UIGF")
         record_repository = GachaRecordRepository(self.user)
-        item_list, srgf_info = srgf.convert_to_gacha_record_data(file_data)
+        gacha_record_list = await record_repository.get_all_gacha_record()
+        if not gacha_record_list:
+            return False
+        record_batch = await record_repository.get_latest_batch()
+        uigf_data = uigf.convert_to_uigf(gacha_record_list, record_batch)
+        file.save_json(self.user.uigf_path, uigf_data.model_dump())
+        return True
 
+    async def _handle_srgf_data(self, srgf_data: srgf.SRGFData, timezone: int):
+        logger.debug("SRGF info:{}", srgf_data.info.model_dump_json())
+        if not srgf_data.list:
+            return 0
+        record_repository = GachaRecordRepository(self.user)
         next_batch_id = await record_repository.get_next_batch_id()
+
+        def convert_timezone(data: srgf.SRGFData, target_tz: int):
+            if data.info.region_time_zone == target_tz:
+                return
+            from_tz = data.info.region_time_zone
+            for item in data.list:
+                item.time = Date.convert_timezone(item.time, from_tz, target_tz)
+            data.info.region_time_zone = target_tz
+            return
+
+        region_timezone = timezone
+        if next_batch_id > 1:
+            # 时区与第一个记录保持一致
+            latest_batch_record = await record_repository.get_latest_batch()
+            region_timezone = latest_batch_record.region_time_zone
+
+        convert_timezone(srgf_data, region_timezone)
+
+        item_list, srgf_info = srgf.convert_to_gacha_record_data(srgf_data)
         info = GachaRecordArchiveInfo(
             uid=srgf_info.uid,
             batch_id=next_batch_id,
             lang=srgf_info.lang,
-            region_time_zone=srgf_info.region_time_zone,
+            region_time_zone=region_timezone,
             source=f"{srgf_info.export_app}_{srgf_info.export_app_version}",
         )
         return await record_repository.insert_gacha_record(item_list, info)
 
-    async def import_srgf_data(self):
-        """导入SRGF数据
+    async def _handle_uigf_data(self, uigf_data: uigf.UIGFModel, timezone: int):
+        record = uigf_data.hkrpg[0]
+        if not record.list:
+            return 0
 
-        Return:
-            成功导入的数据数量"""
-        logger.debug("Import SRGF.")
+        logger.debug(
+            "UIGF info: uid:{}, timezone:{}, export_app:{}, export_app_version:{}, uigf_version:{}",
+            record.uid,
+            record.timezone,
+            uigf_data.info.export_app,
+            uigf_data.info.export_app_version,
+            uigf_data.info.version,
+        )
+        record_repository = GachaRecordRepository(self.user)
+        next_batch_id = await record_repository.get_next_batch_id()
+
+        def convert_timezone(data: uigf.UIGFModel, target_tz: int):
+            _record = data.hkrpg[0]
+            if _record.timezone == target_tz:
+                return
+
+            from_tz = _record.timezone
+            for item in _record.list:
+                item.time = Date.convert_timezone(item.time, from_tz, target_tz)
+            _record.timezone = target_tz
+            return
+
+        region_timezone = timezone
+        if next_batch_id > 1:
+            # 时区与第一个记录保持一致
+            latest_batch_record = await record_repository.get_latest_batch()
+            region_timezone = latest_batch_record.region_time_zone
+        convert_timezone(uigf_data, region_timezone)
+
+        info = GachaRecordArchiveInfo(
+            uid=record.uid,
+            batch_id=next_batch_id,
+            lang=record.lang,
+            region_time_zone=region_timezone,
+            source=f"{uigf_data.info.export_app}_{uigf_data.info.export_app_version}",
+        )
+
+        item_list = [
+            GachaRecordItem(uid=record.uid, lang=record.lang, **item.model_dump())
+            for item in record.list
+        ]
+        return await record_repository.insert_gacha_record(item_list, info)
+
+    def _validate_srgf_data(self, srgf_data: dict):
+        logger.debug("validate srgf data")
+        try:
+            srgf_data = srgf.SRGFData.model_validate(srgf_data)
+        except pydantic.ValidationError:
+            return False
+        else:
+            if srgf_data.info.uid != self.user.uid:
+                return False
+        return srgf_data
+
+    def _validate_uigf_data(self, uigf_data: dict):
+        logger.debug("validate uigf data")
+        try:
+            uigf_data = uigf.UIGFModel.model_validate(uigf_data)
+        except pydantic.ValidationError:
+            return False
+        else:
+            uigf_data.hkrpg = [record for record in uigf_data.hkrpg if record.uid == self.user.uid]
+            if not uigf_data.hkrpg:
+                return False
+        return uigf_data
+
+    async def import_gacha_record(self):
+        logger.debug("Import gacha record.")
         import_data_path = constants.IMPORT_DATA_PATH
+
         file_list = [
             name
             for name in os.listdir(import_data_path)
             if os.path.isfile(os.path.join(import_data_path, name)) and name.endswith(".json")
         ]
         invalid_file_list = []
+        tasks = []
         cnt = 0
 
+        region_timezone = None
         for file_name in file_list:
             file_path = os.path.join(import_data_path, file_name)
             data = file.load_json(file_path)
-            try:
-                srgf_data = srgf.SRGFData.model_validate(data)
-            except pydantic.ValidationError:
-                invalid_file_list.append(file_name)
-                continue
-            if srgf_data.info.uid != self.user.uid:
+            if "info" not in data or (
+                "srgf_version" not in data["info"] and "version" not in data["info"]
+            ):
                 invalid_file_list.append(file_name)
                 continue
 
-            cnt += await self._process_srgf_data(srgf_data)
+            if "srgf_version" in data["info"]:
+                if srgf_data := self._validate_srgf_data(data):
+                    region_timezone = region_timezone or srgf_data.info.region_time_zone
+                    tasks.append(self._handle_srgf_data(srgf_data, region_timezone))
+                else:
+                    invalid_file_list.append(file_name)
+                continue
+
+            if "version" in data["info"]:
+                if uigf_data := self._validate_uigf_data(data):
+                    region_timezone = region_timezone or uigf_data.hkrpg[0].timezone
+                    tasks.append(self._handle_uigf_data(uigf_data, region_timezone))
+                else:
+                    invalid_file_list.append(file_name)
+                continue
+
+        if tasks:
+            results = await asyncio.gather(*tasks)
+            cnt = sum(results)
 
         if cnt:
             await GachaRecordAnalyzer(self.user).refresh_analyze_result()
         logger.debug("{} new records added.", cnt)
         return cnt, invalid_file_list
 
-    async def view_analysis_results(self):
+    async def display_analysis_results(self):
         analyzer = GachaRecordAnalyzer(self.user)
         return await analyzer.load_analyze_result()

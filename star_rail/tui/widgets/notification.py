@@ -1,5 +1,6 @@
 import random
 import string
+from datetime import datetime
 from uuid import uuid4
 
 from textual import events, on
@@ -26,15 +27,15 @@ class HSRNotification:
     clickable: bool = True
 
     def __init__(self, notification: str, title: str = "", clickable: bool = True):
-        _time = Date.now()
+        _time = datetime.now()
         self.timestamp = int(_time.timestamp())
         self.time = Date.format_time(_time)
         self.content = notification
         self.title = title
-        self.id = self.genetate_id()
+        self.id = self.generate_id()
         self.clickable = clickable
 
-    def genetate_id(self):
+    def generate_id(self):
         prefix = random.choice(string.ascii_letters)
         uuid_str = str(uuid4())
         # 确保id不以数字开头

@@ -106,7 +106,7 @@ class HSRApp(App):
             await self.query_one(MonthView).refresh_data()
             self.query_one(
                 GachaRecordView
-            ).analyze_result = await self.client.view_analysis_results()
+            ).analyze_result = await self.client.display_analysis_results()
 
     @on(events.LoginAccount)
     @error_handler
