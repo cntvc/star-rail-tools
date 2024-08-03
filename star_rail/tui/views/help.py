@@ -30,8 +30,12 @@ MANUAL_PART_3 = [
     r"""[G]● 3.[/G] 按照上面步骤切换为对应账号""",
     r"""[G]● 4.[/G] 点击左下角 "UID: xx" > "更新 Cookie" """,
     r"""[G]● 5.[/G] 等待 Cookie 解析完成""",
+    r"",
 ]
 
+UIGF_LINK = [
+    r"""[M]● [/M]有关 UIGF/SRGF 格式信息，请访问 UIGF-org [@click="app.open_link('https://uigf.org/zh/')"]官网[/]"""
+]
 
 LINK_REPO = """[@click="app.open_link('https://github.com/cntvc/star-rail-tools')"]项目主页[/]"""
 LINK_ISSUE = (
@@ -59,6 +63,7 @@ class HelpManual(VerticalScroll):
                 )
                 yield SimpleButton("复制", id="copy")
             yield Static(apply_text_color(MANUAL_PART_3), id="part_3")
+            yield Static(apply_text_color(UIGF_LINK), id="part_4")
         with Grid(id="footer"):
             yield Static(apply_text_color([f"软件版本: [G]{__version__}[/G]"]))
             yield Static(LINK_REPO)
