@@ -12,7 +12,7 @@ from star_rail import __version__ as version
 from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.constants import APP_NAME
-from star_rail.module import BaseMetadata, HakushMetadata, routes
+from star_rail.module import BaseMetadata, routes
 from star_rail.module.types import GameBiz
 from star_rail.utils import file
 from star_rail.utils.date import Date
@@ -188,13 +188,7 @@ class GachaRecordAnalyzer(BaseClient):
 
 class GachaRecordClient(BaseClient):
     metadata: BaseMetadata
-    metadata_is_updated: bool
-
-    def __init__(self, user, metadata: BaseMetadata = None):
-        BaseClient.__init__(self, user)
-        if metadata is None:
-            self.metadata = HakushMetadata()
-        self.metadata_is_updated = False
+    metadata_is_updated: bool = False
 
     def _parse_url(self, source: typing.Literal["webcache", "clipboard"]):
         if source == "webcache":
