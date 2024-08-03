@@ -1,3 +1,5 @@
+import traceback
+
 from rich.columns import Columns
 from rich.console import RenderableType
 from rich.markdown import Markdown
@@ -17,6 +19,7 @@ from star_rail.tui import events
 from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.screens import ExportJsonScreen
 from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
+from star_rail.utils.logger import logger
 
 RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}"""
 EMPTY_DATA = [
@@ -143,10 +146,19 @@ class GachaRecordView(Container):
     async def handle_refresh_with_webcache(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
-        await client.update_metadata()
+
+        try:
+            await client.update_metadata()
+        except Exception:
+            self.notify("元数据更新失败", severity="warning")
+            logger.debug(traceback.format_exc())
+
         cnt = await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.display_analysis_results()
-        self.notify(f"新增{cnt}条记录")
+        if cnt:
+            self.notify(f"新增{cnt}条记录")
+        else:
+            self.notify("无新记录")
 
     @on(SimpleButton.Pressed, "#import")
     @work()
@@ -155,6 +167,13 @@ class GachaRecordView(Container):
     async def handle_import_srgf(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
+
+        try:
+            await client.update_metadata()
+        except Exception:
+            self.notify("元数据更新失败", severity="warning")
+            logger.debug(traceback.format_exc())
+
         cnt, failed_list = await client.import_gacha_record()
         if cnt:
             self.notify(f"本次导入新增{cnt}条记录")
@@ -163,10 +182,7 @@ class GachaRecordView(Container):
             self.notify("本次导入无新增数据")
 
         if failed_list:
-            self.notify(
-                f"有{len(failed_list)}个文件导入失败\n---\n"
-                + "\n".join([f"- {name}" for name in failed_list])
-            )
+            self.notify("文件导入失败\n---\n" + "\n".join([f"- {name}" for name in failed_list]))
 
     @on(SimpleButton.Pressed, "#export_execl")
     @work()
