@@ -41,19 +41,19 @@ class UIGFRecordItem(BaseModel):
     gacha_id: str
     gacha_type: str
     item_id: str
-    count: str = ""
+    count: str = "-"
     time: str
     """抽取物品时对应时区（timezone）下的当地时间"""
-    name: str = ""
-    item_type: str = ""
-    rank_type: str = ""
+    name: str = "-"
+    item_type: str = "-"
+    rank_type: str = "-"
     id: str
 
 
 class UIGFRecord(BaseModel):
     uid: str
     timezone: int
-    lang: str = ""
+    lang: str = "-"
     list: list[UIGFRecordItem]
 
 

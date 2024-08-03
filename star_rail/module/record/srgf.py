@@ -54,7 +54,7 @@ class SRGFInfo(BaseModel):
 
 
 class SRGFRecordItem(BaseGachaRecordItem):
-    count: str = "1"
+    count: str = "-"
     name: str = "-"
     rank_type: str = "-"
     item_type: str = "-"

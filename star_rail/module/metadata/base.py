@@ -1,7 +1,7 @@
 import typing
 from pathlib import Path
 
-MetadataAttr: typing.TypeAlias = typing.Literal["information", "warning", "error"]
+MetadataAttr: typing.TypeAlias = typing.Literal["name", "rank_type", "item_type"]
 
 
 class BaseMetadata:
