@@ -66,7 +66,7 @@ class HSRApp(App):
 
     def __init__(self):
         super().__init__()
-        self.client = HSRClient(None)
+        self.client = HSRClient()
         self.updater = Updater()
 
     def compose(self) -> ComposeResult:

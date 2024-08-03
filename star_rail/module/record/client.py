@@ -12,7 +12,7 @@ from star_rail import __version__ as version
 from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.constants import APP_NAME
-from star_rail.module import routes
+from star_rail.module import BaseMetadata, HakushMetadata, routes
 from star_rail.module.types import GameBiz
 from star_rail.utils import file
 from star_rail.utils.date import Date
@@ -187,6 +187,15 @@ class GachaRecordAnalyzer(BaseClient):
 
 
 class GachaRecordClient(BaseClient):
+    metadata: BaseMetadata
+    metadata_is_updated: bool
+
+    def __init__(self, user, metadata: BaseMetadata = None):
+        super().__init__(user)
+        if metadata is None:
+            self.metadata = HakushMetadata()
+        self.metadata_is_updated = False
+
     def _parse_url(self, source: typing.Literal["webcache", "clipboard"]):
         if source == "webcache":
             return GachaUrlProvider().parse_game_web_cache(self.user)
@@ -389,6 +398,16 @@ class GachaRecordClient(BaseClient):
         file.save_json(self.user.uigf_path, uigf_data.model_dump())
         return True
 
+    def _update_records_metadata(self, records: list[GachaRecordItem]):
+        def update_item(item: GachaRecordItem):
+            attrs = ["name", "rank_type", "item_type"]
+            for attr in attrs:
+                if getattr(item, attr) == "-":
+                    setattr(item, attr, self.metadata.get(item.item_id, attr))
+
+        for record in records:
+            update_item(record)
+
     async def _handle_srgf_data(self, srgf_data: srgf.SRGFData, timezone: int):
         logger.debug("SRGF info:{}", srgf_data.info.model_dump_json())
         if not srgf_data.list:
@@ -421,6 +440,9 @@ class GachaRecordClient(BaseClient):
             region_time_zone=region_timezone,
             source=f"{srgf_info.export_app}_{srgf_info.export_app_version}",
         )
+
+        self._update_records_metadata(item_list)
+
         return await record_repository.insert_gacha_record(item_list, info)
 
     async def _handle_uigf_data(self, uigf_data: uigf.UIGFModel, timezone: int):
@@ -469,6 +491,7 @@ class GachaRecordClient(BaseClient):
             GachaRecordItem(uid=record.uid, lang=record.lang, **item.model_dump())
             for item in record.list
         ]
+        self._update_records_metadata(item_list)
         return await record_repository.insert_gacha_record(item_list, info)
 
     def _validate_srgf_data(self, srgf_data: dict):
@@ -545,3 +568,8 @@ class GachaRecordClient(BaseClient):
     async def display_analysis_results(self):
         analyzer = GachaRecordAnalyzer(self.user)
         return await analyzer.load_analyze_result()
+
+    async def update_metadata(self):
+        if not self.metadata_is_updated:
+            await self.metadata.update()
+            self.metadata_is_updated = True

@@ -143,6 +143,7 @@ class GachaRecordView(Container):
     async def handle_refresh_with_webcache(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
+        await client.update_metadata()
         cnt = await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.display_analysis_results()
         self.notify(f"新增{cnt}条记录")
