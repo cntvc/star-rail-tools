@@ -191,7 +191,7 @@ class GachaRecordClient(BaseClient):
     metadata_is_updated: bool
 
     def __init__(self, user, metadata: BaseMetadata = None):
-        super().__init__(user)
+        BaseClient.__init__(self, user)
         if metadata is None:
             self.metadata = HakushMetadata()
         self.metadata_is_updated = False

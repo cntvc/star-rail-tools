@@ -19,9 +19,9 @@ __all__ = ["HSRClient", "Updater", "HakushMetadata"]
 
 
 class HSRClient(AccountClient, GachaRecordClient, MonthInfoClient):
-    def __init__(self, user: Account = None, metadata: BaseMetadata = None):
+    def __init__(self, user: Account = None, _metadata: BaseMetadata = None):
         AccountClient.__init__(self, user)
-        GachaRecordClient.__init__(self, user, metadata)
+        GachaRecordClient.__init__(self, user, _metadata)
         MonthInfoClient.__init__(self, user)
 
     async def start(self):
