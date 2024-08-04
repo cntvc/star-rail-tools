@@ -41,7 +41,7 @@ class UIGFRecordItem(BaseModel):
     gacha_id: str
     gacha_type: str
     item_id: str
-    count: str = "-"
+    count: str = "1"
     time: str
     """抽取物品时对应时区（timezone）下的当地时间"""
     name: str = "-"
