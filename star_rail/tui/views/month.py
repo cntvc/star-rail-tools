@@ -102,7 +102,7 @@ class MonthView(Container):
         client: HSRClient = self.app.client
 
         if client.user.cookie.empty_cookie_token():
-            self.notify("请设置Cookie后再试")
+            self.notify("请设置Cookie后再试", severity="warning")
             return
         cnt = await client.refresh_month_info()
         self.notify(f"已更新最近{cnt}月的数据")

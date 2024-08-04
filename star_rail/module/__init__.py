@@ -1,5 +1,4 @@
 import os
-import typing
 
 from star_rail.database import DATABASE_VERSION, DBManager
 from star_rail.utils.logger import logger
@@ -11,18 +10,12 @@ from .month import *
 from .record import *
 from .updater import Updater
 
-if typing.TYPE_CHECKING:
-    from star_rail.module.account import Account
-
-
 __all__ = ["HSRClient", "Updater", "HakushMetadata"]
 
 
-class HSRClient(AccountClient, GachaRecordClient, MonthInfoClient):
+class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
     def __init__(self, user: Account = None, _metadata: BaseMetadata = None):
-        self.user = user
-        if _metadata is None:
-            self.metadata = HakushMetadata()
+        super().__init__(user, _metadata)
 
     async def start(self):
         db_manager = DBManager()

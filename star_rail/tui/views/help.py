@@ -34,7 +34,7 @@ MANUAL_PART_3 = [
 ]
 
 UIGF_LINK = [
-    r"""[M]● [/M]有关 UIGF/SRGF 格式信息，请访问 UIGF-org [@click="app.open_link('https://uigf.org/zh/')"]官网[/]"""
+    r"""[M]● [/M]有关 UIGF/SRGF 格式信息，请访问 UIGF-org [@click="app.open_link('https://uigf.org/zh/')"]官网[/]了解详情"""
 ]
 
 LINK_REPO = """[@click="app.open_link('https://github.com/cntvc/star-rail-tools')"]项目主页[/]"""
