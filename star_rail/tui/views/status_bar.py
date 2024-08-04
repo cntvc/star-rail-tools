@@ -43,15 +43,14 @@ class AddAccount(Static):
         client: HSRClient = self.app.client
         uid = await client.create_account_by_uid(result)
 
-        if uid in self.app.query_one(AccountList).uid_list:
-            self.notify("账号已存在，请勿重复添加")
-            return
-
-        # 创建账号不是已登陆账号时，自动登录新账号
         if client.user is None or uid != client.user.uid:
             self.post_message(hsr_events.LoginAccount(uid))
+            self.post_message(hsr_events.UpdateAccountList())
+            return
 
-        self.post_message(hsr_events.UpdateAccountList())
+        if uid in self.app.query_one(AccountList).uid_list:
+            self.notify("账号已登陆，请勿重复添加")
+            return
 
 
 class AccountStatus(Horizontal):
