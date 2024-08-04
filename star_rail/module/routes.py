@@ -64,8 +64,8 @@ MONTH_INFO_URL = InternationalRoute(
 ####################################################################
 
 GACHA_LOG_URL = InternationalRoute(
-    chinese="https://api-takumi.mihoyo.com/common/gacha_record/api/getGachaLog",
-    overseas="https://api-os-takumi.mihoyo.com/common/gacha_record/api/getGachaLog",
+    chinese="https://public-operation-hkrpg.mihoyo.com/common/gacha_record/api/getGachaLog",
+    overseas="https://public-operation-hkrpg-sg.hoyoverse.com/common/gacha_record/api/getGachaLog",
 )
 """[GameClient] 跃迁记录"""
 
