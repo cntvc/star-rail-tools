@@ -42,9 +42,9 @@
   </details>
 
 ### 数据迁移
-  本软件为 [UIGF](https://uigf.org) 组织成员，支持 `SRGF` 格式的跃迁记录文件导入导出
+  本软件为 [UIGF](https://uigf.org) 组织成员，支持 `SRGF/UIGFv4`[^1] 格式的跃迁记录文件导入导出
 
-  **导入 `SRGF` 格式数据**:
+  **导入 `SRGF/UIGFv4` 格式数据**:
   将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击"导入数据"按钮即可
 
 
@@ -97,3 +97,5 @@
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
 [en_us]: docs/README_EN.md
+
+[^1]: SRGF/UIGFv4 格式为 UIGF 组织制定的数据交换格式，详情请访问 [UIGF](https://uigf.org) 官网
