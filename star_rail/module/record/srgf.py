@@ -40,7 +40,7 @@ class SRGFInfo(BaseModel):
 
     @classmethod
     def create(cls, uid: str, lang: str, region_time_zone: int):
-        datetime = Date.convert_timezone(region_time_zone)
+        datetime = Date.local_to_timezone(region_time_zone)
         export_app_version = app_version
         return SRGFInfo(
             uid=uid,
@@ -54,7 +54,7 @@ class SRGFInfo(BaseModel):
 
 
 class SRGFRecordItem(BaseGachaRecordItem):
-    count: str = "1"
+    count: str = "-"
     name: str = "-"
     rank_type: str = "-"
     item_type: str = "-"

@@ -1,3 +1,5 @@
+import traceback
+
 from rich.columns import Columns
 from rich.console import RenderableType
 from rich.markdown import Markdown
@@ -15,7 +17,9 @@ from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler, required_account
+from star_rail.tui.screens import ExportJsonScreen
 from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
+from star_rail.utils.logger import logger
 
 RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}"""
 EMPTY_DATA = [
@@ -105,7 +109,7 @@ class GachaRecordView(Container):
             yield SimpleButton("刷新记录", id="refresh_with_cache")
             yield SimpleButton("导入数据", id="import")
             yield SimpleButton("导出Execl", id="export_execl")
-            yield SimpleButton("导出JSON", id="export_srgf")
+            yield SimpleButton("导出JSON", id="export_json")
 
     async def reverse_record(self):
         """反转跃迁记录"""
@@ -142,13 +146,19 @@ class GachaRecordView(Container):
     async def handle_refresh_with_webcache(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
-        cnt = await client.refresh_gacha_record("webcache")
-        self.analyze_result = await client.view_analysis_results()
-        self.notify(f"新增{cnt}条记录")
 
-    async def view_record(self):
-        client: HSRClient = self.app.client
-        self.analyze_result = await client.view_analysis_results()
+        try:
+            await client.update_metadata()
+        except Exception:
+            self.notify("元数据更新失败", severity="warning")
+            logger.debug(traceback.format_exc())
+
+        cnt = await client.refresh_gacha_record("webcache")
+        self.analyze_result = await client.display_analysis_results()
+        if cnt:
+            self.notify(f"新增{cnt}条记录")
+        else:
+            self.notify("无新记录")
 
     @on(SimpleButton.Pressed, "#import")
     @work()
@@ -157,18 +167,22 @@ class GachaRecordView(Container):
     async def handle_import_srgf(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
-        cnt, failed_list = await client.import_srgf_data()
+
+        try:
+            await client.update_metadata()
+        except Exception:
+            self.notify("元数据更新失败", severity="warning")
+            logger.debug(traceback.format_exc())
+
+        cnt, failed_list = await client.import_gacha_record()
         if cnt:
             self.notify(f"本次导入新增{cnt}条记录")
-            self.analyze_result = await client.view_analysis_results()
+            self.analyze_result = await client.display_analysis_results()
         else:
             self.notify("本次导入无新增数据")
 
         if failed_list:
-            self.notify(
-                f"有{len(failed_list)}个文件导入失败\n---\n"
-                + "\n".join([f"- {name}" for name in failed_list])
-            )
+            self.notify("文件导入失败\n---\n" + "\n".join([f"- {name}" for name in failed_list]))
 
     @on(SimpleButton.Pressed, "#export_execl")
     @work()
@@ -180,15 +194,28 @@ class GachaRecordView(Container):
         await client.export_to_execl()
         self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
 
-    @on(SimpleButton.Pressed, "#export_srgf")
+    @on(SimpleButton.Pressed, "#export_json")
     @work()
     @error_handler
     @required_account
-    async def handle_export_to_srgf(self, event: SimpleButton.Pressed):
-        event.stop()
+    async def handle_export_json(self):
+        result = await self.app.push_screen_wait(ExportJsonScreen())
+        if result == "export_srgf":
+            await self._export_to_srgf()
+        elif result == "export_uigf":
+            await self._export_to_uigf()
+        else:
+            return
+
+    async def _export_to_srgf(self):
         client: HSRClient = self.app.client
         await client.export_to_srgf()
         self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")
+
+    async def _export_to_uigf(self):
+        client: HSRClient = self.app.client
+        await client.export_to_uigf()
+        self.notify(f"导出成功, 文件位于{client.user.uigf_path.as_posix()}")
 
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):

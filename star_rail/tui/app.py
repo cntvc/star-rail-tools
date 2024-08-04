@@ -66,7 +66,7 @@ class HSRApp(App):
 
     def __init__(self):
         super().__init__()
-        self.client = HSRClient(None)
+        self.client = HSRClient()
         self.updater = Updater()
 
     def compose(self) -> ComposeResult:
@@ -106,7 +106,7 @@ class HSRApp(App):
             await self.query_one(MonthView).refresh_data()
             self.query_one(
                 GachaRecordView
-            ).analyze_result = await self.client.view_analysis_results()
+            ).analyze_result = await self.client.display_analysis_results()
 
     @on(events.LoginAccount)
     @error_handler

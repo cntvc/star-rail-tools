@@ -13,12 +13,22 @@ class Date:
         return date.strftime(format_str)
 
     @staticmethod
-    def convert_timezone(_timezone: int):
+    def local_to_timezone(target_tz_offset: int):
         """本地时间转为对应时区的时间"""
-        utc = timezone(timedelta(hours=_timezone))
-        return datetime.now().astimezone(utc)
+        local_time = datetime.now()
+        local_tz = datetime.now(timezone.utc).astimezone().tzinfo
+        target_tz = timezone(timedelta(hours=target_tz_offset))
+        return local_time.replace(tzinfo=local_tz).astimezone(target_tz)
 
     @staticmethod
-    def now():
-        """获取当前时间"""
-        return datetime.now()
+    def convert_timezone(time: str, tz_offset: int, target_tz_offset: int):
+        dt = datetime.strptime(time, Date.Format.YYYY_MM_DD_HHMMSS)
+
+        from_tz = timezone(timedelta(hours=tz_offset))
+        target_tz = timezone(timedelta(hours=target_tz_offset))
+
+        dt_with_tz = dt.replace(tzinfo=from_tz)
+
+        converted_dt = dt_with_tz.astimezone(target_tz)
+
+        return converted_dt.strftime(Date.Format.YYYY_MM_DD_HHMMSS)

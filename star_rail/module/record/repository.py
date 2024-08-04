@@ -72,7 +72,7 @@ class GachaRecordRepository(BaseClient):
                 region_time_zone=info.region_time_zone,
                 source=info.source,
                 count=cnt,
-                timestamp=int(Date.convert_timezone(info.region_time_zone).timestamp()),
+                timestamp=int(Date.local_to_timezone(info.region_time_zone).timestamp()),
             )
             await db.insert(record_batch_mapper, "ignore")
 

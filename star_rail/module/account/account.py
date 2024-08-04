@@ -36,6 +36,7 @@ class Account(BaseModel):
     gacha_record_xlsx_path: Path = ""
     gacha_record_analyze_path: Path = ""
     srgf_path: Path = ""
+    uigf_path: Path = ""
 
     _verify_uid_format = field_validator("uid", mode="before")(verify_uid_format)
 
@@ -50,6 +51,7 @@ class Account(BaseModel):
             constants.ROOT_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
         )
         self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
+        self.uigf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json")
         self.gacha_record_analyze_path = Path(
             constants.TEMP_PATH, f"GachaRecordAnalyze_{self.uid}.json"
         )

@@ -1,0 +1,12 @@
+ExportJsonScreen{
+    align: center middle;
+    background: #81a1c1 40%;
+    Vertical {
+        height: auto;
+        width:40;
+        margin: 2 2;
+        align: center middle;
+        border:thick $background 80%;
+
+    }
+}
