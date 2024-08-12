@@ -53,7 +53,7 @@ class UIGFRecordItem(BaseModel):
 class UIGFRecord(BaseModel):
     uid: str
     timezone: int
-    lang: str = "-"
+    lang: str = "zh-cn"
     list: list[UIGFRecordItem]
 
 
