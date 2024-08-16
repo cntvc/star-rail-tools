@@ -17,7 +17,7 @@ from star_rail.module.record.model import AnalyzeResult
 from star_rail.module.record.types import GACHA_TYPE_DICT, GachaRecordType
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler, required_account
-from star_rail.tui.screens import ExportJsonScreen
+from star_rail.tui.screens import ExportScreen
 from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
 from star_rail.utils.logger import logger
 
@@ -107,9 +107,8 @@ class GachaRecordView(Container):
     def compose(self) -> ComposeResult:
         with Grid():
             yield SimpleButton("刷新记录", id="refresh_with_cache")
-            yield SimpleButton("导入数据", id="import")
-            yield SimpleButton("导出Execl", id="export_execl")
-            yield SimpleButton("导出JSON", id="export_json")
+            yield SimpleButton("导入记录", id="import_record")
+            yield SimpleButton("导出记录", id="export_record")
 
     async def reverse_record(self):
         """反转跃迁记录"""
@@ -122,8 +121,6 @@ class GachaRecordView(Container):
         await self._remount_data(new_data)
 
     async def _remount_data(self, data: AnalyzeResult):
-        """重新挂载数据显示区域"""
-
         def remove_widgets():
             empty_data = self.query(EmptyData)
             if empty_data:
@@ -160,7 +157,7 @@ class GachaRecordView(Container):
         else:
             self.notify("无新记录")
 
-    @on(SimpleButton.Pressed, "#import")
+    @on(SimpleButton.Pressed, "#import_record")
     @work()
     @error_handler
     @required_account
@@ -184,38 +181,24 @@ class GachaRecordView(Container):
         if failed_list:
             self.notify("文件导入失败\n---\n" + "\n".join([f"- {name}" for name in failed_list]))
 
-    @on(SimpleButton.Pressed, "#export_execl")
+    @on(SimpleButton.Pressed, "#export_record")
     @work()
     @error_handler
     @required_account
-    async def handle_export_to_execl(self, event: SimpleButton.Pressed):
-        event.stop()
+    async def handle_export_record(self):
+        result = await self.app.push_screen_wait(ExportScreen())
         client: HSRClient = self.app.client
-        await client.export_to_execl()
-        self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
-
-    @on(SimpleButton.Pressed, "#export_json")
-    @work()
-    @error_handler
-    @required_account
-    async def handle_export_json(self):
-        result = await self.app.push_screen_wait(ExportJsonScreen())
         if result == "export_srgf":
-            await self._export_to_srgf()
+            await client.export_to_srgf()
+            self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")
         elif result == "export_uigf":
-            await self._export_to_uigf()
+            await client.export_to_uigf()
+            self.notify(f"导出成功, 文件位于{client.user.uigf_path.as_posix()}")
+        elif result == "export_execl":
+            await client.export_to_execl()
+            self.notify(f"导出成功, 文件位于{client.user.gacha_record_xlsx_path.as_posix()}")
         else:
             return
-
-    async def _export_to_srgf(self):
-        client: HSRClient = self.app.client
-        await client.export_to_srgf()
-        self.notify(f"导出成功, 文件位于{client.user.srgf_path.as_posix()}")
-
-    async def _export_to_uigf(self):
-        client: HSRClient = self.app.client
-        await client.export_to_uigf()
-        self.notify(f"导出成功, 文件位于{client.user.uigf_path.as_posix()}")
 
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):

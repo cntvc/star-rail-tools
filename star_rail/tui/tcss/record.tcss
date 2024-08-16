@@ -3,7 +3,7 @@ GachaRecordView {
     margin:1;
     Grid {
         dock:top;
-        grid-size:4;
+        grid-size:3;
         grid-gutter:1;
         max-height: 3;
 

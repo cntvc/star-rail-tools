@@ -1,4 +1,4 @@
-ExportJsonScreen{
+ExportScreen{
     align: center middle;
     background: #81a1c1 40%;
     Vertical {
