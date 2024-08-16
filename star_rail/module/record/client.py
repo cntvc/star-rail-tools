@@ -402,14 +402,12 @@ class GachaRecordClient(BaseClient):
         return True
 
     def _update_records_metadata(self, records: list[GachaRecordItem]):
-        def update_item(item: GachaRecordItem):
-            attrs = ["name", "rank_type", "item_type"]
-            for attr in attrs:
-                if getattr(item, attr) == "-":
-                    setattr(item, attr, self.metadata.get(item.item_id, attr))
-
+        attrs = ["name", "rank_type", "item_type"]
         for record in records:
-            update_item(record)
+            for attr in attrs:
+                if record.lang != "zh-cn" or getattr(record, attr) == "-":
+                    setattr(record, attr, self.metadata.get(record.item_id, attr))
+            record.lang = "zh-cn"
 
     async def _handle_srgf_data(self, srgf_data: srgf.SRGFData, timezone: int):
         logger.debug("SRGF info:{}", srgf_data.info.model_dump_json())
@@ -439,7 +437,7 @@ class GachaRecordClient(BaseClient):
         info = GachaRecordArchiveInfo(
             uid=srgf_info.uid,
             batch_id=next_batch_id,
-            lang=srgf_info.lang,
+            lang="zh-cn",  # 后续会转换为zh-cn
             region_time_zone=region_timezone,
             source=f"{srgf_info.export_app}_{srgf_info.export_app_version}",
         )
@@ -485,7 +483,7 @@ class GachaRecordClient(BaseClient):
         info = GachaRecordArchiveInfo(
             uid=record.uid,
             batch_id=next_batch_id,
-            lang=record.lang,
+            lang="zh-cn",  # 后续会转换为zh-cn
             region_time_zone=region_timezone,
             source=f"{uigf_data.info.export_app}_{uigf_data.info.export_app_version}",
         )
