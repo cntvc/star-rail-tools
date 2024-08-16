@@ -90,7 +90,7 @@ class HSRApp(App):
         logger.debug("============================================================")
         logger.debug(get_sys_info())
 
-        await self.client.start()
+        await self.client.init()
 
         if settings.CHECK_UPDATE:
             self.check_update()

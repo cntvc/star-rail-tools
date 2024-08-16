@@ -17,7 +17,9 @@ class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
     def __init__(self, user: Account = None, _metadata: BaseMetadata = None):
         super().__init__(user, _metadata)
 
-    async def start(self):
+    async def init(self):
+        self._init_app_path()
+
         db_manager = DBManager()
         if not os.path.exists(db_manager.db_path):
             logger.debug("init database.")
@@ -29,3 +31,10 @@ class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
             await db_manager.upgrade_database()
 
         await self.init_default_account()
+
+    def _init_app_path(self):
+        from star_rail import constants
+
+        path_variables = [path for name, path in vars(constants).items() if name.endswith("_PATH")]
+        for path in path_variables:
+            os.makedirs(path, exist_ok=True)

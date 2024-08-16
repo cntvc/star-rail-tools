@@ -21,11 +21,3 @@ LOG_PATH = os.path.join(APPDATA_PATH, "log")
 DATA_PATH = os.path.join(APPDATA_PATH, "data")
 
 IMPORT_DATA_PATH = os.path.join(ROOT_PATH, "Import")
-
-####################################################################
-# init
-####################################################################
-
-for path_var in [name for name in dir() if name.endswith("_PATH")]:
-    path = globals()[path_var]
-    os.makedirs(path, exist_ok=True)
