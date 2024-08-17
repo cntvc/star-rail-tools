@@ -1,5 +1,4 @@
 import re
-from itertools import zip_longest
 
 __all__ = ["get_version", "compare_versions", "get_version_tuple"]
 
@@ -49,14 +48,33 @@ def compare_versions(version1: str, version2: str):
         1 : version1 > version2
         0 : version1 = version2
     """
-    version1_parts = get_version_tuple(version1)
-    version2_parts = get_version_tuple(version2)
-    for part1, part2 in zip_longest(version1_parts, version2_parts, fillvalue=0):
+    version1_tuple = get_version_tuple(version1)
+    version2_tuple = get_version_tuple(version2)
+
+    for part1, part2 in zip(version1_tuple[:3], version2_tuple[:3], strict=False):
         if part1 < part2:
             return -1
         elif part1 > part2:
             return 1
-    return 0
+
+    if len(version1_tuple) > 3 and len(version2_tuple) > 3:
+        # 均是 dev
+        assert version1_tuple[3] == version2_tuple[3] == "dev"
+        if version1_tuple[4] < version2_tuple[4]:
+            return -1
+        elif version1_tuple[4] > version2_tuple[4]:
+            return 1
+        else:
+            return 0
+    elif len(version1_tuple) > 3:
+        # v1 是 dev
+        return -1
+    elif len(version2_tuple) > 3:
+        # v2 是 dev
+        return 1
+    else:
+        # 都不是 dev
+        return 0
 
 
 version_component_re = re.compile(r"(\d+|[a-z]+|\.)")
@@ -64,15 +82,17 @@ version_component_re = re.compile(r"(\d+|[a-z]+|\.)")
 
 def get_version_tuple(version: str) -> tuple[int, ...]:
     """
-    Return a tuple of version numbers (e.g. (1, 2, 3)) from the version string (e.g. '1.2.3').
+    Return a tuple of version (e.g. (1, 2, 3, 'dev', 1)) from the version string (e.g. '1.2.3.dev1').
     """
-    numbers = []
+    version_component = []
     for item in version_component_re.split(version):
         if item and item != ".":
             try:
-                components = int(item)
+                component = int(item)
             except ValueError:
-                break
+                if item != "dev":
+                    raise ValueError(f"Invalid version component: {item}") from None
+                version_component.append(item)
             else:
-                numbers.append(components)
-    return tuple(numbers)
+                version_component.append(component)
+    return tuple(version_component)

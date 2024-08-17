@@ -15,14 +15,18 @@ class Updater:
         Returns:
             tuple[bool, str | None]: 需要更新：True, latest_version
         """
+        page = 1
+        page_size = 1
         logger.debug("Check update.")
-        url = yarl.URL("https://api.github.com/repos/cntvc/star-rail-tools/releases/latest")
+        url = yarl.URL(
+            f"https://api.github.com/repos/cntvc/star-rail-tools/releases?page={page}&per_page={page_size}"
+        )
 
         async with aiohttp.ClientSession() as session:
             async with session.request(method="GET", url=url) as response:
                 data = await response.json()
 
-        latest_version = data["tag_name"]
+        latest_version = data[0]["tag_name"]
         if compare_versions(app_version, latest_version) == -1:
             return True, latest_version
         return False, None
