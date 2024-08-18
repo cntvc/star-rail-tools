@@ -1,4 +1,4 @@
-from collections import OrderedDict
+import asyncio
 
 from rich.console import RenderableType
 from textual import events as textual_events
@@ -75,30 +75,35 @@ class TaskStatus(Horizontal):
 
 
 class StatusBar(Horizontal):
-    task_queue: OrderedDict[str, Worker] = OrderedDict()
+    task_queue: list[Worker] = []
+    current_task_name: str = ""
+    lock = asyncio.Lock()
 
     def compose(self) -> ComposeResult:
         yield AccountStatus()
         yield Horizontal(id="progress_status")
         yield Notice()
 
-    def add_task(self, worker: Worker):
-        self.task_queue[worker.name] = worker
-        self._remove_progress_bar()
-        self._add_progress_bar(worker)
+    async def add_task(self, worker: Worker):
+        async with self.lock:
+            self.task_queue.append(worker)
+            self.current_task_name = worker.name
+            self._remove_progress_bar()
+            self._add_progress_bar(worker)
 
-    def remove_task(self, worker: Worker):
-        if worker.name in self.task_queue:
-            del self.task_queue[worker.name]
+    async def remove_task(self, worker: Worker):
+        async with self.lock:
+            if worker in self.task_queue:
+                self.task_queue.remove(worker)
 
-        self._remove_progress_bar()
-        if len(self.task_queue) != 0:
-            try:
-                task_name = next(iter(self.task_queue))
-            except StopIteration:
-                # 防止不同事件循环的 task_queue 不同步导致的异常
-                return
-            self._add_progress_bar(self.task_queue[task_name])
+            if worker.name == self.current_task_name:
+                self._remove_progress_bar()
+                self.current_task_name = ""
+
+            if len(self.task_queue) != 0:
+                next_task = self.task_queue[-1]
+                self._add_progress_bar(next_task)
+                self.current_task_name = next_task.name
 
     def _remove_progress_bar(self):
         self.query("#progress_status > TaskStatus").remove()

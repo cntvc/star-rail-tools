@@ -171,15 +171,15 @@ class HSRApp(App):
         webbrowser.open(link)
 
     @on(events.TaskRunning)
-    def handle_task_running(self, event: events.TaskRunning):
-        self.query_one(StatusBar).add_task(event.worker)
+    async def handle_task_running(self, event: events.TaskRunning):
+        await self.query_one(StatusBar).add_task(event.worker)
 
     @on(events.TaskCancel)
     @on(events.TaskError)
     @on(events.TaskComplete)
-    def handle_task_done(self, event: events.TaskStatus):
+    async def handle_task_done(self, event: events.TaskStatus):
         status_bar = self.query_one(StatusBar)
-        status_bar.remove_task(event.worker)
+        await status_bar.remove_task(event.worker)
 
     def notify(
         self,
