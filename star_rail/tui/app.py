@@ -8,7 +8,7 @@ from textual.notifications import Notification, Notify, SeverityLevel
 from textual.widgets import ContentSwitcher, Static
 
 from star_rail.config import settings
-from star_rail.module import HSRClient, Updater
+from star_rail.module import HSRClient
 from star_rail.module.info import get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
@@ -67,7 +67,6 @@ class HSRApp(App):
     def __init__(self):
         super().__init__()
         self.client = HSRClient()
-        self.updater = Updater()
 
     def compose(self) -> ComposeResult:
         with Container():
@@ -125,7 +124,7 @@ class HSRApp(App):
         self.app.workers.cancel_group(self.app, "default")
         with self.app.batch_update():
             self.query_one(CurrentUID).uid = ""
-            self.query_one(MonthView).month_info_list = []
+            self.query_one(MonthView).month_info = {}
             self.query_one(GachaRecordView).analyze_result = None
 
     @on(events.UpdateAccountList)
@@ -135,7 +134,7 @@ class HSRApp(App):
 
     @work(exit_on_error=False)
     async def check_update(self):
-        result, latest_version = await self.updater.check_update()
+        result, latest_version = await self.client.check_update()
         if result:
             self.notify(f"软件发现新版本: {latest_version}")
 

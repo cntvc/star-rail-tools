@@ -10,7 +10,7 @@ from .month import *
 from .record import *
 from .updater import Updater
 
-__all__ = ["HSRClient", "Updater", "HakushMetadata"]
+__all__ = ["HSRClient", "HakushMetadata"]
 
 
 class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
@@ -26,7 +26,9 @@ class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
             await db_manager.create_all()
             await db_manager.set_user_version(DATABASE_VERSION)
         cur_db_version = await db_manager.user_version()
-        logger.debug("Current db version: {}.", cur_db_version)
+        logger.debug(
+            "Local db version: {}. current db version: {}", cur_db_version, DATABASE_VERSION
+        )
         if cur_db_version < DATABASE_VERSION:
             await db_manager.upgrade_database()
 
@@ -38,3 +40,6 @@ class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
         path_variables = [path for name, path in vars(constants).items() if name.endswith("_PATH")]
         for path in path_variables:
             os.makedirs(path, exist_ok=True)
+
+    async def check_update(self):
+        return await Updater().check_update()
