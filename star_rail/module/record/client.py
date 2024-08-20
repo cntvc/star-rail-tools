@@ -401,13 +401,14 @@ class GachaRecordClient(BaseClient):
         file.save_json(self.user.uigf_path, uigf_data.model_dump())
         return True
 
-    def _update_records_metadata(self, records: list[GachaRecordItem]):
+    def _update_records_from_metadata(self, lang, records: list[GachaRecordItem]):
         attrs = ["name", "rank_type", "item_type"]
         for record in records:
             for attr in attrs:
-                if record.lang != "zh-cn" or getattr(record, attr) == "-":
-                    setattr(record, attr, self.metadata.get(record.item_id, attr))
-            record.lang = "zh-cn"
+                if getattr(record, attr) != "-":
+                    continue
+
+                setattr(record, attr, self.metadata.get(lang, record.item_id, attr))
 
     async def _handle_srgf_data(self, srgf_data: srgf.SRGFData, timezone: int):
         logger.debug("SRGF info:{}", srgf_data.info.model_dump_json())
@@ -425,24 +426,27 @@ class GachaRecordClient(BaseClient):
             data.info.region_time_zone = target_tz
             return
 
-        region_timezone = timezone
+        target_region_timezone = timezone
         if next_batch_id > 1:
             # 时区与第一个记录保持一致
             latest_batch_record = await record_repository.get_latest_batch()
-            region_timezone = latest_batch_record.region_time_zone
+            target_region_timezone = latest_batch_record.region_time_zone
 
-        convert_timezone(srgf_data, region_timezone)
+        convert_timezone(srgf_data, target_region_timezone)
 
         item_list, srgf_info = srgf.convert_to_gacha_record_data(srgf_data)
+        if srgf_info.lang not in ["zh-cn", "en-us"]:
+            srgf_info.lang = "en-us"
+
         info = GachaRecordArchiveInfo(
             uid=srgf_info.uid,
             batch_id=next_batch_id,
-            lang="zh-cn",  # 后续会转换为zh-cn
-            region_time_zone=region_timezone,
+            lang=srgf_info.lang,
+            region_time_zone=target_region_timezone,
             source=f"{srgf_info.export_app}_{srgf_info.export_app_version}",
         )
 
-        self._update_records_metadata(item_list)
+        self._update_records_from_metadata(srgf_info.lang, item_list)
 
         return await record_repository.insert_gacha_record(item_list, info)
 
@@ -473,18 +477,21 @@ class GachaRecordClient(BaseClient):
             _record.timezone = target_tz
             return
 
-        region_timezone = timezone
+        target_region_timezone = timezone
         if next_batch_id > 1:
             # 时区与第一个记录保持一致
             latest_batch_record = await record_repository.get_latest_batch()
-            region_timezone = latest_batch_record.region_time_zone
-        convert_timezone(uigf_data, region_timezone)
+            target_region_timezone = latest_batch_record.region_time_zone
+        convert_timezone(uigf_data, target_region_timezone)
+
+        if record not in ["zh-cn", "en-us"]:
+            record.lang = "en-us"
 
         info = GachaRecordArchiveInfo(
             uid=record.uid,
             batch_id=next_batch_id,
-            lang="zh-cn",  # 后续会转换为zh-cn
-            region_time_zone=region_timezone,
+            lang=record.lang,
+            region_time_zone=target_region_timezone,
             source=f"{uigf_data.info.export_app}_{uigf_data.info.export_app_version}",
         )
 
@@ -492,7 +499,7 @@ class GachaRecordClient(BaseClient):
             GachaRecordItem(uid=record.uid, lang=record.lang, **item.model_dump())
             for item in record.list
         ]
-        self._update_records_metadata(item_list)
+        self._update_records_from_metadata(record.lang, item_list)
         return await record_repository.insert_gacha_record(item_list, info)
 
     def _validate_srgf_data(self, srgf_data: dict):
@@ -520,6 +527,11 @@ class GachaRecordClient(BaseClient):
 
     async def import_gacha_record(self):
         logger.debug("Import gacha record.")
+
+        if not self.metadata_is_updated:
+            await self.metadata.update()
+            self.metadata_is_updated = True
+
         import_data_path = constants.IMPORT_DATA_PATH
 
         file_list = [
@@ -569,8 +581,3 @@ class GachaRecordClient(BaseClient):
     async def display_analysis_results(self):
         analyzer = GachaRecordAnalyzer(self.user)
         return await analyzer.load_analyze_result()
-
-    async def update_metadata(self):
-        if not self.metadata_is_updated:
-            await self.metadata.update()
-            self.metadata_is_updated = True

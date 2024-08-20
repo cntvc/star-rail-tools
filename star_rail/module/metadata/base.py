@@ -8,11 +8,8 @@ class BaseMetadata:
     data: dict = {}
     path: Path
 
-    def get(self, item_id: str, key: MetadataAttr, /, default="-") -> str:
+    def get(self, lang: str, item_id: str, key: MetadataAttr, /, default="-") -> str:
         raise NotImplementedError
 
     async def update(self):
-        raise NotImplementedError
-
-    async def fetch(self):
         raise NotImplementedError

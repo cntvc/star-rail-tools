@@ -1,5 +1,3 @@
-import traceback
-
 from rich.columns import Columns
 from rich.console import RenderableType
 from rich.markdown import Markdown
@@ -19,7 +17,6 @@ from star_rail.tui import events
 from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.screens import ExportScreen
 from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
-from star_rail.utils.logger import logger
 
 RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}"""
 EMPTY_DATA = [
@@ -144,12 +141,6 @@ class GachaRecordView(Container):
         event.stop()
         client: HSRClient = self.app.client
 
-        try:
-            await client.update_metadata()
-        except Exception:
-            self.notify("元数据更新失败", severity="warning")
-            logger.debug(traceback.format_exc())
-
         cnt = await client.refresh_gacha_record("webcache")
         self.analyze_result = await client.display_analysis_results()
         if cnt:
@@ -164,12 +155,6 @@ class GachaRecordView(Container):
     async def handle_import_srgf(self, event: SimpleButton.Pressed):
         event.stop()
         client: HSRClient = self.app.client
-
-        try:
-            await client.update_metadata()
-        except Exception:
-            self.notify("元数据更新失败", severity="warning")
-            logger.debug(traceback.format_exc())
 
         cnt, failed_list = await client.import_gacha_record()
         if cnt:
