@@ -6,17 +6,18 @@ ConfigView {
     Static {
         height: 3;
         content-align: left middle;
-        width: auto;
+        padding: 0 0 0 1;
     }
 }
 
 ConfigSwitchItem {
+    background: #2e3440;
     height: auto;
     margin: 1;
-    &>Switch {
+    & > Switch {
+        border: blank;
         dock: right;
-        height: auto;
-        width: auto;
+        padding: 0 1;
     }
 }
 
@@ -24,12 +25,11 @@ ConfigSwitchItem {
 SelectBox{
     height: auto;
     margin: 1;
+    background: #2e3440;
     & > Select {
-
         height: 3;
         dock: right;
         width: 20;
-        margin: 0 1;
         & > SelectCurrent{
             border: none;
         }
