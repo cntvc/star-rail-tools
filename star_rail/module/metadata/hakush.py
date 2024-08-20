@@ -57,7 +57,6 @@ class HakushMetadata(BaseMetadata):
                 row_item.update(data)
 
         new_item = {
-            "version": self.version,
             "zh-cn": {},
             "en-us": {},
         }
