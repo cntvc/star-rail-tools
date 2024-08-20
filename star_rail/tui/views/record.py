@@ -1,6 +1,5 @@
 from rich.columns import Columns
 from rich.console import RenderableType
-from rich.markdown import Markdown
 from rich.panel import Panel
 from textual import on, work
 from textual.app import ComposeResult
@@ -18,7 +17,6 @@ from star_rail.tui.handler import error_handler, required_account
 from star_rail.tui.screens import ExportScreen
 from star_rail.tui.widgets import Color, SimpleButton, apply_text_color
 
-RECORD_TMP = """# 抽卡总数: {}\t 5星总数: {}\t 5星平均抽数: {}"""
 EMPTY_DATA = [
     r"[O]     \,`/ /      [/O]",
     r"[O]    _)..  `_     [/O]",
@@ -27,6 +25,25 @@ EMPTY_DATA = [
     r"[O]      ( \>_-_,   [/O]",
     r"[O]      _||_ ~-/   [/O]",
 ]
+
+
+class RecordSummary(Grid):
+    def __init__(
+        self,
+        total_count: int | str,
+        star_5_count: int | str,
+        star_5_avg_count: int | float | str,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.total_count = total_count
+        self.star_5_count = star_5_count
+        self.star_5_avg_count = star_5_avg_count
+
+    def compose(self) -> ComposeResult:
+        yield Static(f"抽卡总数: {self.total_count}")
+        yield Static(f"5星总数: {self.star_5_count}")
+        yield Static(f"5星平均抽数: {self.star_5_avg_count}")
 
 
 class EmptyData(Static):
@@ -52,9 +69,7 @@ class RecordDetail(Container):
                     rank5_average = round(rank5_average, 2)
 
                 with TabPane(tab_name, id=f"{tab_id}"):
-                    yield Static(
-                        Markdown(RECORD_TMP.format(result.total_count, rank5_count, rank5_average))
-                    )
+                    yield RecordSummary(result.total_count, rank5_count, rank5_average)
                     with VerticalScroll():
                         rank_5_list = [
                             Panel(
