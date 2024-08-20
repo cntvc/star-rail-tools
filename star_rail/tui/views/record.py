@@ -82,13 +82,12 @@ class RecordDetail(Container):
                         rank_5_list.append(
                             Panel(
                                 f"{len(rank_5_list)+1}. 保底计数 : {result.pity_count}抽",
-                                expand=True,
                                 style=self._gacha_item_color(result.gacha_type),
                             )
                         )
                         if settings.REVERSE_GACHA_RECORD:
                             rank_5_list.reverse()
-                        yield Static(Columns(rank_5_list))
+                        yield Static(Columns(rank_5_list, expand=True))
 
     def _gacha_item_color(self, gacha_type: str, count: int = None):
         """根据抽数进行着色"""
