@@ -1,4 +1,5 @@
 import os
+import typing
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -45,6 +46,9 @@ class Settings(BaseSetting):
 
     SHOW_LUCK_LEVEL: bool = True
     """显示欧非程度"""
+
+    METADATA_LANG: typing.Literal["zh-cn", "en-us"] = "zh-cn"
+    """metadata 默认 lang"""
 
     def __init__(self, config_path: str):
         super().__init__(config_path=config_path)

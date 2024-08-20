@@ -20,11 +20,22 @@ ConfigSwitchItem {
     }
 }
 
-ConfigSelectItem {
+
+SelectBox{
     height: auto;
-    &>Select {
-        height: auto;
+    & > Select {
+
+        height: 3;
         dock: right;
-        width: 40%;
+        width: 20;
+        margin: 0 1;
+        & > SelectCurrent{
+            border: none;
+        }
+
+        & > SelectOverlay {
+            border: none;
+            padding: 0 0;
+        }
     }
 }

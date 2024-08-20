@@ -11,6 +11,7 @@ import yarl
 from star_rail import __version__ as version
 from star_rail import constants
 from star_rail import exceptions as error
+from star_rail.config import settings
 from star_rail.constants import APP_NAME
 from star_rail.module import BaseMetadata, HakushMetadata, routes
 from star_rail.module.account.account import Account
@@ -436,7 +437,7 @@ class GachaRecordClient(BaseClient):
 
         item_list, srgf_info = srgf.convert_to_gacha_record_data(srgf_data)
         if srgf_info.lang not in ["zh-cn", "en-us"]:
-            srgf_info.lang = "en-us"
+            srgf_info.lang = settings.METADATA_LANG
 
         info = GachaRecordArchiveInfo(
             uid=srgf_info.uid,
@@ -485,7 +486,7 @@ class GachaRecordClient(BaseClient):
         convert_timezone(uigf_data, target_region_timezone)
 
         if record not in ["zh-cn", "en-us"]:
-            record.lang = "en-us"
+            record.lang = settings.METADATA_LANG
 
         info = GachaRecordArchiveInfo(
             uid=record.uid,
