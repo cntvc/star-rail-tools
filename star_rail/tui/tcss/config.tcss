@@ -1,8 +1,8 @@
 /* =================================== Config =================================== */
 
 ConfigView {
-    margin: 1;
-
+    margin: 0;
+    scrollbar-size: 1 1;
     Static {
         height: 3;
         content-align: left middle;
@@ -12,7 +12,7 @@ ConfigView {
 
 ConfigSwitchItem {
     height: auto;
-
+    margin: 1;
     &>Switch {
         dock: right;
         height: auto;
@@ -23,6 +23,7 @@ ConfigSwitchItem {
 
 SelectBox{
     height: auto;
+    margin: 1;
     & > Select {
 
         height: 3;

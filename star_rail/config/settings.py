@@ -50,6 +50,8 @@ class Settings(BaseSetting):
     METADATA_LANG: typing.Literal["zh-cn", "en-us"] = "zh-cn"
     """metadata 默认 lang"""
 
+    RECORD_UPDATE_MODE: typing.Literal["incremental", "full"] = "incremental"
+
     def __init__(self, config_path: str):
         super().__init__(config_path=config_path)
 

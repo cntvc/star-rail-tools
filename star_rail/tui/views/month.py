@@ -1,7 +1,7 @@
 from rich.console import RenderableType
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Container, Grid
+from textual.containers import Container, Grid, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import ListItem, ListView, Markdown, Static
 
@@ -31,7 +31,7 @@ EMPTY_DATA = [
 ]
 
 
-class MonthInfoDetail(Container):
+class MonthInfoDetail(VerticalScroll):
     def __init__(self, month_item: MonthInfoItem, **kwargs):
         super().__init__(**kwargs)
         self.month_item = month_item

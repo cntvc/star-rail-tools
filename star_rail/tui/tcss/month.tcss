@@ -43,6 +43,7 @@ MonthView {
         MonthInfoDetail{
             align:center middle;
             width:auto;
+            scrollbar-size: 1 1;
             Markdown{
                 margin: 1;
                 width: auto;

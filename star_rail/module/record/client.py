@@ -230,10 +230,10 @@ class GachaRecordClient(BaseClient):
             raise error.GachaRecordError(f"The url does not belong to {self.user.uid}.")
 
         record_repository = GachaRecordRepository(self.user)
-        latest_record_item = await record_repository.get_latest_gacha_record_by_uid()
+        latest_record_item = await record_repository.get_latest_gacha_record()
 
         stop_id = None
-        if latest_record_item:
+        if settings.RECORD_UPDATE_MODE == "incremental" and latest_record_item:
             stop_id = latest_record_item.id
         gacha_record_iter = await api_client.fetch_gacha_record(stop_id=stop_id)
         gacha_item_list = list(await gacha_record_iter.flatten())
