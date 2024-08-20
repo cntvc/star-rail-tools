@@ -211,11 +211,6 @@ class GachaRecordClient(BaseClient):
             )
 
     async def refresh_gacha_record(self, source: typing.Literal["webcache", "clipboard"]):
-        """刷新跃迁记录
-
-        Return:
-            成功更新的数量
-        """
         url = self._parse_url(source)
         if url is None:
             raise error.GachaRecordError("Not found valid url.")
@@ -240,14 +235,17 @@ class GachaRecordClient(BaseClient):
         # 反转后为从小到大排序
         gacha_item_list.reverse()
 
-        if latest_record_item:
+        if settings.RECORD_UPDATE_MODE == "full" or not latest_record_item:
+            need_insert = gacha_item_list
+        else:
             index = bisect.bisect_right(gacha_item_list, latest_record_item)
             need_insert = gacha_item_list[index:]
-        else:
-            need_insert = gacha_item_list
+
+        logger.debug(f"The number of records to be inserted: {len(need_insert)}")
 
         cnt = 0
         if not need_insert:
+            logger.debug("Zero new records added.")
             return cnt
 
         next_batch_id = await record_repository.get_next_batch_id()
@@ -271,13 +269,11 @@ class GachaRecordClient(BaseClient):
         )
         cnt = await record_repository.insert_gacha_record(need_insert, info)
 
-        # 查询所有记录并生成统计结果
         await GachaRecordAnalyzer(self.user).refresh_analyze_result()
         logger.debug("{} new records added.", cnt)
         return cnt
 
     async def export_to_execl(self):
-        """导出所有数据到ExecL"""
         logger.debug("Export gacha record to Execl.")
         record_repository = GachaRecordRepository(self.user)
 
