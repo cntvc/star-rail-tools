@@ -8,8 +8,7 @@ from textual.notifications import Notification, Notify, SeverityLevel
 from textual.widgets import ContentSwitcher, Static
 
 from star_rail.config import settings
-from star_rail.module import HSRClient
-from star_rail.module.info import get_sys_info
+from star_rail.module import HSRClient, get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
 from star_rail.tui.widgets.notification import HSRNotification, NotificationList

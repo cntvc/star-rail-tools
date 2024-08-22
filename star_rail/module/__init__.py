@@ -4,13 +4,14 @@ from star_rail.database import DATABASE_VERSION, DBManager
 from star_rail.utils.logger import logger
 
 from .account import *
+from .info import get_sys_info
 from .metadata import HakushMetadata
 from .metadata.base import BaseMetadata
 from .month import *
 from .record import *
 from .updater import Updater
 
-__all__ = ["HSRClient", "HakushMetadata"]
+__all__ = ["HSRClient", "get_sys_info"]
 
 
 class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
