@@ -1,16 +1,18 @@
-"""跃迁记录 API 来源"""
+from __future__ import annotations
 
 import os
 import re
 import subprocess
-from typing import Optional
+import typing
 
 import yarl
 
 from star_rail import constants
-from star_rail.module import Account
 from star_rail.module.game_client import GameClient
 from star_rail.utils.logger import logger
+
+if typing.TYPE_CHECKING:
+    from star_rail.module import Account
 
 __all__ = ["GachaUrlProvider"]
 
@@ -21,7 +23,7 @@ _GACHA_RECORD_URL_RE = re.compile(
 
 
 class GachaUrlProvider:
-    def _match_api(self, api: Optional[str]) -> Optional[str]:
+    def _match_api(self, api: str | None) -> str | None:
         """从字符串匹配抽卡链接"""
         if not api:
             return None

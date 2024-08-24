@@ -4,6 +4,8 @@ from pathlib import Path
 
 MetadataAttr: typing.TypeAlias = typing.Literal["name", "rank_type", "item_type"]
 
+__all__ = ["BaseMetadata"]
+
 
 class BaseMetadata(abc.ABC):
     data: dict = {}

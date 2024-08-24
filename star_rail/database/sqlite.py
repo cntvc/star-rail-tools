@@ -1,5 +1,3 @@
-"""异步 SQLite 客户端封装"""
-
 import os
 import sqlite3
 import typing

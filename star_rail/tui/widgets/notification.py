@@ -12,7 +12,7 @@ from textual.widgets import Static
 from star_rail.tui.widgets import SimpleButton
 from star_rail.utils.date import Date
 
-__all__ = ["HSRNotification", "NotificationItem", "NotificationList"]
+__all__ = ["HSRNotification", "NotificationList"]
 
 
 class HSRNotification:

@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import os
+import typing
 
 from star_rail.database import DATABASE_VERSION, DBManager
 from star_rail.utils.logger import logger
 
-from .account import *
+from .account import Account, AccountClient
 from .info import get_sys_info
-from .metadata import HakushMetadata
-from .metadata.base import BaseMetadata
-from .month import *
-from .record import *
+from .month import MonthInfoClient
+from .record import GachaRecordClient
 from .updater import Updater
 
-__all__ = ["HSRClient", "get_sys_info"]
+if typing.TYPE_CHECKING:
+    from .record import BaseMetadata
+
+__all__ = ["HSRClient", "get_sys_info", "Account"]
 
 
 class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):

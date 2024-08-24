@@ -1,15 +1,20 @@
+from __future__ import annotations
+
 import enum
 import glob
 import os
 import re
+import typing
 from pathlib import Path
 
 from star_rail import exceptions as error
-from star_rail.module import Account
 from star_rail.utils.logger import logger
 
 from .base import BaseClient
 from .types import GameBiz
+
+if typing.TYPE_CHECKING:
+    from star_rail.module import Account
 
 _MHY_LOG_ROOT_PATH = os.path.join(os.getenv("USERPROFILE"), "AppData", "LocalLow")
 
