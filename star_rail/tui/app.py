@@ -133,8 +133,7 @@ class HSRApp(App):
 
     @work(exit_on_error=False)
     async def check_update(self):
-        result, latest_version = await self.client.check_update()
-        if result:
+        if latest_version := await self.client.check_update():
             self.notify(f"软件发现新版本: {latest_version}")
 
     @on(events.ReverseGachaRecord)

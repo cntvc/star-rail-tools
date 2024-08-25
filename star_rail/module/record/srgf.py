@@ -4,12 +4,11 @@ SRGF 星穹铁道抽卡记录标准
 https://uigf.org/zh/standards/SRGF.html
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
 from star_rail import __version__ as app_version
 from star_rail import constants
 from star_rail.utils.date import Date
-from star_rail.utils.version import get_version
 
 from .mapper import GachaRecordBatchMapper
 from .model import BaseGachaRecordItem, GachaRecordItem
@@ -17,11 +16,7 @@ from .model import BaseGachaRecordItem, GachaRecordItem
 __all__ = ["convert_to_gacha_record_data", "convert_to_srgf"]
 
 
-SRGF_VERSION = (1, 0, 0, "final", 0)
-
-
-def get_srgf_version(srgf_version):
-    return "v" + get_version(srgf_version)
+SRGF_VERSION = "v1.0"
 
 
 class SRGFInfo(BaseModel):
@@ -32,7 +27,7 @@ class SRGFInfo(BaseModel):
     export_time: str = "-"
     export_app: str = "-"
     export_app_version: str = "-"
-    srgf_version: str = Field(default=get_srgf_version(SRGF_VERSION))
+    srgf_version: str
 
     from star_rail.module.account.account import verify_uid_format
 
@@ -50,6 +45,7 @@ class SRGFInfo(BaseModel):
             export_time=Date.format_time(datetime),
             export_app=constants.APP_NAME,
             export_app_version=export_app_version,
+            srgf_version=SRGF_VERSION,
         )
 
 
