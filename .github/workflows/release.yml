@@ -4,6 +4,7 @@ env:
   PROJECT_NAME: StarRailTools
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
