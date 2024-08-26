@@ -48,10 +48,14 @@ class Account(BaseModel):
 
     def _init_datafile_path(self):
         self.gacha_record_xlsx_path = Path(
-            constants.ROOT_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
+            constants.USERDATA_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
         )
-        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
-        self.uigf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json")
+        self.srgf_path = Path(
+            constants.USERDATA_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json"
+        )
+        self.uigf_path = Path(
+            constants.USERDATA_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json"
+        )
         self.gacha_record_analyze_path = Path(
             constants.TEMP_PATH, f"GachaRecordAnalyze_{self.uid}.json"
         )
@@ -82,7 +86,7 @@ class Account(BaseModel):
 
         def decrypt_cookie(cookie: Cookie) -> Cookie:
             # 如果 cookie 为默认值（空），则不进行解密
-            cookie_dict = cookie.model_dump("all")
+            cookie_dict = cookie.model_dump()
             if not cookie_dict:
                 return cookie
             key = base64.b64decode(settings.ENCRYPT_KEY)
@@ -115,7 +119,7 @@ class Account(BaseModel):
                 settings.ENCRYPT_KEY = AES128.generate_aes_key()
                 settings.save_config()
 
-            cookie_dict = cookie.model_dump("all")
+            cookie_dict = cookie.model_dump()
             if not cookie_dict:
                 return cookie
             key = base64.b64decode(settings.ENCRYPT_KEY)

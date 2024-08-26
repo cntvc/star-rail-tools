@@ -1,4 +1,3 @@
-import typing
 from http import cookies
 
 from pydantic import BaseModel
@@ -7,7 +6,7 @@ from star_rail.module import routes
 from star_rail.module.types import GameBiz
 from star_rail.utils.logger import logger
 
-from ..web import Header, request
+from ..web import request
 
 __all__ = ["Cookie"]
 
@@ -31,6 +30,7 @@ def _parse_cookie(cookie: str) -> dict[str, str]:
 class Cookie(BaseModel):
     account_id: str = ""
     account_id_v2: str = ""
+    account_mid: str = ""
     account_mid_v2: str = ""
 
     cookie_token: str = ""
@@ -39,6 +39,7 @@ class Cookie(BaseModel):
     login_ticket: str = ""
     login_uid: str = ""
     ltmid_v2: str = ""
+    ltmid: str = ""
 
     ltoken: str = ""
     ltoken_v2: str = ""
@@ -47,6 +48,7 @@ class Cookie(BaseModel):
 
     stoken: str = ""
     stuid: str = ""
+    mid: str = ""
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -75,11 +77,14 @@ class Cookie(BaseModel):
             self.ltuid_v2 = mihoyo_uid
 
     def _init_mihoyo_mid(self):
-        mid_params = (self.ltmid_v2, self.account_mid_v2)
-        mid = self._get_first_non_empty_value(*mid_params)
-        if mid:
-            self.ltmid_v2 = mid
-            self.account_mid_v2 = mid
+        mid_params = (self.ltmid_v2, self.ltmid, self.account_mid, self.account_mid_v2, self.mid)
+        _mid = self._get_first_non_empty_value(*mid_params)
+        if _mid:
+            self.ltmid_v2 = _mid
+            self.ltmid = _mid
+            self.account_mid = _mid
+            self.account_mid_v2 = _mid
+            self.mid = _mid
 
     def _get_first_non_empty_value(self, *args):
         return next((v for v in args if v), None)
@@ -108,9 +113,7 @@ class Cookie(BaseModel):
         data = await request(
             "GET",
             url=routes.COOKIE_TOKEN_BY_STOKEN_URL.get_url(game_biz),
-            headers=Header.generate("WEB").headers,
-            cookies=self.model_dump("web"),
-            params={"uid": self.login_uid, "stoken": self.stoken},
+            cookies=self.model_dump(),
         )
         self.cookie_token = data["cookie_token"]
 
@@ -118,32 +121,17 @@ class Cookie(BaseModel):
         ck_dict = cookie.model_dump()
         for k, v in ck_dict.items():
             setattr(self, k, v)
+        self._init_mihoyo_uid()
+        self._init_mihoyo_mid()
 
-    def model_dump(
-        self, include: typing.Literal["all", "web", "ltoken", "stoken"] = "all", **kwargs
-    ) -> dict[str, str]:
-        """只输出有值的键值对
-
-        Args:
-            include (Literal["web", "ltoken", "stoken", "all"], optional):
-                all: all
-                web: login_ticket, login_uid, account_mid_v2, account_id, account_id_v2
-                ltoken: ltoken, ltoken_v2, ltuid, ltuid_v2, ltmid_v2
-                stoken: ltoken, ltoken_v2, ltuid, ltuid_v2, stoken, stuid
-        """
-        group = {
-            "web": ["login_ticket", "login_uid", "account_mid_v2", "account_id", "account_id_v2"],
-            "ltoken": ["ltoken", "ltoken_v2", "ltuid", "ltuid_v2", "ltmid_v2"],
-            "stoken": ["ltoken", "ltoken_v2", "ltuid", "ltuid_v2", "ltmid_v2", "stoken", "stuid"],
-        }
-        if include not in group:
-            return super().model_dump(exclude_defaults=True, **kwargs)
-        return super().model_dump(include={*group[include]}, exclude_defaults=True, **kwargs)
+    def model_dump(self, *, exclude_defaults=True, **kwargs) -> dict[str, str]:
+        """只输出有值的键值对"""
+        return super().model_dump(exclude_defaults=exclude_defaults, **kwargs)
 
     def __str__(self) -> str:
-        return "; ".join([f"{key}={value}" for key, value in self.model_dump("all").items()])
+        return "; ".join([f"{key}={value}" for key, value in self.model_dump().items()])
 
     def empty(self):
         """为空返回True"""
-        ck_dict = self.model_dump("all")
+        ck_dict = self.model_dump()
         return not bool(ck_dict)

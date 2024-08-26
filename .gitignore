@@ -3,7 +3,8 @@
 ### star-rail
 # User data
 StarRailTools
-
+AppData
+UserData
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
@@ -96,6 +97,13 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+
+# Nuitka
+nuitka-crash-report.xml
+*.build
+*.dist
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

@@ -39,6 +39,11 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             "ltuid_v2",
             "account_id",
             "account_id_v2",
+            "ltmid",
+            "ltmid_v2",
+            "account_mid",
+            "account_mid_v2",
+            "mid",
         )
         cookie = Cookie.parse(ck_str)
         for k in cookie.model_fields_set:
@@ -74,30 +79,21 @@ class TestCookie(unittest.IsolatedAsyncioTestCase):
             {
                 "account_id": "account_id",
                 "account_id_v2": "account_id",
+                "account_mid": "account_mid_v2",
                 "account_mid_v2": "account_mid_v2",
                 "cookie_token": "cookie_token",
                 "cookie_token_v2": "cookie_token_v2",
                 "login_ticket": "login_ticket",
                 "login_uid": "account_id",
                 "ltmid_v2": "account_mid_v2",
+                "ltmid": "account_mid_v2",
                 "ltoken": "ltoken",
                 "ltoken_v2": "ltoken_v2",
                 "ltuid": "account_id",
                 "ltuid_v2": "account_id",
                 "stoken": "stoken",
                 "stuid": "account_id",
-            },
-        )
-
-        dump_web = self.cookie.model_dump(include="web")
-        self.assertEqual(
-            dump_web,
-            {
-                "login_ticket": "login_ticket",
-                "login_uid": "account_id",
-                "account_mid_v2": "account_mid_v2",
-                "account_id": "account_id",
-                "account_id_v2": "account_id",
+                "mid": "account_mid_v2",
             },
         )
 
