@@ -1,6 +1,7 @@
 python -m nuitka `
-    star_rail/main.py `
     --standalone `
+    --assume-yes-for-downloads `
+    star_rail/main.py `
     --nofollow-import-to=loguru,pydantic,aiosqlite,pyperclip,xlsxwriter,textual,pycryptodome `
     --windows-icon-from-ico=resource/hsr.ico `
     --output-filename="Launcher" `
