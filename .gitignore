@@ -3,7 +3,8 @@
 ### star-rail
 # User data
 StarRailTools
-
+AppData
+UserData
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.

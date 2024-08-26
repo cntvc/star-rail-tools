@@ -48,10 +48,14 @@ class Account(BaseModel):
 
     def _init_datafile_path(self):
         self.gacha_record_xlsx_path = Path(
-            constants.ROOT_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
+            constants.USERDATA_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
         )
-        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
-        self.uigf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json")
+        self.srgf_path = Path(
+            constants.USERDATA_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json"
+        )
+        self.uigf_path = Path(
+            constants.USERDATA_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json"
+        )
         self.gacha_record_analyze_path = Path(
             constants.TEMP_PATH, f"GachaRecordAnalyze_{self.uid}.json"
         )

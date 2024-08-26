@@ -1,5 +1,9 @@
 import os
+import shutil
+import sys
 
+from star_rail import constants
+from star_rail.config import settings
 from star_rail.database import DATABASE_VERSION, DBManager
 from star_rail.utils.logger import logger
 
@@ -40,6 +44,28 @@ class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
         path_variables = [path for name, path in vars(constants).items() if name.endswith("_PATH")]
         for path in path_variables:
             os.makedirs(path, exist_ok=True)
+
+    def migrate_data(self):
+        old_root_path = os.path.join(os.path.dirname(sys.argv[0]), "StarRailTools")
+        if not os.path.exists(old_root_path):
+            return False
+
+        settings.load_config(os.path.join(old_root_path, "AppData", "config", "settings.json"))
+        settings.save_config()
+
+        # 单独移动数据库，日志不保留
+        shutil.move(os.path.join(old_root_path, "AppData", "data"), constants.APPDATA_PATH)
+
+        for name in os.listdir(old_root_path):
+            # Import 目录和 用户导出目录
+            if name == "AppData":
+                continue
+            shutil.move(
+                os.path.join(old_root_path, name), os.path.join(constants.USERDATA_PATH, name)
+            )
+
+        shutil.rmtree(old_root_path)
+        return True
 
     async def check_update(self):
         return await Updater().check_update()

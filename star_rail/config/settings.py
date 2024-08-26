@@ -33,6 +33,11 @@ class BaseSetting(BaseModel):
             return
         self.update_config(load_json(self.config_path))
 
+    def load_config(self, config_path: str) -> bool:
+        if not os.path.exists(config_path):
+            return False
+        self.update_config(load_json(config_path))
+
 
 class Settings(BaseSetting):
     CHECK_UPDATE: bool = True

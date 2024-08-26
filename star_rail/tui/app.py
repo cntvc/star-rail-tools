@@ -89,6 +89,15 @@ class HSRApp(App):
         logger.debug("============================================================")
         logger.debug(get_sys_info())
 
+        if self.client.migrate_data():
+            self.notify(
+                "数据迁移成功\n\n"
+                "存储目录变更：\n"
+                "StarRailTools/AppData -> ./AppData\n"
+                "StarRailTools/Import -> UserData/Import\n"
+                "StarRailTools/{UID} -> UserData/{UID}"
+            )
+
         await self.client.init()
 
         if settings.CHECK_UPDATE:
