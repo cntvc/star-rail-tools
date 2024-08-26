@@ -40,7 +40,9 @@ getter = "star_rail:get_version()"
 lint = ["ruff>=0.4.1", "pre-commit>=3.7.0"]
 test = ["pytest>=8.1.1", "pytest-cov>=5.0.0", "pytest-asyncio>=0.23.6"]
 dev = ["textual-dev>=1.5.1"]
-release = ["pyinstaller>=6.5.0"]
+release = [
+    "nuitka>=2.4.7",
+]
 
 [tool.pdm.scripts]
 lint = "pre-commit run --all-files"
@@ -51,8 +53,6 @@ cov = { shell = """\
                     --cov=star_rail \
                     tests/
                 """ }
-release_d = "pyinstaller --clean ./main_d.spec --noconfirm"
-release_f = "pyinstaller --clean ./main_f.spec --noconfirm"
 
 
 # Ruff ================================================================================
