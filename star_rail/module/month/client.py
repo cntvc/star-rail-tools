@@ -30,7 +30,7 @@ class MonthInfoClient(BaseClient):
             method="GET",
             url=routes.MONTH_INFO_URL.get_url(self.user.game_biz),
             params=param,
-            cookies=self.user.cookie.model_dump("all"),
+            cookies=self.user.cookie.model_dump(),
         )
         return MonthInfoData(**data)
 

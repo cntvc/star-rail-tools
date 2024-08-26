@@ -54,6 +54,9 @@ class ApiException(HsrException):
 
         return f"{self.__class__.__name__}({', '.join(args)})"
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class InvalidLangError(ApiException):
     """未指定语言或不是支持的语言"""

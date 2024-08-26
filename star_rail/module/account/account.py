@@ -82,7 +82,7 @@ class Account(BaseModel):
 
         def decrypt_cookie(cookie: Cookie) -> Cookie:
             # 如果 cookie 为默认值（空），则不进行解密
-            cookie_dict = cookie.model_dump("all")
+            cookie_dict = cookie.model_dump()
             if not cookie_dict:
                 return cookie
             key = base64.b64decode(settings.ENCRYPT_KEY)
@@ -115,7 +115,7 @@ class Account(BaseModel):
                 settings.ENCRYPT_KEY = AES128.generate_aes_key()
                 settings.save_config()
 
-            cookie_dict = cookie.model_dump("all")
+            cookie_dict = cookie.model_dump()
             if not cookie_dict:
                 return cookie
             key = base64.b64decode(settings.ENCRYPT_KEY)
