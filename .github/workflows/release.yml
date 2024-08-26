@@ -26,7 +26,7 @@ jobs:
 
       - name: Build package
         run: |
-          nuitka.ps1
+          .\nuitka.ps1
 
       - name: Generate package name
         run: |
