@@ -28,7 +28,7 @@ jobs:
       - name: Build package
         run: |
           .\.venv\Scripts\activate.ps1
-          .\nuitka.ps1
+          .\build.ps1
 
       - name: Generate package name
         run: |
