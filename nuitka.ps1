@@ -1,12 +1,13 @@
 python -m nuitka `
     --standalone `
     --assume-yes-for-downloads `
-    star_rail/main.py `
+    --show-progress `
     --nofollow-import-to=loguru,pydantic,aiosqlite,pyperclip,xlsxwriter,textual,pycryptodome `
     --windows-icon-from-ico=resource/hsr.ico `
     --output-filename="Launcher" `
     --include-data-dir="star_rail/tui/tcss"="star_rail/tui/tcss" `
-    --include-module=aiohttp
+    --include-module=aiohttp `
+    star_rail/main.py `
 
 $project_name = "StarRailTools"
 
