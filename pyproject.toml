@@ -53,8 +53,6 @@ cov = { shell = """\
                     --cov=star_rail \
                     tests/
                 """ }
-release_d = "pyinstaller --clean ./main_d.spec --noconfirm"
-release_f = "pyinstaller --clean ./main_f.spec --noconfirm"
 
 
 # Ruff ================================================================================
