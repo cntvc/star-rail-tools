@@ -60,7 +60,7 @@ class HSRApp(App):
     ]
 
     SCREENS = {
-        "create_account_screen": CreateAccountScreen(),
+        "create_account_screen": CreateAccountScreen,
     }
     client: HSRClient
 
