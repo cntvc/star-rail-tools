@@ -249,22 +249,17 @@ class GachaRecordClient(BaseClient):
             return cnt
 
         next_batch_id = await record_repository.get_next_batch_id()
-        latest_batch_record = await record_repository.get_latest_batch()
-        timezone = latest_batch_record.region_time_zone
+        target_time_zone = region_time_zone
+        if latest_batch_record := await record_repository.get_latest_batch():
+            target_time_zone = latest_batch_record.region_time_zone
 
-        def convert_timezone(data: list[GachaRecordItem], from_tz: int, target_tz: int):
-            if from_tz == target_tz:
-                return
-            for item in data:
-                item.time = Date.convert_timezone(item.time, from_tz, target_tz)
-
-        convert_timezone(need_insert, region_time_zone, timezone)
+        _convert_record_timezone(need_insert, region_time_zone, target_time_zone)
 
         info = GachaRecordArchiveInfo(
             uid=self.user.uid,
             batch_id=next_batch_id,
             lang=lang,
-            region_time_zone=timezone,
+            region_time_zone=target_time_zone,
             source=f"{APP_NAME}_{version}",
         )
         cnt = await record_repository.insert_gacha_record(need_insert, info)
@@ -414,22 +409,13 @@ class GachaRecordClient(BaseClient):
         record_repository = GachaRecordRepository(self.user)
         next_batch_id = await record_repository.get_next_batch_id()
 
-        def convert_timezone(data: srgf.SRGFData, target_tz: int):
-            if data.info.region_time_zone == target_tz:
-                return
-            from_tz = data.info.region_time_zone
-            for item in data.list:
-                item.time = Date.convert_timezone(item.time, from_tz, target_tz)
-            data.info.region_time_zone = target_tz
-            return
-
         target_region_timezone = timezone
         if next_batch_id > 1:
             # 时区与第一个记录保持一致
             latest_batch_record = await record_repository.get_latest_batch()
             target_region_timezone = latest_batch_record.region_time_zone
 
-        convert_timezone(srgf_data, target_region_timezone)
+        _convert_srgf_timezone(srgf_data, target_region_timezone)
 
         item_list, srgf_info = srgf.convert_to_gacha_record_data(srgf_data)
         if srgf_info.lang not in ["zh-cn", "en-us"]:
@@ -463,23 +449,13 @@ class GachaRecordClient(BaseClient):
         record_repository = GachaRecordRepository(self.user)
         next_batch_id = await record_repository.get_next_batch_id()
 
-        def convert_timezone(data: uigf.UIGFModel, target_tz: int):
-            _record = data.hkrpg[0]
-            if _record.timezone == target_tz:
-                return
-
-            from_tz = _record.timezone
-            for item in _record.list:
-                item.time = Date.convert_timezone(item.time, from_tz, target_tz)
-            _record.timezone = target_tz
-            return
-
         target_region_timezone = timezone
         if next_batch_id > 1:
             # 时区与第一个记录保持一致
             latest_batch_record = await record_repository.get_latest_batch()
             target_region_timezone = latest_batch_record.region_time_zone
-        convert_timezone(uigf_data, target_region_timezone)
+
+        _convert_uigf_timezone(uigf_data, target_region_timezone)
 
         if record not in ["zh-cn", "en-us"]:
             record.lang = settings.METADATA_LANG
@@ -578,3 +554,30 @@ class GachaRecordClient(BaseClient):
     async def display_analysis_results(self):
         analyzer = GachaRecordAnalyzer(self.user)
         return await analyzer.load_analyze_result()
+
+
+def _convert_record_timezone(data: list[GachaRecordItem], from_tz: int, target_tz: int):
+    if from_tz == target_tz:
+        return
+    for item in data:
+        item.time = Date.convert_timezone(item.time, from_tz, target_tz)
+
+
+def _convert_srgf_timezone(data: srgf.SRGFData, target_tz: int):
+    if data.info.region_time_zone == target_tz:
+        return
+    from_tz = data.info.region_time_zone
+    for item in data.list:
+        item.time = Date.convert_timezone(item.time, from_tz, target_tz)
+    data.info.region_time_zone = target_tz
+
+
+def _convert_uigf_timezone(data: uigf.UIGFModel, target_tz: int):
+    _record = data.hkrpg[0]
+    if _record.timezone == target_tz:
+        return
+
+    from_tz = _record.timezone
+    for item in _record.list:
+        item.time = Date.convert_timezone(item.time, from_tz, target_tz)
+    _record.timezone = target_tz
