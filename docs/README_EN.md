@@ -8,7 +8,7 @@
 [![license](https://img.shields.io/github/license/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/blob/main/LICENSE)
 
 
-Honkai: Star Rail Tools, a small utility for exporting gacha records and exporting calendar.
+Honkai: Star Rail Tools can export your gacha records and trailblazer calendar.
 
 
 | ![cover](image/star_rail_tools_cover.png) | ![cover_month_info](image/month.png) |
@@ -17,24 +17,18 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
 
 ## Basic Usage
 
-### Download Sources
+### Adding or Updating Account Cookie
 
-- [GitHub][latest_release]: has two releases
-  - zip suffix: folder compressed version, faster startup compared to the single-file version
-  - exe suffix: single-file version
-- [Artifact Repository][coding_latest] (faster download in China, includes only the single-file version)
+  > [!WARNING]
+  > **Cookie is a very important account credential; please do not leak it to avoid potential account security issues.**
 
-### Add or update account cookies.
-
-  **Note: Cookies are crucial account credentials. Do not disclose them to avoid potential account security issues.**
-
-  Firstly, log in to [miHoYo](https://user.mihoyo.com/) (International server users log in to [HoYoLAB](https://account.hoyoverse.com/)). Press F12, select the console, paste the following code, copy the cookie from the dialog that appears.
+  First, log in to the [miHoYo](https://user.mihoyo.com/) (for international users, log in to [HoYoLAB](https://account.hoyoverse.com/)). Press F12, select the console, paste the following code, and copy the Cookie from the dialog
 
   ```javascript
   javascript:(function(){prompt(document.domain,document.cookie)})();
   ```
 
-  Then click the "Read Cookie" button, which will automatically read clipboard data and parse it.
+  Then click the "Read Cookie" button, which will automatically read the clipboard data and parse it.
 
   <details>
     <summary>Cookie Retrieval Example</summary>
@@ -46,10 +40,10 @@ Honkai: Star Rail Tools, a small utility for exporting gacha records and exporti
   </details>
 
 ### Data Migration
-This software is a member of the [UIGF](https://uigf.org) organization, supports import and export of `SRGF` format data.
+This software is a member of the [UIGF](https://uigf.org) organization, and supports importing and exporting gacha record files in the `SRGF/UIGFv4`[^1] format.
 
 Importing SRGF format data:
-Place the data files you want to import into the "Import" folder. You can add multiple files at once. Click the "Import Data" button to proceed.
+To import your data files, move them into the "Import" folder. You have the option to add several files simultaneously. After doing so, proceed by clicking the "Import Data" button.
 
 <details>
   <summary>Click to view Data Directory Structure</summary>
@@ -78,24 +72,25 @@ Place the data files you want to import into the "Import" folder. You can add mu
 
 
 ## Contributing
-Your contributions to this project are highly appreciated.
-
-- If you have new ideas or feature suggestions, please create an issue.
-- If you find any bugs in the software or would like to update the documentation, feel free to create a pull request.
+Welcome your contributions to the project.
+- For new ideas or feature suggestions, please open an Issue.
+- If you discover a bug or wish to update the documentation, feel free to create a PR directly.
 
 For more details, please refer to [CONTRIBUTING](../.github/CONTRIBUTING.md)
 
 
 ## Acknowledgments
 
-- Reference project for early development : [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
-- Pagination module : [**genshin.py**](https://github.com/thesadru/genshin.py)
+- Early development reference project : [**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
+- Pagination query module : [**genshin.py**](https://github.com/thesadru/genshin.py)
 
 ### JetBrains Development Tools
-Thanks to JetBrains for providing development licenses for open-source projects.
+Special thanks to JetBrains for providing development licenses for open-source projects.
 
 ![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
 
 [latest_release]: https://github.com/cntvc/star-rail-tools/releases/latest
 [coding_latest]: https://cntvc.coding.net/public-artifacts/star-rail-tools/releases/packages
 [zh_cn]: ../README.md
+
+[^1]: `SRGF/UIGFv4` format is a data exchange format established by the UIGF organization. For more information, please visit the [UIGF](https://uigf.org) official website

@@ -55,7 +55,7 @@ git checkout -b {BRANCH_NAME}
 ```
 
 > [!IMPORTANT]
-> 如果进行UI部分的开发，请参阅 [textualize wiki](https://textual.textualize.io/getting_started/) 以了解该TUI框架的基本使用方式
+> 如果进行 UI 部分的开发，请参阅 [textualize wiki](https://textual.textualize.io/getting_started/) 以了解该 TUI 框架的基本使用方式
 > ```shell
 > # 在终端开启textual控制台
 > textual console
@@ -78,10 +78,8 @@ pdm test
 # 覆盖率测试
 pdm cov
 
-# 本地构建文件夹版
-pdm release_d
-# 本地构建单文件版
-pdm release_f
+# 本地构建
+./build.ps1
 ```
 
 ## 5. 提交 pull request
