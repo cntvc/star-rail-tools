@@ -60,8 +60,10 @@ class AccountStatus(Horizontal):
 
 
 class Notice(Static):
+    count = reactive(0, layout=True)
+
     def render(self) -> RenderableType:
-        return "通知"
+        return f"通知({self.count})" if self.count else "通知"
 
     def on_click(self, event: textual_events.Click) -> None:
         event.stop()

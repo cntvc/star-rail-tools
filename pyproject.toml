@@ -33,8 +33,8 @@ includes = ["star_rail"]
 excludes = ["tests"]
 
 [tool.pdm.version]
-source = "call"
-getter = "star_rail:get_version()"
+source = "file"
+path = "star_rail/__init__.py"
 
 [tool.pdm.dev-dependencies]
 lint = ["ruff>=0.4.1", "pre-commit>=3.7.0"]

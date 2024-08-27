@@ -9,9 +9,9 @@ from ...utils.date import Date
 from .mapper import GachaRecordBatchMapper
 from .model import GachaRecordItem
 
-UIGF_VERSION_V4 = "v4.0"
+UIGF_VERSION_V4_0 = "v4.0"
 
-SUPPORT_UIGF_VERSIONS = [UIGF_VERSION_V4]
+SUPPORT_UIGF_VERSIONS = [UIGF_VERSION_V4_0]
 
 _uigf_version_re = re.compile(r"^v\d+\.\d+$")
 
@@ -29,11 +29,11 @@ class UIGFInfo(BaseModel):
     @classmethod
     def _valid_version(cls, version: str):
         if version is None:
-            raise ValueError("Empty version")
+            raise ValueError("UIGF 'version' 值不能为 None")
         if not _uigf_version_re.fullmatch(version):
-            raise ValueError("Invalid UIGF version")
+            raise ValueError("无效的 UIGF 'version' 格式")
         if version not in SUPPORT_UIGF_VERSIONS:
-            raise ValueError("Unsupported UIGF version")
+            raise ValueError("尚未受支持的 UIGF 版本")
         return version
 
 
@@ -71,7 +71,7 @@ def convert_to_uigf(
         export_timestamp=int(datetime.timestamp()),
         export_app=constants.APP_NAME,
         export_app_version=app_version,
-        version=UIGF_VERSION_V4,
+        version=UIGF_VERSION_V4_0,
     )
     uigf_record_item_list = [UIGFRecordItem(**item.model_dump()) for item in gacha_record_item]
     uigf_record = UIGFRecord(

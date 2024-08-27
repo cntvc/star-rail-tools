@@ -4,7 +4,7 @@ import typing
 class HsrException(Exception):
     """Base Exception"""
 
-    msg = "There are some errors in the program."
+    msg = "程序出现未知错误"
 
     def __init__(self, msg: str = None, *args) -> None:
         self.msg = msg.format(*args) if msg is not None else self.msg
@@ -34,7 +34,7 @@ class ApiException(HsrException):
 
     original: str = ""
 
-    msg: str = ""
+    msg: str = "Api 请求异常"
 
     def __init__(self, response=None, msg: typing.Optional[str] = None) -> None:
         if response is None:
@@ -62,30 +62,30 @@ class InvalidLangError(ApiException):
     """未指定语言或不是支持的语言"""
 
     retcode = -108
-    msg = "Invalid lang value."
+    msg = "语言参数错误"
 
 
 class InvalidCookieError(ApiException):
     retcode = -100
-    msg = "Invalid cookie value."
+    msg = "无效的 cookie "
 
 
 class VisitsTooFrequently(ApiException):
     retcode = -110
-    msg = "Visits too frequently."
+    msg = "访问过于频繁"
 
 
 class InvalidGameBizError(ApiException):
     """请求参数game_biz不正确"""
 
     retcode = -111
-    msg = "Invalid game_biz value."
+    msg = "game_biz 参数错误"
 
 
 class AuthkeyExceptionError(ApiException):
     """"""
 
-    msg = "Invalid authkey value."
+    msg = "无效的 authkey"
 
 
 class InvalidAuthkeyError(AuthkeyExceptionError):
@@ -98,6 +98,7 @@ class AuthkeyTimeoutError(AuthkeyExceptionError):
     """Authkey has timed out."""
 
     retcode = -101
+    msg = "authkey 已过期"
 
 
 _ERRORS: dict[int, type[ApiException]] = {

@@ -32,7 +32,7 @@ class HakushMetadata(BaseMetadata):
             self.data = await self._fetch()
             self._save_cache()
         except Exception as err:
-            raise error.MetadataError("Failed to update Hakush metadata.") from err
+            raise error.MetadataError("更新 Hakush metadata 数据失败") from err
 
     async def _fetch(self):
         logger.debug("Fetching Hakush metadata")

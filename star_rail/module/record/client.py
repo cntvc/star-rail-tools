@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import bisect
 import functools
@@ -13,8 +15,7 @@ from star_rail import constants
 from star_rail import exceptions as error
 from star_rail.config import settings
 from star_rail.constants import APP_NAME
-from star_rail.module import BaseMetadata, HakushMetadata, routes
-from star_rail.module.account.account import Account
+from star_rail.module import Account, routes
 from star_rail.module.types import GameBiz
 from star_rail.utils import file
 from star_rail.utils.date import Date
@@ -24,6 +25,7 @@ from ..base import BaseClient
 from ..web import CursorPaginator, MergedPaginator, Paginator, request
 from . import srgf, types, uigf
 from .gacha_url import GachaUrlProvider
+from .metadata import BaseMetadata, HakushMetadata
 from .model import (
     AnalyzeResult,
     GachaRecordArchiveInfo,
@@ -84,8 +86,8 @@ class GachaRecordAPIClient:
     async def fetch_gacha_record(
         self,
         *,
-        gacha_type_list: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
-        stop_id: typing.Optional[str] = None,
+        gacha_type_list: str | typing.Sequence[str] | None = None,
+        stop_id: str | None = None,
     ) -> Paginator[GachaRecordItem]:
         """获取跃迁记录
 
@@ -213,16 +215,16 @@ class GachaRecordClient(BaseClient):
     async def refresh_gacha_record(self, source: typing.Literal["webcache", "clipboard"]):
         url = self._parse_url(source)
         if url is None:
-            raise error.GachaRecordError("Not found valid url.")
+            raise error.GachaRecordError("链接无效")
 
         api_client = GachaRecordAPIClient(url, self.user.game_biz)
         uid, lang, region_time_zone = await api_client.fetch_url_info()
 
         if not uid:
-            raise error.GachaRecordError("This url has no gacha record.")
+            raise error.GachaRecordError("链接无跃迁记录")
         logger.debug(f"url info: uid={uid}, lang={lang}, region_time_zone={region_time_zone}")
         if self.user.uid != uid:
-            raise error.GachaRecordError(f"The url does not belong to {self.user.uid}.")
+            raise error.GachaRecordError(f"当前链接不属于用户 {self.user.uid}.")
 
         record_repository = GachaRecordRepository(self.user)
         latest_record_item = await record_repository.get_latest_gacha_record()

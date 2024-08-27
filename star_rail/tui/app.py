@@ -8,8 +8,7 @@ from textual.notifications import Notification, Notify, SeverityLevel
 from textual.widgets import ContentSwitcher, Static
 
 from star_rail.config import settings
-from star_rail.module import HSRClient
-from star_rail.module.info import get_sys_info
+from star_rail.module import HSRClient, get_sys_info
 from star_rail.tui import events
 from star_rail.tui.handler import error_handler
 from star_rail.tui.widgets.notification import HSRNotification, NotificationList
@@ -143,8 +142,7 @@ class HSRApp(App):
 
     @work(exit_on_error=False)
     async def check_update(self):
-        result, latest_version = await self.client.check_update()
-        if result:
+        if latest_version := await self.client.check_update():
             self.notify(f"软件发现新版本: {latest_version}")
 
     @on(events.ReverseGachaRecord)
@@ -205,3 +203,4 @@ class HSRApp(App):
             return
         notice_list = self.query_one("Sidebar > NotificationList", NotificationList)
         notice_list.add(HSRNotification(message))
+        self.query_one("StatusBar > Notice").count += 1

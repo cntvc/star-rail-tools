@@ -14,14 +14,14 @@ class GameBiz(enum.StrEnum):
         elif "1" <= uid[0] <= "5":
             return GameBiz.CN
         else:
-            raise AssertionError(f"Param value error, got [{uid}].")
+            raise AssertionError(f"参数错误: [{uid}].")
 
     @staticmethod
     def get_by_str(val: str):
         for member in GameBiz.__members__.values():
             if member.value == val:
                 return member
-        raise AssertionError(f"Param value error, got [{val}].")
+        raise AssertionError(f"参数错误: [{val}].")
 
 
 class Region(enum.StrEnum):
@@ -50,7 +50,7 @@ class Region(enum.StrEnum):
         for member in Region.__members__.values():
             if member.value == val:
                 return member
-        raise AssertionError(f"Param value error, got [{val}].")
+        raise AssertionError(f"参数错误: [{val}].")
 
 
 class GameType(enum.IntEnum):
