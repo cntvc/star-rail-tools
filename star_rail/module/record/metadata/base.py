@@ -8,7 +8,6 @@ __all__ = ["BaseMetadata"]
 
 
 class BaseMetadata(abc.ABC):
-    data: dict = {}
     path: Path
 
     @abc.abstractmethod

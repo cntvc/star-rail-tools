@@ -18,10 +18,6 @@ class GachaRecordError(HsrException):
     pass
 
 
-class MetadataError(HsrException):
-    pass
-
-
 ############################################################
 # Api Exception
 ############################################################

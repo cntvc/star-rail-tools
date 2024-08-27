@@ -148,7 +148,7 @@ class GachaRecordView(Container):
         await self.mount(RecordDetail(data))
 
     @on(SimpleButton.Pressed, "#refresh_with_cache")
-    @work(name="更新跃迁记录")
+    @work(name="更新跃迁记录", group="gacha_record")
     @error_handler
     @required_account
     async def handle_refresh_with_webcache(self, event: SimpleButton.Pressed):
@@ -163,7 +163,7 @@ class GachaRecordView(Container):
             self.notify("无新记录")
 
     @on(SimpleButton.Pressed, "#import_record")
-    @work()
+    @work(name="导入记录", group="gacha_record")
     @error_handler
     @required_account
     async def handle_import_srgf(self, event: SimpleButton.Pressed):
@@ -201,7 +201,7 @@ class GachaRecordView(Container):
 
     @on(Worker.StateChanged)
     def handle_state_change(self, event: Worker.StateChanged):
-        if event.worker.name != "更新跃迁记录":
+        if event.worker.group != "gacha_record":
             return
 
         state_to_event = {
