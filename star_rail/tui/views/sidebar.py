@@ -20,6 +20,7 @@ class Sidebar(Container):
     def clear(self, event: SimpleButton.Pressed):
         event.stop()
         self.query_one(NotificationList).clear()
+        self.app.query_one("StatusBar > Notice").count = 0
 
     @on(SimpleButton.Pressed, "#hide")
     def hide_sidebar(self, event: SimpleButton.Pressed):

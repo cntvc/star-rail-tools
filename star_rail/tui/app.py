@@ -203,3 +203,4 @@ class HSRApp(App):
             return
         notice_list = self.query_one("Sidebar > NotificationList", NotificationList)
         notice_list.add(HSRNotification(message))
+        self.query_one("StatusBar > Notice").count += 1

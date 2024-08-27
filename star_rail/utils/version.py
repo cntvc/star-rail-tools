@@ -161,7 +161,7 @@ class Version(_BaseVersion):
     def __init__(self, version: str) -> None:
         match = self._regex.match(version)
         if not match:
-            raise ValueError(f"""Invalid version: "{version}".""")
+            raise ValueError(f"""无效的 version: "{version}".""")
         self._version = _Version(
             epoch=int(match.group("epoch")) if match.group("epoch") else 0,
             release=tuple(int(i) for i in match.group("release").split(".")),

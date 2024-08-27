@@ -1,20 +1,14 @@
 import pyperclip
 from rich.syntax import Syntax
-from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Grid, Horizontal, VerticalScroll
+from textual.events import Click
 from textual.widgets import Static
 
 from star_rail import __version__
-from star_rail.tui.widgets import SimpleButton, apply_text_color
+from star_rail.tui.widgets import apply_text_color
 
 MANUAL_PART_1 = [
-    r"""[B]创建账号[/B]""",
-    r"""点击左下角 "+" 按钮, 根据弹窗提示, 添加账号""",
-    r"",
-    r"""[B]切换账号[/B]""",
-    r"""点击左下角 "UID: xx", 选择需要切换的账号, 点击 "切换账号" 按钮""",
-    r"",
     r"""[B]如何获取 Cookie[/B]""",
     (
         r"""[G]● 1.[/G] 登陆[@click="app.open_link('https://user.mihoyo.com/')"]米哈游通行证[/]"""
@@ -46,13 +40,20 @@ LINK_RELEASE = (
 )
 
 
+class JSCode(Static):
+    def on_click(self, event: Click):
+        event.stop()
+        pyperclip.copy(JS_CODE)
+        self.notify("已复制到剪贴板")
+
+
 class HelpManual(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Static("Star Rail Tools", id="title")
         with Container(id="content"):
             yield Static(apply_text_color(MANUAL_PART_1), id="part_1")
             with Horizontal(id="part_2"):
-                yield Static(
+                js_code = JSCode(
                     Syntax(
                         JS_CODE,
                         "javascript",
@@ -61,7 +62,8 @@ class HelpManual(VerticalScroll):
                     ),
                     id="part_2_code",
                 )
-                yield SimpleButton("复制", id="copy")
+                js_code.tooltip = "点击复制代码到剪贴板"
+                yield js_code
             yield Static(apply_text_color(MANUAL_PART_3), id="part_3")
             yield Static(apply_text_color(UIGF_LINK), id="part_4")
         with Grid(id="footer"):
@@ -69,9 +71,3 @@ class HelpManual(VerticalScroll):
             yield Static(LINK_REPO)
             yield Static(LINK_ISSUE)
             yield Static(LINK_RELEASE)
-
-    @on(SimpleButton.Pressed)
-    def copy_code(self, event: SimpleButton.Pressed) -> None:
-        event.stop()
-        pyperclip.copy(JS_CODE)
-        self.notify("已复制到剪贴板")

@@ -53,7 +53,7 @@ def handle_rate_limits(
                 else:
                     return x
             else:
-                raise exception(f"Got rate limited {tries} times in a row.")
+                raise exception(f"已连续 {tries} 次受到速率限制")
 
         return inner
 

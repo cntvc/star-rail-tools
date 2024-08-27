@@ -42,7 +42,7 @@ class HSRNotification:
         return prefix + uuid_str[1:]
 
 
-class NotificationContent(Static):
+class NotificationSummary(Static):
     def __init__(self, notification: HSRNotification, **kwargs) -> None:
         super().__init__(**kwargs)
         self.notification = notification
@@ -78,7 +78,7 @@ class NotificationItem(Horizontal):
         self.notification = notification
 
     def compose(self) -> ComposeResult:
-        yield NotificationContent(self.notification)
+        yield NotificationSummary(self.notification)
         yield SimpleButton("删除", id="delete")
 
     @on(SimpleButton.Pressed, "#delete")
@@ -104,4 +104,5 @@ class NotificationList(VerticalScroll):
     def delete(self, event: NotificationItem.Delete):
         event.stop()
         await_remove = self.query(f"#{event.item.notification.id}").remove()
+        self.app.query_one("StatusBar > Notice").count -= 1
         return await_remove

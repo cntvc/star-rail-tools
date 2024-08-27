@@ -29,11 +29,11 @@ class UIGFInfo(BaseModel):
     @classmethod
     def _valid_version(cls, version: str):
         if version is None:
-            raise ValueError("Empty version")
+            raise ValueError("UIGF 'version' 值不能为 None")
         if not _uigf_version_re.fullmatch(version):
-            raise ValueError("Invalid UIGF version")
+            raise ValueError("无效的 UIGF 'version' 格式")
         if version not in SUPPORT_UIGF_VERSIONS:
-            raise ValueError("Unsupported UIGF version")
+            raise ValueError("尚未受支持的 UIGF 版本")
         return version
 
 

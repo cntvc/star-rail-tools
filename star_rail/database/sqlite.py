@@ -57,8 +57,7 @@ class ModelInfo(pydantic.BaseModel):
 
         if table_name is None:
             raise AssertionError(
-                "DataBase model error. Model name variable not found, "
-                f"cls [{model_cls.__class__.__name__}]"
+                f"数据库模型 [{model_cls.__class__.__name__}] 中未定义 __table_name__ 属性"
             )
 
         model_info = ModelInfo(table_name=table_name)

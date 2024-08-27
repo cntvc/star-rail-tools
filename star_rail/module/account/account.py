@@ -19,7 +19,7 @@ __all__ = ["Account"]
 def verify_uid_format(v):
     if Account.verify_uid(v):
         return v
-    raise ValidationError(f"Invalid uid format: {v}")
+    raise ValidationError(f"UID 格式错误: {v}")
 
 
 _UID_RE = re.compile("^[1-9][0-9]{8}$")
