@@ -4,7 +4,6 @@ env:
   PROJECT_NAME: StarRailTools
 
 on:
-  workflow_dispatch:
   release:
     types: [published]
 
@@ -27,8 +26,7 @@ jobs:
 
       - name: Build package
         run: |
-          .\.venv\Scripts\activate.ps1
-          .\build.ps1
+          pdm run release
 
       - name: Generate package name
         run: |
@@ -36,7 +34,7 @@ jobs:
 
       - name: Archive folder
         run: |
-          Compress-Archive -Path .\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
+          Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
 
       - name: Release
         uses: softprops/action-gh-release@v2
