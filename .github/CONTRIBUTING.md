@@ -51,7 +51,7 @@ git checkout -b {BRANCH_NAME}
 .venv\\Scripts\\activate
 
 # 退出虚拟环境
-.venv\\Scripts\\deactivate
+deactivate
 ```
 
 > [!IMPORTANT]
@@ -70,16 +70,16 @@ git checkout -b {BRANCH_NAME}
 
 ```shell
 # 代码格式化
-pdm lint
+pdm run lint
 
 # test
-pdm test
+pdm run test
 
 # 覆盖率测试
-pdm cov
+pdm run cov
 
 # 本地构建
-./build.ps1
+pdm run release
 ```
 
 ## 5. 提交 pull request
