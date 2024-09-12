@@ -4,31 +4,12 @@ labels: ["bug"]
 assignees:
   - cntvc
 body:
-  - type: markdown
-    attributes:
-      value: "## 环境信息 ( Environment)"
-
-  - type: dropdown
-    validations:
-      required: true
-    attributes:
-      label: 系统版本 (System Version)
-      description: What version of our software are you running?
-      multiple: false
-      options:
-        - Windows10 or Windows11
-        - Windows7
-
   - type: input
     id: app-version
     validations:
       required: true
     attributes:
       label: 软件版本 (Software version)
-
-  - type: markdown
-    attributes:
-      value: "## 详细信息 (Details)"
 
   - type: textarea
     attributes:
@@ -54,7 +35,7 @@ body:
         请复制并粘贴任何相关的日志输出。这将自动格式化为代码，因此无需反引号。
         Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       placeholder: |
-        日志文件路径(Log file path): ./StarRailTools/AppData/log/{YYYY_MM}.log
+        日志文件路径(Log file path): ./AppData/log/{YYYY_MM}.log
 
   - type: textarea
     id: additional-information
