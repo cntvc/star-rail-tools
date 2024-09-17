@@ -40,9 +40,7 @@ Honkai: Star Rail Tools can export your gacha records and trailblazer calendar.
   </details>
 
 ### Data Migration
-This software is a member of the [UIGF](https://uigf.org) organization, and supports importing and exporting gacha record files in the `SRGF/UIGFv4`[^1] format.
-
-Importing SRGF format data:
+Importing SRGF/UIGFv4`[^1] format data:
 To import your data files, move them into the "Import" folder. You have the option to add several files simultaneously. After doing so, proceed by clicking the "Import Data" button.
 
 <details>
@@ -50,12 +48,9 @@ To import your data files, move them into the "Import" folder. You have the opti
   <p>
 
 ```cmd
-  StarRailTools_1.0.0.exe # Main program file
-  StarRailTools # Software data directory
-  ├── 101793414 # Exported data for account 101793414
-  │   ├── GachaLog_101793414.xlsx
-  │   └── GachaLog_SRGF_101793414.json
-  ├── AppData # Software runtime data
+  StarRailTools
+  ├── StarRailTools.exe
+  ├── AppData
   │   ├── config
   │   │   └── settings.json
   │   ├── data
@@ -64,7 +59,9 @@ To import your data files, move them into the "Import" folder. You have the opti
   │   │   └── log_2023_08.log
   │   └── temp
   │       └── GachaAnalyze_101793414.json
-  └── Import # Directory for loding import data
+  └── UserData
+      ├── 101793414
+      └── Import
 ```
 
  </p>

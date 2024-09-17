@@ -42,23 +42,17 @@
   </details>
 
 ### 数据迁移
-  本软件为 [UIGF](https://uigf.org) 组织成员，支持导入和导出 `SRGF/UIGFv4`[^1] 格式的跃迁记录文件
-
-  **导入 `SRGF/UIGFv4` 格式数据**:
+  **导入 `SRGF/UIGFv4`[^1] 格式数据**:
   将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击"导入数据"按钮即可
-
 
 <details>
   <summary>点击查看 数据目录结构</summary>
   <p>
 
 ```cmd
-  StarRailTools_1.0.0.exe # 主程序文件
-  StarRailTools # 软件数据目录
-  ├── 101793414 # 账号 101793414 导出数据的目录
-  │   ├── GachaLog_101793414.xlsx
-  │   └── GachaLog_SRGF_101793414.json
-  ├── AppData # 软件运行数据
+  StarRailTools
+  ├── StarRailTools.exe
+  ├── AppData
   │   ├── config
   │   │   └── settings.json
   │   ├── data
@@ -67,7 +61,9 @@
   │   │   └── log_2023_08.log
   │   └── temp
   │       └── GachaAnalyze_101793414.json
-  └── Import # 读取导入数据的目录
+  └── UserData
+      ├── 101793414
+      └── Import
 ```
 
  </p>
