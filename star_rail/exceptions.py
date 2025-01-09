@@ -32,7 +32,7 @@ class ApiException(HsrException):
 
     msg: str = "Api 请求异常"
 
-    def __init__(self, response=None, msg: typing.Optional[str] = None) -> None:
+    def __init__(self, response=None, msg: str | None = None) -> None:
         if response is None:
             response = {}
         self.retcode = response.get("retcode", self.retcode)
@@ -78,19 +78,19 @@ class InvalidGameBizError(ApiException):
     msg = "game_biz 参数错误"
 
 
-class AuthkeyExceptionError(ApiException):
+class AuthkeyError(ApiException):
     """"""
 
     msg = "无效的 authkey"
 
 
-class InvalidAuthkeyError(AuthkeyExceptionError):
+class InvalidAuthkeyError(AuthkeyError):
     """Authkey is not valid."""
 
     retcode = -100
 
 
-class AuthkeyTimeoutError(AuthkeyExceptionError):
+class AuthkeyTimeoutError(AuthkeyError):
     """Authkey has timed out."""
 
     retcode = -101
@@ -125,7 +125,7 @@ def raise_for_retcode(data: dict[str, typing.Any]) -> typing.NoReturn:
         elif retcode == -101:
             raise AuthkeyTimeoutError(data)
         else:
-            raise AuthkeyExceptionError(data)
+            raise AuthkeyError(data)
 
     if retcode in _ERRORS:
         exception_type = _ERRORS[retcode]

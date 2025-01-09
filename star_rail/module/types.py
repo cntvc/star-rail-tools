@@ -1,6 +1,6 @@
 import enum
 
-__all__ = ["GameBiz", "Region", "GameType"]
+__all__ = ["GameBiz", "Region"]
 
 
 class GameBiz(enum.StrEnum):
@@ -14,14 +14,14 @@ class GameBiz(enum.StrEnum):
         elif "1" <= uid[0] <= "5":
             return GameBiz.CN
         else:
-            raise AssertionError(f"参数错误: [{uid}].")
+            raise AssertionError(f"Param type error: [{uid}].")
 
     @staticmethod
     def get_by_str(val: str):
         for member in GameBiz.__members__.values():
             if member.value == val:
                 return member
-        raise AssertionError(f"参数错误: [{val}].")
+        raise AssertionError(f"Param type error: [{val}].")
 
 
 class Region(enum.StrEnum):
@@ -34,7 +34,7 @@ class Region(enum.StrEnum):
 
     @staticmethod
     def get_by_uid(uid: str):
-        _region_dict = {
+        region_dict = {
             "1": Region.CN_GF,
             "2": Region.CN_GF,
             "5": Region.CN_QD,
@@ -43,17 +43,11 @@ class Region(enum.StrEnum):
             "8": Region.ASIA,
             "9": Region.CHT,
         }
-        return _region_dict.get(uid[0], Region.CN_GF)
+        return region_dict.get(uid[0], Region.CN_GF)
 
     @staticmethod
     def get_by_str(val: str):
         for member in Region.__members__.values():
             if member.value == val:
                 return member
-        raise AssertionError(f"参数错误: [{val}].")
-
-
-class GameType(enum.IntEnum):
-    GENSHIN = 2
-
-    STAR_RAIL = 6
+        raise AssertionError(f"Param type error: [{val}].")

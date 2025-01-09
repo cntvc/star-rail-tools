@@ -15,7 +15,7 @@ git clone https://github.com/{YOUR_USERNAME}/star-rail-tools.git
 
 ## 2. 创建开发环境
 
-如果您不熟悉 PDM 工具的使用，请参阅 [PDM Introduction](https://pdm-project.org/en/stable/)
+本项目使用 PDM 工具管理包和依赖项，下面仅介绍一些常用的命令，如果您想要更详细的了解 PDM 工具的使用，请参阅 [PDM Introduction](https://pdm-project.org/en/stable/)
 
 ### 安装开发环境依赖包
 ```bash
@@ -62,21 +62,15 @@ deactivate
 > ```
 >
 > ```shell
-> # 在另外的终端运行TUI程序并连接控制台以进行界面调试
+> # 在另外的终端运行 TUI 程序并连接控制台以进行界面调试
 > textual run main.py --dev
 > ```
 
-在编写完代码后，运行测试并执行代码格式化操作。代码格式请遵循 [PEP8][pep-8]，提交前会强制进行代码格式化，若未通过检测，请根据提示进行修改后再次尝试 commit
+代码格式请遵循 [PEP8][pep-8]，commit 前会自动进行代码格式化，若 commit 失败，请根据提示进行修改后再次尝试 commit 操作。
 
 ```shell
 # 代码格式化
 pdm run lint
-
-# test
-pdm run test
-
-# 覆盖率测试
-pdm run cov
 
 # 本地构建
 pdm run release

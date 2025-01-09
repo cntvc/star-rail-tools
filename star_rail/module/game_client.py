@@ -7,14 +7,15 @@ import re
 import typing
 from pathlib import Path
 
+from loguru import logger
+
 from star_rail import exceptions as error
-from star_rail.utils.logger import logger
 
 from .base import BaseClient
 from .types import GameBiz
 
 if typing.TYPE_CHECKING:
-    from star_rail.module import Account
+    from star_rail.module.account import Account
 
 _MHY_LOG_ROOT_PATH = os.path.join(os.getenv("USERPROFILE"), "AppData", "LocalLow")
 
@@ -30,15 +31,14 @@ class GameLogPath(str, enum.Enum):
         elif user.game_biz == GameBiz.GLOBAL:
             return Path(_MHY_LOG_ROOT_PATH, GameLogPath.GLOBAL.value, "Player.log")
         else:
-            raise AssertionError(f"参数错误: [{user.game_biz}].")
+            raise AssertionError(f"Param error : [{user.game_biz}]")
 
 
 class GameClient(BaseClient):
     def get_game_path(self):
-        """解析日志文件获取游戏路径"""
         log_path = GameLogPath.get_by_user(self.user)
         if not log_path.exists():
-            raise error.HsrException("未找到游戏日志文件")
+            return None
 
         try:
             log_text = log_path.read_text(encoding="utf8")
@@ -50,15 +50,14 @@ class GameClient(BaseClient):
         game_path = res.group() if res else None
         return game_path
 
-    def get_webcache_path(self):
-        """在游戏文件夹中查找 Web 缓存文件"""
+    def get_web_cache_path(self):
         game_path = self.get_game_path()
-        if not game_path:
+        if game_path is None:
             raise error.HsrException("未找到游戏安装路径")
         cache_root_path = os.path.join(game_path, "webCaches")
         data_2_files = glob.glob(os.path.join(cache_root_path, "*", "Cache/Cache_Data/data_2"))
         if not data_2_files:
-            raise error.HsrException("网页缓存文件不存在")
+            raise error.HsrException("未找到网页缓存文件")
         data_2_files = sorted(data_2_files, key=lambda file: os.path.getmtime(file), reverse=True)
 
         return data_2_files[0]

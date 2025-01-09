@@ -4,10 +4,10 @@ from pydantic import BaseModel, field_validator
 
 from star_rail import __version__ as app_version
 from star_rail import constants
+from star_rail.utils import Date
 
-from ...utils.date import Date
-from .mapper import GachaRecordBatchMapper
-from .model import GachaRecordItem
+from .entity import GachaRecordBatchEntity
+from .model import BaseGachaRecordItem, GachaRecordItem
 
 UIGF_VERSION_V4_0 = "v4.0"
 
@@ -25,56 +25,50 @@ class UIGFInfo(BaseModel):
     version: str
     """导出档案的 UIGF 版本号，格式为 'v{major}.{minor}' """
 
-    @field_validator("version")
+    @field_validator("version", mode="before")
     @classmethod
-    def _valid_version(cls, version: str):
+    def _verify_version(cls, version: str):
         if version is None:
             raise ValueError("UIGF 'version' 值不能为 None")
         if not _uigf_version_re.fullmatch(version):
             raise ValueError("无效的 UIGF 'version' 格式")
         if version not in SUPPORT_UIGF_VERSIONS:
-            raise ValueError("尚未受支持的 UIGF 版本")
+            raise ValueError(f"尚未受支持的 UIGF 版本：{version}")
         return version
 
 
-class UIGFRecordItem(BaseModel):
-    gacha_id: str
-    gacha_type: str
-    item_id: str
+class UIGFItem(BaseGachaRecordItem):
     count: str = "1"
-    time: str
-    """抽取物品时对应时区（timezone）下的当地时间"""
     name: str = "-"
     item_type: str = "-"
     rank_type: str = "-"
-    id: str
 
 
-class UIGFRecord(BaseModel):
+class UIGFUserRecord(BaseModel):
     uid: str
     timezone: int
     lang: str = ""
-    list: list[UIGFRecordItem]
+    list: list[UIGFItem]
 
 
-class UIGFModel(BaseModel):
+class UIGFData(BaseModel):
     info: UIGFInfo
-    hkrpg: list[UIGFRecord] = []
+    hkrpg: list[UIGFUserRecord] = []
 
 
-def convert_to_uigf(
-    gacha_record_item: list[GachaRecordItem], batch: GachaRecordBatchMapper
-) -> UIGFModel:
-    datetime = Date.local_to_timezone(batch.region_time_zone)
+def convert_record_to_uigf(
+    gacha_record_item: list[GachaRecordItem], batch: GachaRecordBatchEntity
+) -> UIGFData:
+    datetime = Date.local_time_to_timezone(batch.region_time_zone)
     uigf_info = UIGFInfo(
-        export_time=Date.format_time(datetime),
+        export_time=datetime.strftime(Date.Format.YYYY_MM_DD_HHMMSS),
         export_timestamp=int(datetime.timestamp()),
         export_app=constants.APP_NAME,
         export_app_version=app_version,
         version=UIGF_VERSION_V4_0,
     )
-    uigf_record_item_list = [UIGFRecordItem(**item.model_dump()) for item in gacha_record_item]
-    uigf_record = UIGFRecord(
+    uigf_record_item_list = [UIGFItem(**item.model_dump()) for item in gacha_record_item]
+    uigf_record = UIGFUserRecord(
         uid=batch.uid, timezone=batch.region_time_zone, lang=batch.lang, list=uigf_record_item_list
     )
-    return UIGFModel(info=uigf_info, hkrpg=[uigf_record])
+    return UIGFData(info=uigf_info, hkrpg=[uigf_record])

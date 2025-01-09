@@ -1,0 +1,268 @@
+/* =================================== Global =================================== */
+
+Screen {
+    layers: base overlay notifications;
+    overflow: hidden;
+}
+
+Button{
+    margin: 0 0;
+    padding: 0 0;
+    color: $text;
+    box-sizing: content-box;
+    content-align: center middle;
+    height:3;
+    width: 100%;
+    border-top: none;
+    border-bottom: none;
+    &:focus {
+        text-style: none;
+        background-tint: $foreground 20%;
+    }
+    &:hover {
+        background: $accent;
+        color: $text;
+        text-style: bold;
+    }
+}
+
+/* =================================== AccountView =================================== */
+
+AccountView{
+    layer: overlay;
+    max-width:30;
+    border:heavy $foreground 40%;
+    background: $surface;
+    AccountList{
+        scrollbar-size: 1 1;
+        border:heavy $foreground 40%;
+        & > ListItem{
+            height:3;
+            margin: 0 0 1 0;
+            &>Static{
+                text-align:center;
+                padding: 1;
+                &:hover {
+                    background: $accent;
+                    color: $text;
+                    text-style: bold;
+                }
+
+            background: $block-hover-background;
+            }
+        }
+    }
+    #input{
+        border: heavy $border-blurred;
+        &:focus {
+            border: heavy $border;
+            background-tint: $foreground 5%;
+        }
+    }
+    #switch{
+        # margin: 1 0 1 0;
+    }
+    &.-hidden {
+        offset-x: -100%;
+    }
+}
+
+DeleteAccountScreen{
+    align: center middle;
+    VerticalGroup{
+        width: 40;
+        #question{
+            content-align:center middle;
+            height:3;
+        }
+
+    }
+}
+
+/* =================================== RecordView =================================== */
+RecordView{
+    #summary{
+        grid-size: 3 1;
+        height:3;
+        keyline:thin $foreground 30%;
+        Label{
+            content-align:center middle;
+            width:1fr;
+        }
+    }
+    #detail{
+        grid-gutter: 1 1;
+        grid-rows: auto;
+        keyline:thin $foreground 30%;
+        #pity_item{
+            height:auto;
+            #item_name{
+                min-width:25;
+            }
+            #item_index{
+                dock:right;
+            }
+        }
+        RecordDetail{
+            height:10;
+            #item_name{
+                min-width:25;
+            }
+            #item_index{
+                dock:right;
+            }
+        }
+    }
+}
+
+/* =================================== ImportScreen =================================== */
+ImportScreen{
+    align:center middle;
+
+    #import_view{
+        width: 60;
+        height:auto;
+        border: heavy $foreground 40%;
+    }
+    FileDetailView{
+        height:auto;
+        #import_btn{
+            margin: 1 0 0 0;
+        }
+    }
+    FileIndicator{
+        height:3;
+        content-align:center middle;
+    }
+    #nav_btn{
+        height:auto;
+        #prev_button{
+            width:50%;
+        }
+        #next_button{
+            width:50%;
+        }
+    }
+    ImportFooter{
+        height:1;
+        dock:bottom;
+        background:$secondary;
+        BackMain{
+            width:auto;
+            &:hover {
+                background: $accent;
+                color: $text;
+                text-style: bold;
+            }
+        }
+    }
+}
+
+/* =================================== Footer =================================== */
+Footer{
+    height:1;
+    dock:bottom;
+    background:$secondary;
+    UserNav{
+        margin: 0 0 0 1;
+        dock:left;
+        width:auto;
+        min-height:3;
+        &:hover {
+            background: $accent;
+            color: $text;
+            text-style: bold;
+        }
+    }
+    RefreshNav{
+        margin: 0 0 0 1;
+        width:auto;
+        &:hover {
+            background: $accent;
+            color: $text;
+            text-style: bold;
+        }
+    }
+    ImportNav{
+        margin: 0 0 0 1;
+        width:auto;
+        &:hover {
+            background: $accent;
+            color: $text;
+            text-style: bold;
+        }
+    }
+    ExportNav{
+        margin: 0 0 0 1;
+        width:auto;
+        &:hover {
+            background: $accent;
+            color: $text;
+            text-style: bold;
+        }
+    }
+    HelpNav{
+        margin: 0 0 0 1;
+        width:auto;
+        &:hover {
+            background: $accent;
+            color: $text;
+            text-style: bold;
+        }
+    }
+}
+
+/* =================================== ExportScreen =================================== */
+ExportScreen{
+    align: center middle;
+    VerticalGroup{
+        width: 40;
+        border: heavy $foreground 40%;
+    }
+}
+
+/* =================================== RefreshScreen =================================== */
+RefreshScreen{
+    align: center middle;
+    &>VerticalGroup{
+        border: heavy $foreground 40%;
+        width: 40;
+        height:auto;
+    }
+}
+
+/* =================================== HelpScreen =================================== */
+HelpScreen{
+    &>VerticalScroll{
+        scrollbar-size: 1 1;
+    }
+
+    #title{
+        dock:top;
+        height:3;
+        content-align: center middle;
+    }
+    AppInfoView{
+        grid-size: 4 1;
+        height: 3;
+        dock: bottom;
+        keyline:thin $foreground 30%;
+        &> Static{
+            width:1fr;
+            content-align: center middle;
+        }
+    }
+    HelpFooter{
+        dock: bottom;
+        height:1;
+        background: $secondary;
+        BackMain{
+            width:auto;
+            &:hover {
+                background: $accent;
+                color: $text;
+                text-style: bold;
+            }
+        }
+    }
+}

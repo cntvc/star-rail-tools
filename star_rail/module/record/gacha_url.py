@@ -1,30 +1,28 @@
-from __future__ import annotations
-
 import os
 import re
 import subprocess
 import typing
 
 import yarl
+from loguru import logger
 
 from star_rail import constants
+from star_rail.module.base import BaseClient
 from star_rail.module.game_client import GameClient
-from star_rail.utils.logger import logger
 
 if typing.TYPE_CHECKING:
-    from star_rail.module import Account
-
-__all__ = ["GachaUrlProvider"]
-
+    pass
 
 _GACHA_RECORD_URL_RE = re.compile(
     r"https://.+?&auth_appid=webview_gacha&.+?authkey=.+?&game_biz=hkrpg_(?:cn|global)"
 )
 
+__all__ = ["GachaUrl"]
 
-class GachaUrlProvider:
-    def _match_api(self, api: str | None) -> str | None:
-        """从字符串匹配抽卡链接"""
+
+class GachaUrl(BaseClient):
+    @staticmethod
+    def _match_api(api: str) -> str | None:
         if not api:
             return None
         match = _GACHA_RECORD_URL_RE.search(api)
@@ -37,35 +35,24 @@ class GachaUrlProvider:
 
         return destination_path
 
-    def parse_game_web_cache(self, user: Account):
-        logger.debug("Parse game client web cache.")
+    def parse_from_web_cache(self):
+        logger.debug("Parse game client web cache")
         tmp_file_path = os.path.join(constants.TEMP_PATH, "data_2")
-        webcache_path = GameClient(user).get_webcache_path()
-        self._copy_file_with_powershell(webcache_path, tmp_file_path)
+        web_cache_path = GameClient(self.user).get_web_cache_path()
+        self._copy_file_with_powershell(web_cache_path, tmp_file_path)
 
         with open(tmp_file_path, "rb") as file:
             results = file.read().split(b"1/0/")
         os.remove(tmp_file_path)
 
-        url = None
-
         for result in results[::-1]:
             result = result.decode(errors="ignore")
-            text = self._match_api(result)
-            if text:
-                url = text
-                break
+            if url := self._match_api(result):
+                return yarl.URL(url)
+        return None
 
-        if not url:
-            return None
-        return yarl.URL(url)
-
-    def parse_clipboard_url(self):
-        logger.debug("Parse clipboard.")
-        import pyperclip
-
-        text = pyperclip.paste()
-        url = self._match_api(text)
-        if not url:
-            return None
-        return yarl.URL(url)
+    @staticmethod
+    def verify_url(url: str):
+        if res := GachaUrl._match_api(url):
+            return yarl.URL(res)
+        return None

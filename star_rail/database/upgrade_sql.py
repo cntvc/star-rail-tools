@@ -1,20 +1,20 @@
 # flake8: noqa E501
 
-__all__ = ["UpgradeSQL"]
+__all__ = ["UpgradeSQL", "DB_VERSION"]
 
-DATABASE_VERSION = 1
-"""软件中数据库版本"""
+
+DB_VERSION = 2
 
 
 class UpgradeSQL:
-    _register: list["UpgradeSQL"] = []
+    register: list["UpgradeSQL"] = []
     target_version: int
     sql_list: list[str]
 
     def __init__(self, target_version: int, sql_list: list[str]) -> None:
         self.target_version = target_version
         self.sql_list = sql_list
-        self._register.append(self)
+        self.register.append(self)
 
 
 db_upgrade_v1 = UpgradeSQL(
@@ -99,7 +99,7 @@ db_upgrade_v1 = UpgradeSQL(
         FROM record_info as ri;
         """,
         """
-        insert into gacha_record_item (rank_type, name, lang, gacha_id, item_id, count, item_type, id, time, gacha_type,batch_id, uid)
+        insert into gacha_record_item (rank_type, name, lang, gacha_id, item_id, count, item_type, id, time, gacha_type, batch_id, uid)
         select ri.rank_type,
             ri.name,
             ri.lang,

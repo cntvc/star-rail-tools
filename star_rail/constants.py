@@ -4,25 +4,22 @@ import sys
 APP_NAME = "StarRailTools"
 
 ####################################################################
-# path
+# Path
 ####################################################################
 
 ROOT_PATH = os.path.dirname(sys.argv[0])
 
-# AppData ----------------------------------------------------------
+# AppData ---------------------------------------------------------
 
 APPDATA_PATH = os.path.join(ROOT_PATH, "AppData")
-"""保存软件运行数据的根目录"""
 
 TEMP_PATH = os.path.join(APPDATA_PATH, "temp")
-
-CONFIG_PATH = os.path.join(APPDATA_PATH, "config")
 
 LOG_PATH = os.path.join(APPDATA_PATH, "log")
 
 DATA_PATH = os.path.join(APPDATA_PATH, "data")
 
-# UserData ----------------------------------------------------------
+# UserData ---------------------------------------------------------
 
 USERDATA_PATH = os.path.join(ROOT_PATH, "UserData")
 

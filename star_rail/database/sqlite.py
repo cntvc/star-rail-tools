@@ -1,52 +1,44 @@
+from __future__ import annotations
+
 import os
 import sqlite3
 import typing
 from collections import deque
-from typing import Optional
 
 import aiosqlite
 import pydantic
+from loguru import logger
 
 from star_rail import constants
-from star_rail.utils.logger import logger
+from star_rail.utils import Date
 
-from .upgrade_sql import DATABASE_VERSION, UpgradeSQL
+from .upgrade_sql import DB_VERSION, UpgradeSQL
 
-_DEFAULT_DB_PATH = os.path.join(constants.DATA_PATH, "star_rail.db")
-
-__all__ = ["DBModel", "DBField", "AsyncDBClient", "DBManager"]
+__all__ = ["DbModel", "DbField", "DbClient", "DB_VERSION"]
 
 
-class DBModel(pydantic.BaseModel):
-    """数据库模型基类
-
-    继承自 pydantic.BaseModel ，只用于 Sqlite ，以成员定义时的类型声明限制数据类型
-    """
-
+class DbModel(pydantic.BaseModel):
     __subclass_table__: list = []
-    """子类注册表"""
 
     __table_name__: str
-    """数据库表名"""
 
     @staticmethod
     def _register(subclass):
-        DBModel.__subclass_table__.append(subclass)
+        DbModel.__subclass_table__.append(subclass)
 
     def __init_subclass__(cls):
         cls._register(cls)
 
 
-def DBField(primary_key=False, **kwargs):
-    """数据库模型参数扩展"""
+def DbField(primary_key=False, **kwargs):
     extra = {"primary_key": primary_key}
     return pydantic.Field(json_schema_extra=extra, **kwargs)
 
 
-_T = typing.TypeVar("_T", bound=DBModel)
+_T = typing.TypeVar("_T", bound=DbModel)
 
 
-class ModelInfo(pydantic.BaseModel):
+class DbModelInfo(pydantic.BaseModel):
     table_name: str
     column: set[str] = set()
     primary_key: set[str] = set()
@@ -57,10 +49,10 @@ class ModelInfo(pydantic.BaseModel):
 
         if table_name is None:
             raise AssertionError(
-                f"数据库模型 [{model_cls.__class__.__name__}] 中未定义 __table_name__ 属性"
+                f"Undefined `__table_name__` attribute in [{model_cls.__class__.__name__}]"
             )
 
-        model_info = ModelInfo(table_name=table_name)
+        model_info = cls(table_name=table_name)
 
         for name, fields in model_cls.model_fields.items():
             if fields.json_schema_extra and fields.json_schema_extra.get("primary_key", None):
@@ -70,22 +62,17 @@ class ModelInfo(pydantic.BaseModel):
         return model_info
 
 
-class AsyncDBClient:
-    db_path: str
-    connection: aiosqlite.Connection
+class DbClient:
+    DB_PATH: str = os.path.join(constants.DATA_PATH, "star_rail.db")
+    connection: aiosqlite.Connection | None
     sql_queue: deque
-    """记录调用的SQL语句"""
 
-    def __init__(self, *, db_path=_DEFAULT_DB_PATH) -> None:
-        self.db_path = db_path
-        self.connection = None
-        self._isolation_level = None
+    def __init__(self) -> None:
+        self.connection: aiosqlite.Connection | None = None
         self.sql_queue = deque(maxlen=20)
 
     async def connect(self):
-        self.connection = await aiosqlite.connect(
-            self.db_path, isolation_level=self._isolation_level
-        )
+        self.connection = await aiosqlite.connect(self.DB_PATH, isolation_level=None)
         self.connection.row_factory = sqlite3.Row
         await self.connection.set_trace_callback(self.sql_queue.append)
 
@@ -121,32 +108,34 @@ class AsyncDBClient:
         params = tuple(params)
         return await self.connection.execute(sql, params)
 
-    @typing.overload
-    async def insert(
-        self, item: DBModel, mode: typing.Literal["ignore", "update", "none"] = "none"
-    ) -> int:
-        pass
+    if typing.TYPE_CHECKING:
 
-    @typing.overload
-    async def insert(
-        self, items: list[DBModel], mode: typing.Literal["ignore", "update", "none"] = "none"
-    ) -> int:
-        pass
+        @typing.overload
+        async def insert(
+            self, item: DbModel, mode: typing.Literal["ignore", "replace", "none"] = "none"
+        ) -> int:
+            pass
+
+        @typing.overload
+        async def insert(
+            self, items: list[DbModel], mode: typing.Literal["ignore", "replace", "none"] = "none"
+        ) -> int:
+            pass
 
     async def insert(
         self,
-        item_or_item_list: DBModel | list[DBModel],
-        mode: typing.Literal["ignore", "update", "none"] = "none",
+        item_or_item_list: DbModel | list[DbModel],
+        mode: typing.Literal["ignore", "replace", "none"] = "none",
     ) -> int:
         if mode == "none":
             mode = ""
         elif mode == "ignore":
             mode = " or ignore "
-        elif mode == "update":
+        elif mode == "replace":
             mode = " or replace "
         else:
             raise AssertionError(
-                f"Param error. Expected 'ignore', 'update' or 'none', got [{mode}]"
+                f"Param error. Expected 'ignore', 'replace' or 'none', got [{mode}]"
             )
 
         if isinstance(item_or_item_list, list):
@@ -154,115 +143,109 @@ class AsyncDBClient:
             if not item_list:
                 return 0
 
-            cls_info = ModelInfo.parse(type(item_list[0]))
+            cls_info = DbModelInfo.parse(type(item_list[0]))
             columns = ",".join(cls_info.column)
             placeholders = ",".join(["?" for _ in cls_info.column])
             values = []
             for item in item_list:
                 item_values = [getattr(item, k) for k in cls_info.column]
                 values.append(item_values)
-            sql_statement = """ insert {} into {} ({}) values ({}) ;""".format(
-                mode, cls_info.table_name, columns, placeholders
+            sql_statement = (
+                f"""insert {mode} into {cls_info.table_name} ({columns}) values ({placeholders});"""
             )
             cursor = await self.connection.executemany(sql_statement, values)
-        elif isinstance(item_or_item_list, DBModel):
+        elif isinstance(item_or_item_list, DbModel):
             item = item_or_item_list
-            cls_anno = ModelInfo.parse(type(item))
+            cls_anno = DbModelInfo.parse(type(item))
             columns = ",".join(cls_anno.column)
             placeholders = ",".join(["?" for _ in cls_anno.column])
             values = [getattr(item, k) for k in cls_anno.column]
 
-            sql_statement = """insert {} into {} ({}) values ({}) ;""".format(
-                mode, cls_anno.table_name, columns, placeholders
+            sql_statement = (
+                f"""insert {mode} into {cls_anno.table_name} ({columns}) values ({placeholders});"""
             )
             cursor = await self.connection.execute(sql_statement, values)
         else:
             raise AssertionError(
                 "Param type error. Expected type 'list' or 'DBModel',"
-                f"got [{type(item_or_item_list)}]."
+                f"got [{type(item_or_item_list)}]"
             )
 
         return cursor.rowcount
 
-    @typing.overload
-    def convert(self, row: Optional[sqlite3.Row], model_cls: type[_T]) -> Optional[_T]:
-        pass
-
-    @typing.overload
-    def convert(self, row: list[sqlite3.Row], model_cls: type[_T]) -> list[_T]:
-        pass
-
-    def convert(
-        self, row: Optional[sqlite3.Row] | list[sqlite3.Row], model_cls: type[_T]
-    ) -> _T | list[_T] | None:
+    def convert(self, row: sqlite3.Row | None, model_cls: type[_T]) -> _T | None:
         if row is None:
             return None
-        if isinstance(row, sqlite3.Row):
-            data = {k: row[k] for k in row.keys()}
-            return model_cls(**data)
-        elif isinstance(row, list):
-            data = []
-            for item in row:
-                t = model_cls(**{k: item[k] for k in item.keys()})
-                data.append(t)
-            return data
-        else:
-            raise AssertionError(
-                f"Param type error. Expected type 'list' or 'DBModel', got [{type(row)}]."
+        data = {k: row[k] for k in row.keys()}
+        return model_cls(**data)
+
+    def convert_list(self, rows: list[sqlite3.Row], model_cls: type[_T]) -> list[_T]:
+        return [model_cls(**{k: row[k] for k in row.keys()}) for row in rows]
+
+    async def create_all_table(self):
+        logger.debug("Create all table")
+        await self.start_transaction()
+        for model_cls in DbModel.__subclass_table__:
+            model_anno = DbModelInfo.parse(model_cls)
+
+            sql = """create table if not exists {} ({}, primary key ({}) );""".format(
+                model_anno.table_name,
+                ",".join(model_anno.column),
+                ",".join(model_anno.primary_key),
             )
+            await self.execute(sql)
+        await self.commit_transaction()
+
+    async def get_user_version(self):
+        logger.debug("Get database version")
+        cursor = await self.connection.execute("pragma user_version;")
+        row = await cursor.fetchone()
+        return row[0]
+
+    async def set_user_version(self, db_version: int):
+        logger.debug("Set database version to {}", db_version)
+        await self.connection.execute(f"pragma user_version = {db_version};")
+
+    def upgrade_manager(self):
+        return UpgradeManager(self)
 
 
-class DBManager:
-    def __init__(self, *, db_path=_DEFAULT_DB_PATH) -> None:
-        self.db_path = db_path
-
-    async def create_all(self):
-        """创建所有表"""
-        async with AsyncDBClient(db_path=self.db_path) as db:
-            await db.start_transaction()
-            for model_cls in DBModel.__subclass_table__:
-                model_anno = ModelInfo.parse(model_cls)
-
-                sql = """create table if not exists {} ({}, primary key ({}) );""".format(
-                    model_anno.table_name,
-                    ",".join(model_anno.column),
-                    ",".join(model_anno.primary_key),
-                )
-                await db.execute(sql)
-            await db.commit_transaction()
-
-    async def user_version(self):
-        """获取用户数据库版本"""
-        async with AsyncDBClient(db_path=self.db_path) as db:
-            cursor = await db.execute("pragma user_version;")
-            row = await cursor.fetchone()
-            return row[0]
-
-    async def set_user_version(self, db_version: str):
-        async with AsyncDBClient(db_path=self.db_path) as db:
-            await db.execute(f"pragma user_version = {db_version};")
+class UpgradeManager:
+    def __init__(self, db_client: DbClient) -> None:
+        self.db_client = db_client
+        self.backup_dir = constants.DATA_PATH
 
     async def upgrade_database(self):
-        """升级数据库版本"""
-        logger.debug("Update database version.")
-        local_db_version = await self.user_version()
-        if local_db_version >= DATABASE_VERSION:
+        logger.debug("Update database version")
+        local_db_version = await self.db_client.get_user_version()
+        if local_db_version >= DB_VERSION:
             return
 
-        upgrade_script_list = sorted(UpgradeSQL._register, key=lambda x: x.target_version)
+        upgrade_script_list = sorted(UpgradeSQL.register, key=lambda x: x.target_version)
         for upgrade_script in upgrade_script_list:
-            if local_db_version < upgrade_script.target_version <= DATABASE_VERSION:
-                await self._perform_upgrade_script(upgrade_script)
-                local_db_version = await self.user_version()
-
+            if local_db_version < upgrade_script.target_version <= DB_VERSION:
+                await self._migrate(upgrade_script)
+                local_db_version = await self.db_client.get_user_version()
                 logger.debug("current database version: {}", local_db_version)
+        await self.db_client.execute("VACUUM;")
 
-    async def _perform_upgrade_script(self, script: "UpgradeSQL"):
-        logger.debug("Upgrade database version to {}", script.target_version)
-        async with AsyncDBClient(db_path=self.db_path) as db:
-            await db.start_transaction()
-            for sql in script.sql_list:
-                await db.execute(sql)
-            await db.execute(f"pragma user_version = {script.target_version};")
-            await db.commit_transaction()
-            logger.debug("Upgrade database version to {} completed.", script.target_version)
+    async def _migrate(self, migration_sql: UpgradeSQL):
+        logger.debug("Upgrade database version to {}", migration_sql.target_version)
+        await self.db_client.start_transaction()
+        for sql in migration_sql.sql_list:
+            await self.db_client.execute(sql)
+        await self.db_client.execute(f"pragma user_version = {migration_sql.target_version};")
+        await self.db_client.commit_transaction()
+        logger.debug("Upgrade database version to {} completed", migration_sql.target_version)
+
+    # TODO 测试
+    async def backup_database(self):
+        logger.debug("Backup database")
+
+        backup_file = os.path.join(
+            self.backup_dir,
+            f"star_rail_backup_{Date.now().strftime(Date.Format.YYYYMMDDHHMMSS)}.db",
+        )
+        async with aiosqlite.connect(backup_file) as backup_conn:
+            await self.db_client.connection.backup(backup_conn)
+        logger.debug("Backup database completed")

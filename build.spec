@@ -3,7 +3,7 @@
 
 block_cipher = None
 
-exe_name = "Launcher"
+exe_name = "StarRailTools"
 
 dir_name = "StarRailTools"
 

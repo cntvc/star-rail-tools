@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class BaseGachaRecordItem(BaseModel):
@@ -23,14 +23,7 @@ class BaseGachaRecordItem(BaseModel):
         return self.id < __value.id
 
 
-########################################################################
-# Mihoyo API Model
-########################################################################
-
-
 class GachaRecordItem(BaseGachaRecordItem):
-    """抽卡项"""
-
     count: str
     name: str
     rank_type: str
@@ -39,9 +32,7 @@ class GachaRecordItem(BaseGachaRecordItem):
     item_type: str
 
 
-class GachaRecordData(BaseModel):
-    """跃迁记录 API 结构"""
-
+class GachaRecordPage(BaseModel):
     page: int
     size: int
     list: list[GachaRecordItem]
@@ -54,12 +45,12 @@ class GachaRecordData(BaseModel):
 ########################################################################
 
 
-class StatisticItem(GachaRecordItem):
+class GachaIndexItem(GachaRecordItem):
     index: int
     """物品抽数"""
 
 
-class StatisticResult(BaseModel):
+class GachaPoolAnalyzeResult(BaseModel):
     """分卡池的统计结果"""
 
     gacha_type: str = ""
@@ -68,24 +59,27 @@ class StatisticResult(BaseModel):
     """保底计数"""
     total_count: int = 0
     """本类型的抽卡总数"""
-    rank_5: list[StatisticItem] = []
+    rank5: list[GachaIndexItem] = []
     """5星物品详情"""
 
 
-class AnalyzeResult(BaseModel):
+class GachaAnalyzeSummary(BaseModel):
     uid: str = ""
     update_time: str = ""
-    data: list[StatisticResult] = []
+    data: list[GachaPoolAnalyzeResult] = []
+    version: str = "v1.0"
 
-    def empty(self):
-        for i in self.data:
-            if len(i.rank_5):
-                return False
-        return True
+    model_config = ConfigDict(extra="ignore")
+
+    def is_empty(self) -> bool:
+        return all(item.total_count == 0 for item in self.data)
+
+    def get_pool_data(self, gacha_type: str) -> GachaPoolAnalyzeResult:
+        return next((x for x in self.data if x.gacha_type == gacha_type), None)
 
 
 @dataclass
-class GachaRecordArchiveInfo:
+class GachaRecordInfo:
     uid: str
     batch_id: int
     lang: str

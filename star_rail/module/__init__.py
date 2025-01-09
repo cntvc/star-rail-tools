@@ -1,76 +1,75 @@
 from __future__ import annotations
 
 import os
-import shutil
-import sys
 import typing
 
+from loguru import logger
+
 from star_rail import constants
-from star_rail.config import settings
-from star_rail.database import DATABASE_VERSION, DBManager
-from star_rail.utils.logger import logger
+from star_rail.database import DB_VERSION, DbClient
+from star_rail.logger import init_logger
 
 from .account import Account, AccountClient
-from .info import get_sys_info
-from .month import MonthInfoClient
-from .record import GachaRecordClient
+from .metadata import HakushMetadata
+from .record import GACHA_TYPE_DICT, ExportHelper, GachaRecordClient, ImportHelper
 from .updater import Updater
 
 if typing.TYPE_CHECKING:
-    from .record import BaseMetadata
-
-__all__ = ["HSRClient", "get_sys_info", "Account"]
+    from .metadata import BaseMetadata
 
 
-class HSRClient(GachaRecordClient, AccountClient, MonthInfoClient):
-    def __init__(self, user: Account = None, _metadata: BaseMetadata = None):
+__all__ = ["HSRClient", "Account", "GACHA_TYPE_DICT"]
+
+
+_default_metadata = HakushMetadata()
+
+
+class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
+    user: Account
+    metadata: BaseMetadata
+
+    def __init__(self, user: Account | None = None, _metadata: BaseMetadata = _default_metadata):
+        init_logger()
         super().__init__(user, _metadata)
+        self.updater = Updater()
+        self.metadata_is_latest = False
 
     async def init(self):
         self._init_app_path()
-
-        db_manager = DBManager()
-        if not os.path.exists(db_manager.db_path):
-            logger.debug("init database.")
-            await db_manager.create_all()
-            await db_manager.set_user_version(DATABASE_VERSION)
-        cur_db_version = await db_manager.user_version()
-        logger.debug(
-            "Local db version: {}. current db version: {}", cur_db_version, DATABASE_VERSION
-        )
-        if cur_db_version < DATABASE_VERSION:
-            await db_manager.upgrade_database()
-
+        await self._init_db()
         await self.init_default_account()
 
-    def _init_app_path(self):
-        from star_rail import constants
+    async def _init_db(self):
+        if not os.path.exists(DbClient.DB_PATH):
+            logger.debug("Create database")
+            async with DbClient() as db:
+                await db.create_all_table()
+                await db.set_user_version(DB_VERSION)
+            return
 
+        async with DbClient() as db:
+            local_db_version = await db.get_user_version()
+            logger.debug(
+                "Local db version: {}, current db version: {}", local_db_version, DB_VERSION
+            )
+
+            if local_db_version < DB_VERSION:
+                db_manager = db.upgrade_manager()
+                await db_manager.backup_database()
+                await db_manager.upgrade_database()
+
+    def _init_app_path(self):
         path_variables = [path for name, path in vars(constants).items() if name.endswith("_PATH")]
         for path in path_variables:
             os.makedirs(path, exist_ok=True)
 
-    def migrate_data(self):
-        old_root_path = os.path.join(os.path.dirname(sys.argv[0]), "StarRailTools")
-        if not os.path.exists(old_root_path):
-            return False
+    async def check_app_update(self):
+        return await self.updater.check_update()
 
-        settings.load_config(os.path.join(old_root_path, "AppData", "config", "settings.json"))
-        settings.save_config()
+    async def get_changelog(self, page_size: int = 5):
+        return await self.updater.get_changelog(page_size)
 
-        # 单独移动数据库，日志不保留
-        shutil.move(os.path.join(old_root_path, "AppData", "data"), constants.APPDATA_PATH)
-
-        for name in os.listdir(old_root_path):
-            # Import 目录和 用户导出目录
-            if name == "AppData":
-                continue
-            shutil.move(
-                os.path.join(old_root_path, name), os.path.join(constants.USERDATA_PATH, name)
-            )
-
-        shutil.rmtree(old_root_path)
-        return True
-
-    async def check_update(self):
-        return await Updater().check_update()
+    async def check_and_update_metadata(self):
+        if await self.metadata.check_update():
+            await self.metadata.update()
+        self.metadata_is_latest = True
