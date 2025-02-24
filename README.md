@@ -1,5 +1,3 @@
-中文 | [English][en_us]
-
 # 崩坏：星穹铁道小工具
 
 [![Test](https://github.com/cntvc/star-rail-tools/actions/workflows/test.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/test.yml)
@@ -11,8 +9,7 @@
 崩坏：星穹铁道小工具，可统计跃迁记录
 
 
-| ![cover](docs/image/star_rail_tools_cover.png) | ![cover_month_info](docs/image/month.png) |
-|:----------------------------------------------:|:------------------------------------------|
+![cover](docs/image/star_rail_tools_cover.png)
 
 ## 基本使用
 

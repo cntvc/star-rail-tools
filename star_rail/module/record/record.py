@@ -43,7 +43,7 @@ class GachaRecordClient(BaseClient):
         self.metadata = _metadata
 
     async def refresh_gacha_record(self, mode: typing.Literal["incremental", "full"]):
-        logger.debug("Refresh gacha record")
+        logger.debug("Refresh gacha record，mode: {}", mode)
         url = GachaUrl(self.user).parse_from_web_cache()
         if url is None:
             raise error.GachaRecordError("未获取到有效链接")
@@ -58,7 +58,7 @@ class GachaRecordClient(BaseClient):
             raise error.GachaRecordError(f"当前跃迁记录不属于用户 {self.user.uid}")
 
         need_insert_record = await self._fetch_record(fetcher, mode)
-        logger.debug(f"The number of records to be inserted: {len(need_insert_record)}")
+        logger.debug(f"The number of records to be added: {len(need_insert_record)}")
         if need_insert_record:
             cnt = await self._insert_record(lang, region_time_zone, need_insert_record, mode)
             logger.debug("{} new records added", cnt)
@@ -72,23 +72,26 @@ class GachaRecordClient(BaseClient):
     ):
         record_db_client = GachaRecordDbClient(self.user)
         latest_gacha_record = await record_db_client.get_latest_gacha_record()
-
         stop_id = None
-        if mode == "incremental" and latest_gacha_record:
-            stop_id = latest_gacha_record.id
 
-        gacha_record_iter = await fetcher.fetch_gacha_record(stop_id=stop_id)
-        gacha_record_list = list(await gacha_record_iter.flatten())
-        # 反转后为从小到大排序
-        gacha_record_list.reverse()
-
-        if mode == "incremental" and latest_gacha_record:
-            index = bisect.bisect_right(gacha_record_list, latest_gacha_record)
-            need_insert = gacha_record_list[index:]
+        if mode == "full":
+            gacha_record_iter = await fetcher.fetch_gacha_record(stop_id=stop_id)
+            gacha_record_list = list(await gacha_record_iter.flatten())
+            gacha_record_list.reverse()
+            return gacha_record_list
         else:
-            need_insert = gacha_record_list
+            # 增量模式 只保存新增记录
+            if latest_gacha_record:
+                stop_id = latest_gacha_record.id
+            gacha_record_iter = await fetcher.fetch_gacha_record(stop_id=stop_id)
+            gacha_record_list = list(await gacha_record_iter.flatten())
+            gacha_record_list.reverse()
 
-        return need_insert
+            need_insert = gacha_record_list
+            if latest_gacha_record:
+                index = bisect.bisect_right(gacha_record_list, latest_gacha_record)
+                need_insert = gacha_record_list[index:]
+            return need_insert
 
     async def _insert_record(
         self,
@@ -122,12 +125,13 @@ class GachaRecordClient(BaseClient):
         insert_mode = "ignore" if mode == "incremental" else "replace"
         return await record_db_client.insert_gacha_record(gacha_record, info, insert_mode)
 
-    def load_analyze_summary(self) -> GachaAnalyzeSummary:
+    async def load_analyze_summary(self) -> GachaAnalyzeSummary:
         analyzer = GachaRecordAnalyzer(self)
-        analyzer.load()
+        await analyzer.load()
         return analyzer.analyze_summary
 
     async def refresh_analyze_summary(self):
+        logger.debug("Refresh analyze summary")
         analyzer = GachaRecordAnalyzer(self)
         await analyzer.refresh()
         return analyzer.analyze_summary
@@ -141,7 +145,8 @@ class GachaRecordAnalyzer:
         self.analyze_result_path = self.user.analyze_result_path
 
     @staticmethod
-    def _analyze(uid, gacha_record_list):
+    def _analyze(uid, gacha_record_list: list[GachaRecordItem]):
+        logger.debug("Analyze gacha record")
         analyze_summary = GachaAnalyzeSummary(
             uid=uid, update_time=Date.now().strftime(Date.Format.YYYY_MM_DD_HHMMSS)
         )
@@ -158,18 +163,20 @@ class GachaRecordAnalyzer:
         # 5 星列表
         rank5_list = [item for item in record_item_list if item.rank_type == "5"]
         # 5 星原始位置
-        rank5_index = [i for i, item in enumerate(record_item_list, 1) if item.rank_type == "5"]
+        rank5_raw_index = [i for i, item in enumerate(record_item_list, 1) if item.rank_type == "5"]
 
         rank5_result = []
         pity_count = total_count
 
         if rank5_list:
             # 计算5星抽数列表
-            first_rank5_index = rank5_index[0]
+            first_rank5_index = rank5_raw_index[0]
             rank5_count_list = [first_rank5_index] + [
                 # 相邻5星的位置差
                 current_index - previous_index
-                for previous_index, current_index in zip(rank5_index, rank5_index[1:], strict=False)
+                for previous_index, current_index in zip(
+                    rank5_raw_index, rank5_raw_index[1:], strict=False
+                )
             ]
 
             # 将5星列表与抽数列表对应
@@ -178,7 +185,7 @@ class GachaRecordAnalyzer:
                 for item, index in zip(rank5_list, rank5_count_list, strict=False)
             ]
 
-            pity_count = total_count - rank5_index[-1]
+            pity_count = total_count - rank5_raw_index[-1]
 
         return GachaPoolAnalyzeResult(
             gacha_type=gacha_type,
@@ -187,9 +194,11 @@ class GachaRecordAnalyzer:
             rank5=rank5_result,
         )
 
-    def load(self):
+    async def load(self):
         if self.analyze_result_path.exists():
             self.analyze_summary = GachaAnalyzeSummary(**load_json(self.analyze_result_path))
+        else:
+            await self.refresh()
 
     async def refresh(self):
         gacha_record_list = await GachaRecordDbClient(self.user).get_all_gacha_record()
@@ -201,7 +210,7 @@ class GachaRecordAnalyzer:
         save_json(self.user.analyze_result_path, self.analyze_summary.model_dump())
 
 
-def _update_gacha_record_metadata(metadata, gacha_records: list[GachaRecordItem]):
+def _update_gacha_record_metadata(metadata: BaseMetadata, gacha_records: list[GachaRecordItem]):
     attrs = ["name", "rank_type", "item_type"]
     for record in gacha_records:
         for attr in attrs:
@@ -248,16 +257,16 @@ class ExportHelper(BaseClient):
             {
                 "align": "left",
                 "font_name": "微软雅黑",
-                "color": "#757575",
+                "font_color": "#757575",
                 "border_color": "#c4c2bf",
                 "border": 1,
                 "bold": True,
             }
         )
 
-        star_5 = workbook.add_format({"color": "#bd6932", "bold": True})
-        star_4 = workbook.add_format({"color": "#a256e1", "bold": True})
-        star_3 = workbook.add_format({"color": "#8e8e8e"})
+        star_5 = workbook.add_format({"font_color": "#bd6932", "bold": True})
+        star_4 = workbook.add_format({"font_color": "#a256e1", "bold": True})
+        star_3 = workbook.add_format({"font_color": "#8e8e8e"})
 
         for gacha_type in GACHA_TYPE_IDS:
             gacha_record_type_list = [
@@ -354,7 +363,7 @@ class FileInfo:
     name: str
     path: str
     data_type: typing.Literal["SRGF", "UIGF"]
-    data: UIGFData | SRGFData | None = None
+    data: UIGFData | SRGFData
 
 
 class ImportHelper(BaseClient):
@@ -374,7 +383,7 @@ class ImportHelper(BaseClient):
         file_name = os.path.basename(file_path)
 
         if not self._is_valid_data(data):
-            return FileInfo(name=file_name, path=file_path)
+            return None
 
         if "srgf_version" in data["info"]:
             if srgf_data := self._verify_srgf_data(data):
@@ -428,9 +437,9 @@ class ImportHelper(BaseClient):
 
         if latest_batch_record:
             # 时区与第一个记录保持一致
-            target_region_timezone = latest_batch_record.region_time_zone
+            target_region_time_zone = latest_batch_record.region_time_zone
             next_batch_id = latest_batch_record.batch_id + 1
-            self._convert_uigf_timezone(data, target_region_timezone)
+            self._convert_uigf_timezone(data, target_region_time_zone)
 
         info = GachaRecordInfo(
             uid=record.uid,
@@ -452,7 +461,7 @@ class ImportHelper(BaseClient):
     def _verify_srgf_data(self, srgf_data: dict):
         logger.debug("validate srgf data")
         try:
-            srgf_data = SRGFData.model_validate(srgf_data)
+            srgf_data: SRGFData = SRGFData.model_validate(srgf_data)
             if srgf_data.info.uid == self.user.uid:
                 return srgf_data
         except ValidationError:
@@ -463,7 +472,7 @@ class ImportHelper(BaseClient):
     def _verify_uigf_data(self, uigf_data: dict):
         logger.debug("validate uigf data")
         try:
-            uigf_data = UIGFData.model_validate(uigf_data)
+            uigf_data: UIGFData = UIGFData.model_validate(uigf_data)
             uigf_data.hkrpg = [record for record in uigf_data.hkrpg if record.uid == self.user.uid]
             if uigf_data.hkrpg:
                 return uigf_data

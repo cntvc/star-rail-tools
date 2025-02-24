@@ -6,10 +6,10 @@ from loguru import logger
 from pydantic import BaseModel, field_serializer, field_validator
 
 from star_rail import constants, exceptions
-from star_rail.config import config
 from star_rail.database import DbClient, DbField, DbModel
 
 from .base import BaseClient
+from .kvstore import KVStore
 from .types import GameBiz, Region
 
 
@@ -36,14 +36,10 @@ class Account(BaseModel):
     def __init__(self, uid: str, **data):
         super().__init__(uid=uid, **data)
         self.gacha_record_xlsx_path = Path(
-            constants.USERDATA_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
+            constants.ROOT_PATH, self.uid, f"GachaRecord_{self.uid}.xlsx"
         )
-        self.srgf_path = Path(
-            constants.USERDATA_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json"
-        )
-        self.uigf_path = Path(
-            constants.USERDATA_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json"
-        )
+        self.srgf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_SRGF_{self.uid}.json")
+        self.uigf_path = Path(constants.ROOT_PATH, self.uid, f"GachaRecord_UIGF_{self.uid}.json")
         self.analyze_result_path = Path(constants.TEMP_PATH, f"GachaRecordAnalyze_{self.uid}.json")
         self.game_biz = GameBiz.get_by_uid(self.uid)
         self.region = Region.get_by_uid(self.uid)
@@ -121,31 +117,29 @@ _UID_RE = re.compile("^[1-9][0-9]{8}$")
 
 class AccountClient(BaseClient):
     async def init_default_account(self):
-        logger.debug("Initializing default account")
-        if not config.DEFAULT_UID:
+        default_uid = await KVStore.get("DEFAULT_UID")
+        logger.debug("Default account: {}", default_uid)
+        if not default_uid:
             return
 
-        if await Account.exists(config.DEFAULT_UID):
-            self.user = Account(config.DEFAULT_UID)
+        if await Account.exists(default_uid):
+            self.user = Account(default_uid)
             return
 
-        # 本地配置文件记录了但数据库无数据，重置配置文件 DEFAULT_UID
-        config.DEFAULT_UID = ""
-        config.save()
+        # 数据库无该账号，重置 DEFAULT_UID
+        await KVStore.set("DEFAULT_UID", "")
 
     async def login(self, uid: str):
         if not await Account.exists(uid):
             raise exceptions.GachaRecordError("未找到账号 {} 数据", uid)
         self.user = Account(uid)
-        config.DEFAULT_UID = uid
-        config.save()
+        await KVStore.set("DEFAULT_UID", uid)
         logger.debug("Login account: {}", uid)
 
     async def logout(self):
         logger.debug("Logout account: {}", self.user.uid)
-        if self.user.uid == config.DEFAULT_UID:
-            config.DEFAULT_UID = ""
-            config.save()
+        if self.user.uid == await KVStore.get("DEFAULT_UID"):
+            await KVStore.set("DEFAULT_UID", "")
         self.user = None
 
     @staticmethod

@@ -238,7 +238,6 @@ class UpgradeManager:
         await self.db_client.commit_transaction()
         logger.debug("Upgrade database version to {} completed", migration_sql.target_version)
 
-    # TODO 测试
     async def backup_database(self):
         logger.debug("Backup database")
 
@@ -248,4 +247,3 @@ class UpgradeManager:
         )
         async with aiosqlite.connect(backup_file) as backup_conn:
             await self.db_client.connection.backup(backup_conn)
-        logger.debug("Backup database completed")

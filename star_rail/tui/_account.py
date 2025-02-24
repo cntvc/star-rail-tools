@@ -9,6 +9,8 @@ from textual.widgets import Button, Input, ListItem, ListView, Static
 
 from star_rail.module import Account, HSRClient
 
+from .handler import error_handler
+
 __all__ = ["AccountView"]
 
 
@@ -21,9 +23,9 @@ class DeleteAccountScreen(ModalScreen[bool]):
 
     def compose(self) -> ComposeResult:
         with VerticalGroup():
-            yield Static(f"是否删除账号 [bold italic red]{self.uid}[/] 数据?", id="question")
-            yield Button("确认删除", id="confirm")
-            yield Button("取消删除", id="cancel")
+            yield Static(f"是否删除账号 [bold #bf616a]{self.uid}[/] 数据?", id="question")
+            yield Button("确认", id="confirm")
+            yield Button("取消", id="cancel")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "confirm":
@@ -35,16 +37,39 @@ class DeleteAccountScreen(ModalScreen[bool]):
         self.dismiss(False)
 
 
+class CreateAccountScreen(ModalScreen[str]):
+    BINDINGS = [Binding("escape", "cancel_create", show=False)]
+
+    def compose(self) -> ComposeResult:
+        with VerticalGroup():
+            yield Input(placeholder="在此输入UID", id="input", max_length=9)
+            yield Button("添加账号", id="create")
+            yield Button("取消", id="cancel")
+
+    @on(Input.Submitted)
+    @on(Button.Pressed, "#create")
+    async def handle_create_account(self, event):
+        event.stop()
+        input_widget = self.query_one(Input)
+        input_uid = input_widget.value
+        if not Account.verify_uid(input_uid):
+            self.notify("请输入正确格式的UID")
+            return
+
+        input_widget.clear()
+        self.dismiss(input_uid)
+
+    @on(Button.Pressed, "#cancel")
+    def action_cancel_create(self):
+        self.dismiss("cancel")
+
+
 class AccountList(ListView):
     uid_list: list[str] = reactive([], recompose=True)
 
     def compose(self) -> ComposeResult:
-        self.border_title = "账号列表"
         for uid in self.uid_list:
             yield ListItem(Static(uid), id=f"uid_{uid}")
-
-    async def on_mount(self):
-        await self.refresh_uid_list()
 
     async def refresh_uid_list(self):
         client: HSRClient = self.app.client
@@ -52,6 +77,10 @@ class AccountList(ListView):
 
 
 class AccountView(Container):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.border_title = "账号列表"
+
     class Login(Message, bubble=True):
         def __init__(self, uid: str) -> None:
             super().__init__()
@@ -62,11 +91,8 @@ class AccountView(Container):
 
     def compose(self) -> ComposeResult:
         yield AccountList()
-
-        with VerticalGroup(id="create"):
-            yield Input(placeholder="在此输入UID", id="input")
-            yield Button("添加账号", id="confirm")
         with VerticalGroup(id="option"):
+            yield Button("添加账号", id="create")
             yield Button("切换账号", id="switch")
             yield Button("删除账号", id="delete")
 
@@ -79,31 +105,28 @@ class AccountView(Container):
         else:
             self.add_class("-hidden")
 
-    @on(Input.Submitted)
-    @on(Button.Pressed, "#confirm")
+    @on(Button.Pressed, "#create")
+    @work(name="创建账号")
+    @error_handler
     async def handle_create_account(self, event: Message):
         event.stop()
+        res = await self.app.push_screen_wait(CreateAccountScreen())
+        if res == "cancel":
+            return
 
-        input_widget = self.query_one(Input)
-        input_uid = input_widget.value
-        if input_uid == "":
-            self.notify("请输入UID")
-            return
-        if not Account.verify_uid(input_uid):
-            self.notify("UID格式错误")
-            return
+        input_uid = res
 
         client: HSRClient = self.app.client
         new_user = await client.create_account(input_uid)
         await self.query_one(AccountList).refresh_uid_list()
-        input_widget.clear()
 
         if client.user is None or new_user.uid != client.user.uid:
             self.post_message(AccountView.Login(new_user.uid))
             return
 
     @on(Button.Pressed, "#switch")
-    def handle_switch_account(self, event: Message):
+    @error_handler
+    async def handle_switch_account(self, event: Message):
         event.stop()
 
         account_list_widget = self.query_one(AccountList)
@@ -118,8 +141,9 @@ class AccountView(Container):
         if client.user is None or uid != client.user.uid:
             self.post_message(AccountView.Login(uid))
 
-    @work
+    @work(name="删除账号")
     @on(Button.Pressed, "#delete")
+    @error_handler
     async def handle_delete_account(self, event: Message):
         event.stop()
 
@@ -141,4 +165,5 @@ class AccountView(Container):
         await self.query_one(AccountList).refresh_uid_list()
 
         if client.user and selected_uid == client.user.uid:
+            self.query_one(AccountList).index = None
             self.post_message(AccountView.Exit())

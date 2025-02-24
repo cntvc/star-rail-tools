@@ -188,5 +188,5 @@ def _convert_to_record_item(
     else:
         raise AssertionError(
             "Param type error. Expected type 'list' or 'GachaRecordItemEntity',"
-            f" got [{ type(data)}]."
+            f" got [{type(data)}]."
         )

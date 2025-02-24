@@ -24,9 +24,9 @@ class RecordDetail(Horizontal):
         super().__init__(**kwargs)
         self._item = item
         self._index = index
+        self.tooltip = f"{self._item.time}"
 
     def compose(self) -> ComposeResult:
-        self.tooltip = f"{self._item.time}"
         yield Label(f"{self._index}. {self._item.name} ", id="item_name")
         yield Label(f"★ {self._item.index}", id="item_index")
 
@@ -57,7 +57,7 @@ class RecordContent(TabPane):
             container.can_focus = False
             with ItemGrid(id="detail", min_column_width=30):
                 with Horizontal(id="pity_item"):
-                    yield Label(f"{len(self.data.rank5)+1}. 保底计数 ", id="item_name")
+                    yield Label(f"{len(self.data.rank5) + 1}. 保底计数 ", id="item_name")
                     yield Label(f"★ {pity_count}", id="item_index")
                 rank5 = [RecordDetail(item, index) for index, item in enumerate(self.data.rank5, 1)]
                 yield from reversed(rank5)
@@ -74,9 +74,9 @@ class RecordView(Container):
                     analyze_result = self.analyze_summary.get_pool_data(gacha_type)
                 yield RecordContent(title=name, id=f"gacha_type_{gacha_type}", data=analyze_result)
 
-    def load_analyze_summary(self):
+    async def load_analyze_summary(self):
         client: HSRClient = self.app.client
-        self.analyze_summary = client.load_analyze_summary()
+        self.analyze_summary = await client.load_analyze_summary()
 
     async def refresh_analyze_summary(self):
         client: HSRClient = self.app.client

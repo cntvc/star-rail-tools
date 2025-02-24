@@ -21,7 +21,7 @@ def find_files(folder_path, ext_type:str):
 src_list = find_files(src_root_dir, '.py')
 
 # ui file
-tcss_path = src_root_dir + "/tui"+"/tcss"
+tcss_path = os.path.join(src_root_dir, "tui")
 tcss_file = find_files(tcss_path, ".tcss")
 ui_tuple_list = [(file, tcss_path) for file in tcss_file]
 

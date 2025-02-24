@@ -3,7 +3,7 @@
 __all__ = ["UpgradeSQL", "DB_VERSION"]
 
 
-DB_VERSION = 2
+DB_VERSION = 1
 
 
 class UpgradeSQL:

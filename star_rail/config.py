@@ -8,7 +8,7 @@ from star_rail.utils import load_json, save_json
 
 __all__ = ["config"]
 
-_DEFAULT_CONFIG_PATH = os.path.join(constants.APPDATA_PATH, "config.json")
+_DEFAULT_CONFIG_PATH = os.path.join(constants.CONFIG_PATH, "config.json")
 
 
 class BaseConfig(BaseModel):
@@ -30,14 +30,13 @@ class BaseConfig(BaseModel):
 
     def load(self):
         if not os.path.exists(self.config_path):
+            self.save()
             return
         self.update(load_json(self.config_path))
 
 
 class Config(BaseConfig):
     CHECK_UPDATE: bool = True
-
-    DEFAULT_UID: str = ""
 
     USE_METADATA: bool = True
 

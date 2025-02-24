@@ -31,11 +31,9 @@ class HakushMetadata(BaseMetadata):
     def __init__(self):
         self.data = self._load_cache()
         self.version = self.data.version
-        lang = {
-            "zh-cn": self.data.zh_cn,
-            "en-us": self.data.en_us,
-        }
-        self.current_lang_data = lang[config.METADATA_LANGUAGE]
+        self.current_lang_data = (
+            self.data.zh_cn if config.METADATA_LANGUAGE == "zh-cn" else self.data.en_us
+        )
 
     def get(self, item_id: str, key: MetadataAttr, /, default="-") -> str:
         if item_id not in self.current_lang_data:
@@ -44,9 +42,12 @@ class HakushMetadata(BaseMetadata):
 
     async def update(self):
         self.data = await self._fetch()
+        self.current_lang_data = (
+            self.data.zh_cn if config.METADATA_LANGUAGE == "zh-cn" else self.data.en_us
+        )
         self.version = self.data.version
         self._save()
-        logger.debug("Hakush metadata updated completed, version: {}", self.version)
+        logger.debug("Hakush metadata updated completed")
 
     async def check_update(self):
         logger.debug("Checking Hakush new version")

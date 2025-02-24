@@ -7,7 +7,6 @@ from loguru import logger
 
 from star_rail import constants
 from star_rail.database import DB_VERSION, DbClient
-from star_rail.logger import init_logger
 
 from .account import Account, AccountClient
 from .metadata import HakushMetadata
@@ -29,7 +28,7 @@ class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
     metadata: BaseMetadata
 
     def __init__(self, user: Account | None = None, _metadata: BaseMetadata = _default_metadata):
-        init_logger()
+        self.init_logger()
         super().__init__(user, _metadata)
         self.updater = Updater()
         self.metadata_is_latest = False
@@ -40,8 +39,8 @@ class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
         await self.init_default_account()
 
     async def _init_db(self):
+        logger.debug("Init database")
         if not os.path.exists(DbClient.DB_PATH):
-            logger.debug("Create database")
             async with DbClient() as db:
                 await db.create_all_table()
                 await db.set_user_version(DB_VERSION)
@@ -62,6 +61,16 @@ class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
         path_variables = [path for name, path in vars(constants).items() if name.endswith("_PATH")]
         for path in path_variables:
             os.makedirs(path, exist_ok=True)
+
+    def init_logger(self):
+        logger.remove()
+
+        logger.add(
+            sink=os.path.join(constants.LOG_PATH, "star_rail_tools_{time:YYYYMMDD_HHmmss}.log"),
+            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | {level} | {name}:{line} | {function} | message: {message}",  # noqa
+            level="DEBUG",
+            retention=30,
+        )
 
     async def check_app_update(self):
         return await self.updater.check_update()

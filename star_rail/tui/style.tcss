@@ -26,19 +26,62 @@ Button{
     }
 }
 
+/* =================================== Task status =================================== */
+TaskBar{
+    width:auto;
+    margin: 0 1 0 0;
+    Static{
+        width:auto;
+        height:auto;
+        max-width:16;
+        margin: 0 1 0 0;
+    }
+    ProgressBar{
+        width:15;
+        height:auto;
+        Bar{
+            width: 100%;
+        }
+    }
+
+}
+
+TaskList{
+    layer: overlay;
+    width: 30;
+    dock:right;
+    visibility: hidden;
+    &>ListView{
+        scrollbar-size: 1 1;
+        dock:bottom;
+        border:heavy $foreground 40%;
+        height:10;
+        visibility:visible;
+        &>ListItem{
+            height:1;
+        }
+    }
+    &.-hidden {
+        offset-x: -100%;
+    }
+}
+
 /* =================================== AccountView =================================== */
 
 AccountView{
     layer: overlay;
-    max-width:30;
-    border:heavy $foreground 40%;
     background: $surface;
+
+    border:heavy $foreground 40%;
+    width: 30;
+    height: 20;
+    dock: bottom;
     AccountList{
         scrollbar-size: 1 1;
-        border:heavy $foreground 40%;
+        row-span:2;
+        background:$background;
         & > ListItem{
             height:3;
-            margin: 0 0 1 0;
             &>Static{
                 text-align:center;
                 padding: 1;
@@ -59,9 +102,6 @@ AccountView{
             background-tint: $foreground 5%;
         }
     }
-    #switch{
-        # margin: 1 0 1 0;
-    }
     &.-hidden {
         offset-x: -100%;
     }
@@ -70,12 +110,22 @@ AccountView{
 DeleteAccountScreen{
     align: center middle;
     VerticalGroup{
+        border: heavy $foreground 40%;
         width: 40;
         #question{
             content-align:center middle;
             height:3;
+            background: $surface;
         }
 
+    }
+}
+
+CreateAccountScreen{
+    align: center middle;
+    VerticalGroup{
+        border: heavy $foreground 40%;
+        width: 40;
     }
 }
 
@@ -90,6 +140,9 @@ RecordView{
             width:1fr;
         }
     }
+    VerticalScroll{
+        scrollbar-size: 1 1;
+    }
     #detail{
         grid-gutter: 1 1;
         grid-rows: auto;
@@ -103,6 +156,7 @@ RecordView{
                 dock:right;
             }
         }
+
         RecordDetail{
             height:10;
             #item_name{
@@ -118,7 +172,6 @@ RecordView{
 /* =================================== ImportScreen =================================== */
 ImportScreen{
     align:center middle;
-
     #import_view{
         width: 60;
         height:auto;
@@ -143,19 +196,6 @@ ImportScreen{
             width:50%;
         }
     }
-    ImportFooter{
-        height:1;
-        dock:bottom;
-        background:$secondary;
-        BackMain{
-            width:auto;
-            &:hover {
-                background: $accent;
-                color: $text;
-                text-style: bold;
-            }
-        }
-    }
 }
 
 /* =================================== Footer =================================== */
@@ -163,7 +203,8 @@ Footer{
     height:1;
     dock:bottom;
     background:$secondary;
-    UserNav{
+    /*======================= home screen ================================*/
+    AccountNav{
         margin: 0 0 0 1;
         dock:left;
         width:auto;
@@ -210,6 +251,20 @@ Footer{
             text-style: bold;
         }
     }
+
+    ReturnBtn{
+        margin: 0 0 0 1;
+        width:auto;
+        &:hover {
+            background: $accent;
+            color: $text;
+            text-style: bold;
+        }
+    }
+
+    TaskBar{
+        dock:right;
+    }
 }
 
 /* =================================== ExportScreen =================================== */
@@ -250,19 +305,6 @@ HelpScreen{
         &> Static{
             width:1fr;
             content-align: center middle;
-        }
-    }
-    HelpFooter{
-        dock: bottom;
-        height:1;
-        background: $secondary;
-        BackMain{
-            width:auto;
-            &:hover {
-                background: $accent;
-                color: $text;
-                text-style: bold;
-            }
         }
     }
 }
