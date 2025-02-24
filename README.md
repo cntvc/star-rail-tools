@@ -1,6 +1,6 @@
 # 崩坏：星穹铁道小工具
 
-[![Test](https://github.com/cntvc/star-rail-tools/actions/workflows/test.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/test.yml)
+[![Lint](https://github.com/cntvc/star-rail-tools/actions/workflows/lint.yml/badge.svg)](https://github.com/cntvc/star-rail-tools/actions/workflows/lint.yml)
 [![commit](https://img.shields.io/github/last-commit/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/commits/main)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cntvc/star-rail-tools)][latest_release]
 [![license](https://img.shields.io/github/license/cntvc/star-rail-tools)](https://github.com/cntvc/star-rail-tools/blob/main/LICENSE)
@@ -21,27 +21,28 @@
 
 ### 数据导入
   软件支持导入 `SRGF/UIGFv4`[^1] 格式数据:
-  将需要导入的数据文件放入 "UserData/Import" 文件夹内，可一次放入多个文件，点击 "导入" 按钮即可
+  将需要导入的数据文件放入 "Import" 文件夹内，可一次放入多个文件，点击 "导入" 按钮即可
 
 <details>
   <summary>点击查看 数据目录结构</summary>
   <p>
 
 ```cmd
-  StarRailTools
-  ├── StarRailTools.exe
-  ├── AppData
+  StarRailTools_1.0.0.exe # 主程序文件
+  StarRailTools # 软件数据目录
+  ├── 101793414 # 账号 101793414 导出数据的目录
+  │   ├── GachaLog_101793414.xlsx
+  │   └── GachaLog_SRGF_101793414.json
+  ├── AppData # 软件运行数据
   │   ├── config
-  │   │   └── settings.json
+  │   │   └── config.json
   │   ├── data
   │   │   └── star_rail.db
   │   ├── log
-  │   │   └── log_2023_08.log
+  │   │   └── star_rail_tools_20250225_010221.log
   │   └── temp
-  │       └── GachaAnalyze_101793414.json
-  └── UserData
-      ├── 101793414
-      └── Import
+  │       └── GachaRecordAnalyze_101793414.json
+  └── Import # 读取导入数据的目录
 ```
 
  </p>
