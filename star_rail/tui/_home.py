@@ -63,8 +63,11 @@ class RefreshNav(Static):
         else:
             cnt = await client.refresh_gacha_record(mode="incremental")
         if cnt > 0:
-            await self.app.query_one(RecordView).refresh_analyze_summary()
-        self.notify(f"更新完成, 共新增 {cnt} 条记录")
+            if self.screen == self.app.screen:
+                await self.app.query_one(RecordView).refresh_analyze_summary()
+            else:
+                self.screen.pending_refresh = True
+        self.notify(f"跃迁记录更新完成, 共新增 {cnt} 条记录")
 
 
 class ImportNav(Static):
@@ -148,6 +151,7 @@ class HomeScreen(Screen):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.client: HSRClient = self.app.client
+        self.pending_refresh = False
 
     def compose(self) -> ComposeResult:
         with Container(id="main_content"):
@@ -224,3 +228,8 @@ class HomeScreen(Screen):
             self.query_one(Footer).mount(TaskBar(name=task_list[0]))
         else:
             self.query_one(Footer).mount(TaskBar(name=task_list[0]))
+
+    async def on_screen_resume(self):
+        if self.pending_refresh is True:
+            await self.query_one(RecordView).refresh_analyze_summary()
+            self.pending_refresh = False
