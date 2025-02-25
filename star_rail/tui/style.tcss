@@ -26,6 +26,11 @@ Button{
     }
 }
 
+Toast {
+    width:50;
+    max-width: 50%;
+}
+
 /* =================================== Task status =================================== */
 TaskBar{
     width:auto;

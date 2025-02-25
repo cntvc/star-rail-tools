@@ -97,13 +97,15 @@ class ExportNav(Static):
         client: HSRClient = self.app.client
         if opt == "execl":
             await client.export_to_execl()
+            self.notify("Excel 导出完成")
         elif opt == "srgf":
             await client.export_to_srgf()
+            self.notify("SRGF 导出完成")
         elif opt == "uigf":
             await client.export_to_uigf()
+            self.notify("UIGF 导出完成")
         else:
             pass
-        self.notify("导出完成")
 
 
 class HelpNav(Static):

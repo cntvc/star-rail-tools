@@ -1,3 +1,4 @@
+# ruff: noqa: W291
 from __future__ import annotations
 
 import typing
@@ -20,14 +21,21 @@ APP_INFO = f"""\
 [@click="app.open_link('https://github.com/cntvc/star-rail-tools/releases')"]下载链接[/]
 """
 
+
 IMPORT_EXPORT_MANUAL = """\
-导入数据支持 SRGF/UIGF 两种格式的数据
+## 导入数据
+支持 SRGF/UIGF 两种格式的数据
 
 将待导入的数据文件存放到软件所在目录的 Import 目录下, 该目录会在运行一次后自动创建
 
 您可以同时放入多个文件，在打开 "导入" 功能界面后，软件会自动获取该目录下的所有文件并显示可导入的文件信息
 
 - SRGF/UIGF 为 UIGF 组织制定的数据交换格式, 详情请见 [UIGF 官网](http://uigf.org)
+
+## 导出数据
+可选择导出为 Execl/SRGF/UIGF 三种格式
+
+导出的文件会保存到以账号UID命名的文件夹中, 该文件夹与软件同目录（软件目录结构在“其他”条目中有示例）
 """
 
 
@@ -57,6 +65,24 @@ ERROR_MSG = """\
 
 
 OTHERS = """\
+## 软件目录结构
+StarRailTools_1.0.0.exe # 主程序文件    
+StarRailTools # 软件数据目录    
+├── 101793414 # 账号 101793414 导出数据的目录    
+│   ├── GachaLog_101793414.xlsx    
+│   └── GachaLog_SRGF_101793414.json    
+├── AppData # 软件运行数据    
+│   ├── config    
+│   │`   `└── config.json    
+│   ├── data    
+│   │`   `└── star_rail.db    
+│   ├── log    
+│   │`   `└── star_rail_tools_20250225_010221.log    
+│   └── temp    
+│`       `└── GachaRecordAnalyze_101793414.json    
+└── Import # 读取导入数据的目录    
+
+## 其他功能
 - 切换主题: 按下组合键 Ctrl + P 会出现命令行, 选择 "Change theme"
 - 退出程序: 按下组合键 Ctrl + Q 会退出程序
 """
@@ -83,7 +109,7 @@ class HelpScreen(Screen):
     def compose(self) -> ComposeResult:
         with VerticalScroll():
             yield Static("Star Rail Tools", id="title")
-            with Collapsible(title="导入数据", collapsed=False):
+            with Collapsible(title="导入导出", collapsed=False):
                 yield Markdown(IMPORT_EXPORT_MANUAL)
             with Collapsible(title="常见错误"):
                 yield Markdown(ERROR_MSG)
