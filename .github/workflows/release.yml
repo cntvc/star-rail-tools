@@ -26,12 +26,17 @@ jobs:
 
       - name: Build package
         run: |
-          pdm run release
+          pdm run release_d
+          pdm run release_f
 
       - name: Generate package name
         run: |
           echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
-
+      
+      - name: Move and rename exe
+        run: |
+          Move-Item -Path .\dist\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
+      
       - name: Archive folder
         run: |
           Compress-Archive -Path .\dist\${{ env.PROJECT_NAME }} -DestinationPath .\${{ env.file-name }}.zip
@@ -45,4 +50,5 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: |
             ${{ env.file-name }}.zip
+            ${{ env.file-name }}.exe
           fail_on_unmatched_files: true

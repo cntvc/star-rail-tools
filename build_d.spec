@@ -1,7 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
-block_cipher = None
+# Create a one-folder bundle containing an executable
 
 exe_name = "StarRailTools"
 
@@ -23,12 +22,12 @@ src_list = find_files(src_root_dir, '.py')
 # ui file
 tcss_path = os.path.join(src_root_dir, "tui")
 tcss_file = find_files(tcss_path, ".tcss")
-ui_tuple_list = [(file, tcss_path) for file in tcss_file]
+ui_res_list = [(file, tcss_path) for file in tcss_file]
 
 
 icon_path = "resource/hsr.ico"
 
-data_list = ui_tuple_list
+data_list = ui_res_list
 
 a = Analysis(
     src_list,
@@ -40,12 +39,10 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
+    optimize=0,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
@@ -68,7 +65,6 @@ exe = EXE(
 coll = COLLECT(
     exe,
     a.binaries,
-    a.zipfiles,
     a.datas,
     strip=False,
     upx=True,

@@ -40,7 +40,8 @@ release = ["pyinstaller>=6.12.0"]
 
 [tool.pdm.scripts]
 lint = "pre-commit run --all-files"
-release = "pyinstaller --clean ./build.spec --noconfirm"
+release_d = "pyinstaller --clean ./build_d.spec --noconfirm"
+release_f = "pyinstaller --clean ./build_f.spec --noconfirm"
 
 
 # Ruff ================================================================================

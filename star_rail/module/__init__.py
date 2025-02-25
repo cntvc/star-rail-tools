@@ -47,6 +47,8 @@ class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
             return
 
         async with DbClient() as db:
+            # 有新增表时需要创建
+            await db.create_all_table()
             local_db_version = await db.get_user_version()
             logger.debug(
                 "Local db version: {}, current db version: {}", local_db_version, DB_VERSION
