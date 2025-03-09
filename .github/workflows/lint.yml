@@ -23,7 +23,7 @@ jobs:
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
-          python-version: 3.11.9
+          python-version: 3.13
           cache: true
       - name: Install dependencies
         run: pdm sync --with lint --no-default

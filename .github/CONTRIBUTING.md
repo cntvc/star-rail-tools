@@ -63,7 +63,7 @@ deactivate
 >
 > ```shell
 > # 在另外的终端运行 TUI 程序并连接控制台以进行界面调试
-> textual run main.py --dev
+> textual run ./star_rail/__main__.py --dev
 > ```
 
 代码格式请遵循 [PEP8][pep-8]，commit 前会自动进行代码格式化，若 commit 失败，请根据提示进行修改后再次尝试 commit 操作。
@@ -90,10 +90,9 @@ git push origin {BRANCH_NAME}
 
 # 代码风格
 
-代码风格遵循 [Google python style guide][google-style-guide]（[中文版][google-style-guide-cn]）
+代码风格遵循 [Google python style guide][google-style-guide]
 
 
 [issues]: https://github.com/cntvc/star-rail-tools/issues
 [google-style-guide]: https://google.github.io/styleguide/pyguide.html
-[google-style-guide-cn]: https://google-styleguide.readthedocs.io/zh_CN/latest/google-python-styleguide/contents.html
 [pep-8]: https://peps.python.org/pep-0008/
