@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import typing
 
 from loguru import logger
@@ -20,15 +21,14 @@ if typing.TYPE_CHECKING:
 __all__ = ["HSRClient", "Account", "GACHA_TYPE_DICT"]
 
 
-_default_metadata = HakushMetadata()
-
-
 class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
     user: Account
     metadata: BaseMetadata
 
-    def __init__(self, user: Account | None = None, _metadata: BaseMetadata = _default_metadata):
+    def __init__(self, user: Account | None = None, *, _metadata: BaseMetadata = None):
         self.init_logger()
+        if _metadata is None:
+            _metadata = HakushMetadata()
         super().__init__(user, _metadata)
         self.updater = Updater()
         self.metadata_is_latest = False
@@ -67,11 +67,24 @@ class HSRClient(GachaRecordClient, ExportHelper, ImportHelper, AccountClient):
     def init_logger(self):
         logger.remove()
 
+        # 手动关闭终端时，无法触发 retention 导致积压日志文件
+        # 添加临时日志处理器以在程序启动时触发 retention 进行文件清理
+        # https://github.com/Delgan/loguru/issues/857#issuecomment-1527420917
+        temp_handler = logger.add(
+            sink=os.path.join(constants.LOG_PATH, "star_rail_tools_{time:YYYYMMDD_HHmmss}.log"),
+            level="DEBUG",
+            retention=30,
+            enqueue=True,
+            delay=True,
+        )
+        logger.remove(temp_handler)
+
         logger.add(
             sink=os.path.join(constants.LOG_PATH, "star_rail_tools_{time:YYYYMMDD_HHmmss}.log"),
             format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | {level} | {name}:{line} | {function} | message: {message}",  # noqa
             level="DEBUG",
             retention=30,
+            enqueue=True,
         )
 
     async def check_app_update(self):
