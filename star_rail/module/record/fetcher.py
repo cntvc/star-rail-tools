@@ -12,12 +12,8 @@ from star_rail.network import CursorPaginator, MergedPaginator, Paginator, reque
 from .model import GachaRecordItem, GachaRecordPage
 from .types import GACHA_TYPE_IDS
 
-_GACHA_RECORD_CN_URL = yarl.URL(
-    "https://public-operation-hkrpg.mihoyo.com/common/gacha_record/api/getGachaLog"
-)
-_GACHA_RECORD_OS_URL = yarl.URL(
-    "https://public-operation-hkrpg-sg.hoyoverse.com/common/gacha_record/api/getGachaLog"
-)
+_GACHA_RECORD_CN_URL = yarl.URL("https://public-operation-hkrpg.mihoyo.com/")
+_GACHA_RECORD_OS_URL = yarl.URL("https://public-operation-hkrpg-sg.hoyoverse.com/")
 
 
 __all__ = ["GachaRecordFetcher"]
@@ -53,6 +49,13 @@ class GachaRecordFetcher:
     async def _fetch_gacha_record_page(
         self, gacha_type: int | str, size: int | str, end_id: int | str
     ) -> GachaRecordPage:
+        path = (
+            "common/gacha_record/api/getLdGachaLog"
+            if gacha_type in ["21", "22"]
+            else "common/gacha_record/api/getGachaLog"
+        )
+        self.url = self.url.with_path(path, keep_query=True)
+
         query_params = {
             "size": size,
             "gacha_type": gacha_type,
