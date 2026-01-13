@@ -1,0 +1,12 @@
+[package]
+name = "db-helper"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+db-helper-derive = { path = "db-helper-derive" }
+rusqlite = { version = "0.38.0" }

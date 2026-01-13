@@ -1,0 +1,23 @@
+[workspace]
+members = ["db-helper", "srt", "i18n"]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+authors = ["Charlie Brown <cntvc@outlook.com>"]
+license = "GPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/cntvc/star-rail-tools"
+rust-version = "1.92.0"
+version = "3.0.0"
+
+[profile.dev]
+incremental = false
+
+[profile.release]
+opt-level = "s"             # optimize for binary size
+debug = "full"              # No one needs an undebuggable release binary
+split-debuginfo = "packed"  # generates a separate *.dwp/*.dSYM so the binary can get stripped
+codegen-units = 1           
+lto = true                  
+panic = "abort"

@@ -1,0 +1,34 @@
+[package]
+name = "srt"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+rusqlite = { version = "0.38.0", features = ["bundled"] }
+tokio = { version = "1.49.0", features = ["full"] }
+url = "2.5.7"
+reqwest = { version = "0.12.28", features = ["json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.148"
+serde_with = "3.16.1"
+tracing = "0.1.44"
+tracing-appender = "0.2.4"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+regex = "1.12.2"
+time = { version = "0.3.44", features = [
+    "formatting",
+    "macros",
+    "local-offset",
+] }
+futures = "0.3.31"
+glob = "0.3.3"
+anyhow = "1.0.100"
+db-helper = { path = "../db-helper" }
+i18n = { path = "../i18n" }
+
+[lib]
+path = "./src/lib.rs"

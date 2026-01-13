@@ -1,0 +1,13 @@
+[package]
+name = "i18n"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+
+[build-dependencies]
+toml-span = "0.6.0"
