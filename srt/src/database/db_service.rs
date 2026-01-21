@@ -38,8 +38,8 @@ const SQL_V0: [&str; 7] = [
     "CREATE TABLE IF NOT EXISTS account (uid TEXT PRIMARY KEY);",
     // setting
     "CREATE TABLE IF NOT EXISTS setting (key TEXT PRIMARY KEY, value TEXT);",
-    // app_status
-    "CREATE TABLE IF NOT EXISTS app_status (key TEXT PRIMARY KEY, value TEXT);",
+    // app_state
+    "CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT);",
     // gacha_record_item
     "CREATE TABLE IF NOT EXISTS gacha_record
     (

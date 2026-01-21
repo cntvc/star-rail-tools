@@ -1,0 +1,94 @@
+use std::cell::Ref;
+
+use crossterm::event::{KeyCode, KeyEvent};
+use ratatui::{
+    Frame,
+    layout::{Alignment, Constraint, Rect},
+    style::{Color, Style},
+    widgets::{
+        Block, BorderType, Borders, Clear, List, ListItem, ListState, StatefulWidget, Widget,
+    },
+};
+
+use crate::action::{Action, GachaAction, RouteRequest};
+
+pub struct RefreshMenuWidget {
+    selected_index: ListState,
+}
+
+impl RefreshMenuWidget {
+    pub fn new() -> Self {
+        let mut selected_index = ListState::default();
+        selected_index.select(Some(0));
+        Self { selected_index }
+    }
+
+    pub fn render(&mut self, area: Rect, frame: &mut Frame) {
+        let popup_width = 20;
+        let popup_height = 4;
+
+        let center_area = area.centered(
+            Constraint::Length(popup_width),
+            Constraint::Length(popup_height),
+        );
+
+        Clear.render(center_area, frame.buffer_mut());
+
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .title("更新记录")
+            .title_alignment(Alignment::Left);
+
+        let items = vec![ListItem::new("增量更新"), ListItem::new("全量更新")];
+
+        let list = List::new(items)
+            .block(block)
+            .highlight_style(Style::default().fg(Color::Yellow))
+            .highlight_symbol("> ");
+
+        StatefulWidget::render(
+            list,
+            center_area,
+            frame.buffer_mut(),
+            &mut self.selected_index,
+        );
+    }
+
+    pub fn handle_key_event(&mut self, key: KeyEvent) -> Option<Action> {
+        match key.code {
+            KeyCode::Down => {
+                self.select_next();
+                None
+            }
+            KeyCode::Up => {
+                self.select_prev();
+                None
+            }
+            KeyCode::Enter => {
+                if let Some(selected) = self.selected_index.selected() {
+                    if selected == 0 {
+                        return Some(Action::Gacha(GachaAction::StartRefresh(false)));
+                    } else {
+                        return Some(Action::Gacha(GachaAction::StartRefresh(true)));
+                    }
+                }
+                None
+            }
+            KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
+            _ => None,
+        }
+    }
+
+    fn select_prev(&mut self) {
+        let current = self.selected_index.selected().unwrap_or(0);
+        let prev = if current == 0 { 1 } else { current - 1 };
+        self.selected_index.select(Some(prev));
+    }
+
+    fn select_next(&mut self) {
+        let current = self.selected_index.selected().unwrap_or(0);
+        let next = if current >= 1 { 0 } else { current + 1 };
+        self.selected_index.select(Some(next));
+    }
+}

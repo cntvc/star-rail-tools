@@ -1,11 +1,17 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(clippy::enum_variant_names)]
 pub enum GachaType {
+    /// 常驻跃迁
     RegularWarp = 1,
+    /// 始发跃迁
     StarterWarp = 2,
+    /// 角色活动跃迁
     CharacterEventWarp = 11,
+    /// 角色联动跃迁
     CharacterCollaborationWarp = 21,
+    /// 光锥活动跃迁
     LightConeEventWarp = 12,
+    /// 光锥联动跃迁
     LightConeCollaborationWarp = 22,
 }
 
@@ -25,13 +31,25 @@ impl GachaType {
 
     pub const fn as_array() -> [GachaType; 6] {
         [
-            GachaType::RegularWarp,
             GachaType::CharacterEventWarp,
             GachaType::LightConeEventWarp,
+            GachaType::RegularWarp,
             GachaType::CharacterCollaborationWarp,
             GachaType::LightConeCollaborationWarp,
             GachaType::StarterWarp,
         ]
+    }
+
+    pub const fn name(&self) -> &'static str {
+        match *self as u8 {
+            1 => "RegularWarp",
+            2 => "StarterWarp",
+            11 => "CharacterEventWarp",
+            12 => "LightConeEventWarp",
+            21 => "CharacterCollaborationWarp",
+            22 => "LightConeCollaborationWarp",
+            _ => unreachable!(),
+        }
     }
 }
 

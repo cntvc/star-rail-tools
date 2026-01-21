@@ -20,6 +20,7 @@ impl ConfigItem {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct AppConfig {
     pub log_level: Level,
     pub language: Lang,
@@ -46,40 +47,50 @@ impl AppConfig {
             .unwrap_or(default))
     }
 
-    pub fn load_config() -> Result<AppConfig> {
-        let conn = DatabaseService::connection()?;
+    pub async fn load_config() -> Result<AppConfig> {
+        tokio::task::spawn_blocking(|| {
+            let conn = DatabaseService::connection()?;
 
-        let log_level = Self::parse_config_value(&conn, ConfigItem::LogLevel, Level::INFO)?;
-        let language = Self::parse_config_value(&conn, ConfigItem::Language, i18n::Lang::zh_cn)?;
-        let check_update = Self::parse_config_value(&conn, ConfigItem::CheckUpdate, true)?;
+            let log_level = Self::parse_config_value(&conn, ConfigItem::LogLevel, Level::INFO)?;
+            let language =
+                Self::parse_config_value(&conn, ConfigItem::Language, i18n::Lang::zh_cn)?;
+            let check_update = Self::parse_config_value(&conn, ConfigItem::CheckUpdate, true)?;
 
-        Ok(AppConfig {
-            log_level,
-            language,
-            check_update,
+            Ok(AppConfig {
+                log_level,
+                language,
+                check_update,
+            })
         })
+        .await?
     }
 
-    pub fn save_config(config: &AppConfig) -> Result<()> {
-        let conn = DatabaseService::connection()?;
+    pub async fn save_config(config: &AppConfig) -> Result<()> {
+        tokio::task::spawn_blocking({
+            let config = config.clone();
+            move || {
+                let conn = DatabaseService::connection()?;
 
-        ConfigRepo::update(
-            &conn,
-            ConfigItem::LogLevel.as_str(),
-            &config.log_level.to_string(),
-        )?;
+                ConfigRepo::update(
+                    &conn,
+                    ConfigItem::LogLevel.as_str(),
+                    &config.log_level.to_string(),
+                )?;
 
-        ConfigRepo::update(
-            &conn,
-            ConfigItem::Language.as_str(),
-            config.language.as_str(),
-        )?;
-        ConfigRepo::update(
-            &conn,
-            ConfigItem::CheckUpdate.as_str(),
-            &config.check_update.to_string(),
-        )?;
+                ConfigRepo::update(
+                    &conn,
+                    ConfigItem::Language.as_str(),
+                    config.language.as_str(),
+                )?;
+                ConfigRepo::update(
+                    &conn,
+                    ConfigItem::CheckUpdate.as_str(),
+                    &config.check_update.to_string(),
+                )?;
 
-        Ok(())
+                Ok(())
+            }
+        })
+        .await?
     }
 }

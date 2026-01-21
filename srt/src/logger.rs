@@ -21,7 +21,7 @@ type ReloadHandle = reload::Handle<EnvFilter, tracing_subscriber::Registry>;
 static LOG_LEVEL_HANDLE: OnceLock<ReloadHandle> = OnceLock::new();
 static LOG_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
 
-pub fn init(path: &Path) -> Result<()> {
+pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
     clean_logs(path)?;
 
     let now = time::OffsetDateTime::now_local().unwrap();
@@ -49,7 +49,8 @@ pub fn init(path: &Path) -> Result<()> {
         .with_span_events(fmt::format::FmtSpan::CLOSE);
 
     // 创建过滤器：默认显示所有 info 日志，但屏蔽常见的嘈杂第三方库
-    let filter = EnvFilter::new("info")
+    let level = level.map_or("info".to_string(), |l| l.to_string());
+    let filter = EnvFilter::new(&level)
         .add_directive("hyper=off".parse().unwrap())
         .add_directive("reqwest=off".parse().unwrap());
     let (filter_layer, reload_handle) = reload::Layer::new(filter);
@@ -62,7 +63,7 @@ pub fn init(path: &Path) -> Result<()> {
     LOG_LEVEL_HANDLE.set(reload_handle).ok();
     // TODO: 保存 guard 待确认实现方式
     LOG_GUARD.set(guard).ok();
-    info!("Logger initialized with default level: INFO");
+    info!("Logger initialized with default level: {}", level);
     Ok(())
 }
 

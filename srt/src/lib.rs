@@ -1,14 +1,15 @@
-pub mod config;
+pub(crate) mod config;
 pub mod core;
-pub mod database;
-pub mod error;
+pub(crate) mod database;
+pub(crate) mod error;
 pub mod logger;
-pub mod updater;
-mod utils;
+pub(crate) mod updater;
+pub(crate) mod utils;
 
 pub use config::AppConfig;
-pub use database as db;
 pub use error::AppError;
+
+pub use database::DatabaseService;
 
 use std::{path::PathBuf, sync::LazyLock};
 
@@ -41,7 +42,7 @@ impl AppPath {
         }
     }
 
-    pub fn create_dir(&self) -> Result<()> {
+    pub fn init(&self) -> Result<()> {
         std::fs::create_dir_all(&self.log_dir)?;
         std::fs::create_dir_all(&self.cache_dir)?;
         std::fs::create_dir_all(&self.db_dir)?;

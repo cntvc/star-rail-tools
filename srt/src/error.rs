@@ -38,7 +38,7 @@ impl std::fmt::Display for ErrorContext {
 pub struct AppError {
     pub source: anyhow::Error,
     pub location: &'static Location<'static>,
-    pub msg: Option<ErrorContext>,
+    pub msg: ErrorContext,
 }
 
 impl AppError {
@@ -50,7 +50,7 @@ impl AppError {
         let e = Self {
             source: anyhow::anyhow!("Logic Error"),
             location,
-            msg: Some(ctx),
+            msg: ctx,
         };
 
         logger::warn!("{:#}", e);
@@ -67,9 +67,7 @@ impl std::fmt::Display for AppError {
             self.location.file(),
             self.location.line()
         )?;
-        if let Some(msg) = &self.msg {
-            write!(f, "| {}", msg)?;
-        }
+        write!(f, "| {}", self.msg)?;
 
         write!(f, "\nCaused by:")?;
         for (i, cause) in self.source.chain().enumerate() {
@@ -118,7 +116,7 @@ where
                 let e = AppError {
                     source: source_err,
                     location,
-                    msg: Some(ErrorContext { key, args }),
+                    msg: ErrorContext { key, args },
                 };
                 logger::warn!("{:#}", e);
                 Err(e)
@@ -143,10 +141,10 @@ macro_rules! impl_from_error {
                     let e = AppError {
                         source: error.into(),
                         location,
-                        msg: Some(ErrorContext {
+                        msg: ErrorContext {
                             key: I18nKey::$i18n_key,
                             args: vec![],
-                        }),
+                        },
                     };
                     logger::warn!("{:#}", e);
                     e
@@ -184,7 +182,7 @@ impl From<std::io::Error> for AppError {
         let e = AppError {
             source: error.into(),
             location,
-            msg: Some(ErrorContext { key, args: vec![] }),
+            msg: ErrorContext { key, args: vec![] },
         };
         logger::warn!("{:#}", e);
         e

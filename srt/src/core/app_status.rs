@@ -3,27 +3,27 @@ use crate::database::AppStatusRepo;
 use crate::logger;
 
 #[derive(Debug)]
-pub enum AppStatusItem {
+enum AppStateItem {
     DefaultAccount,
 }
 
-impl From<AppStatusItem> for &'static str {
-    fn from(item: AppStatusItem) -> Self {
+impl From<AppStateItem> for &'static str {
+    fn from(item: AppStateItem) -> Self {
         match item {
-            AppStatusItem::DefaultAccount => "DEFAULT_ACCOUNT",
+            AppStateItem::DefaultAccount => "DEFAULT_ACCOUNT",
         }
     }
 }
 
-struct AppStatusService;
+pub struct AppStateService;
 
-impl AppStatusService {
-    pub async fn get(item: AppStatusItem) -> Result<Option<String>> {
+impl AppStateService {
+    async fn get(item: AppStateItem) -> Result<Option<String>> {
         logger::info!("get app status: {:?}", item);
         tokio::task::spawn_blocking(move || AppStatusRepo::select(item.into())).await?
     }
 
-    pub async fn set(item: AppStatusItem, value: &str) -> Result<bool> {
+    async fn set(item: AppStateItem, value: &str) -> Result<bool> {
         logger::info!("set app status: {:?} = {}", item, value);
         tokio::task::spawn_blocking({
             let val = value.to_string();
@@ -32,17 +32,13 @@ impl AppStatusService {
         .await?
     }
 
-    pub async fn clear(item: AppStatusItem) -> Result<bool> {
+    async fn clear(item: AppStateItem) -> Result<bool> {
         logger::info!("set null: {:?}", item);
         tokio::task::spawn_blocking(move || AppStatusRepo::update_to_null(item.into())).await?
     }
-}
 
-pub struct AppStatus;
-
-impl AppStatus {
     pub async fn get_default_uid() -> Result<Option<String>> {
-        let default_uid = match AppStatusService::get(AppStatusItem::DefaultAccount).await? {
+        let default_uid = match AppStateService::get(AppStateItem::DefaultAccount).await? {
             Some(uid) => Ok(Some(uid)),
             None => Ok(None),
         };
@@ -53,13 +49,13 @@ impl AppStatus {
     pub async fn set_default_uid(uid: &str) -> Result<()> {
         logger::info!("set default uid: {}", uid);
 
-        AppStatusService::set(AppStatusItem::DefaultAccount, &uid.to_string()).await?;
+        AppStateService::set(AppStateItem::DefaultAccount, &uid.to_string()).await?;
         Ok(())
     }
 
     pub async fn clear_default_uid() -> Result<()> {
         logger::info!("reset default uid");
-        AppStatusService::clear(AppStatusItem::DefaultAccount).await?;
+        AppStateService::clear(AppStateItem::DefaultAccount).await?;
         Ok(())
     }
 }

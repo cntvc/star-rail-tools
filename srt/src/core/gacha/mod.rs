@@ -9,8 +9,8 @@ mod types;
 mod uigf;
 
 pub use entity::{
-    GachaAnalysisEntity, GachaMetadataEntity, GachaPullInfoEntity, GachaRecordEntity,
-    GachaRecordItem, Metadata,
+    GachaAnalysisEntity, GachaAnalysisResult, GachaMetadataEntity, GachaPullInfoEntity,
+    GachaRecordEntity, GachaRecordItem, Metadata,
 };
 pub use gacha_service::GachaService;
 pub use metadata::MetadataService;

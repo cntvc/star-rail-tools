@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
 
 use serde::{Deserialize, Serialize};
 use serde_with::{DisplayFromStr, serde_as};
@@ -155,7 +156,7 @@ pub struct GachaMetadataEntity {
     pub item_id: u32,
     pub rarity: u8,
     pub item_type: String,
-    // lang -> name
+    /// HashMap: lang -> item_name
     pub names: HashMap<String, String>,
 }
 
@@ -179,4 +180,70 @@ impl FromRow for GachaMetadataEntity {
     }
 }
 
-pub type Metadata = HashMap<u32, GachaMetadataEntity>;
+#[derive(Default)]
+pub struct Metadata {
+    inner: HashMap<u32, GachaMetadataEntity>,
+}
+
+impl Metadata {
+    pub fn get_item_name(&self, item_id: u32, lang: &str) -> Option<&String> {
+        self.inner
+            .get(&item_id)
+            .and_then(|entity| entity.names.get(lang))
+    }
+}
+
+impl Deref for Metadata {
+    type Target = HashMap<u32, GachaMetadataEntity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for Metadata {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl FromIterator<(u32, GachaMetadataEntity)> for Metadata {
+    fn from_iter<I: IntoIterator<Item = (u32, GachaMetadataEntity)>>(iter: I) -> Self {
+        Self {
+            inner: iter.into_iter().collect(),
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct GachaAnalysisResult {
+    inner: HashMap<u8, GachaAnalysisEntity>,
+}
+
+impl GachaAnalysisResult {
+    pub fn new(data: HashMap<u8, GachaAnalysisEntity>) -> Self {
+        Self { inner: data }
+    }
+}
+
+impl Deref for GachaAnalysisResult {
+    type Target = HashMap<u8, GachaAnalysisEntity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for GachaAnalysisResult {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl FromIterator<(u8, GachaAnalysisEntity)> for GachaAnalysisResult {
+    fn from_iter<I: IntoIterator<Item = (u8, GachaAnalysisEntity)>>(iter: I) -> Self {
+        Self {
+            inner: iter.into_iter().collect(),
+        }
+    }
+}

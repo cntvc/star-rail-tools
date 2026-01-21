@@ -3,7 +3,7 @@ use std::path::Path;
 
 use tracing::instrument;
 
-use super::entity::{GachaAnalysisEntity, GachaRecordEntity, Metadata};
+use super::entity::{GachaAnalysisEntity, GachaAnalysisResult, GachaRecordEntity, Metadata};
 use super::export_service::ExportService;
 use super::fetcher::Fetcher;
 use super::gacha_url::{UrlLocator, UrlValidator};
@@ -77,7 +77,7 @@ impl GachaService {
     }
 
     #[instrument(level = "debug", skip_all)]
-    async fn analyze_gacha_records(uid: &str) -> Result<HashMap<u8, GachaAnalysisEntity>> {
+    async fn analyze_gacha_records(uid: &str) -> Result<GachaAnalysisResult> {
         logger::info!("Analyzing gacha record for {}", uid);
 
         let calc_current_pity_task = tokio::task::spawn_blocking({
@@ -102,7 +102,7 @@ impl GachaService {
         let mut pull_history: HashMap<u8, _> = pull_history_res?.into_iter().collect();
         let mut total_count: HashMap<u8, _> = total_count_res?.into_iter().collect();
 
-        let analysis_map: HashMap<u8, GachaAnalysisEntity> = GachaType::as_array()
+        let analysis_map: GachaAnalysisResult = GachaType::as_array()
             .into_iter()
             .map(|gt| {
                 let gacha_type = gt as u8;
@@ -120,7 +120,7 @@ impl GachaService {
     }
 
     #[instrument(level = "debug", skip_all)]
-    pub async fn update_analysis(uid: &str) -> Result<HashMap<u8, GachaAnalysisEntity>> {
+    pub async fn update_analysis(uid: &str) -> Result<GachaAnalysisResult> {
         logger::info!("Refreshing gacha analysis for {}", uid);
         let analysis_result = Self::analyze_gacha_records(uid).await?;
 
@@ -137,7 +137,7 @@ impl GachaService {
     }
 
     #[instrument(level = "debug", skip_all)]
-    pub async fn load_analysis(uid: &str) -> Result<HashMap<u8, GachaAnalysisEntity>> {
+    pub async fn load_analysis(uid: &str) -> Result<GachaAnalysisResult> {
         logger::info!("Loading gacha analysis for {}", uid);
         let uid = uid.to_string();
         let analysis_result =

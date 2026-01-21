@@ -1,5 +1,5 @@
 [workspace]
-members = ["db-helper", "srt", "i18n"]
+members = ["db-helper", "srt", "i18n", "tui"]
 resolver = "3"
 
 [workspace.package]
@@ -10,6 +10,10 @@ readme = "README.md"
 repository = "https://github.com/cntvc/star-rail-tools"
 rust-version = "1.92.0"
 version = "3.0.0"
+
+[workspace.dependencies]
+serde = { version = "1.0.228"}
+tokio = { version = "1.49.0" }
 
 [profile.dev]
 incremental = false

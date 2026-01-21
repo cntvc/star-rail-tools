@@ -11,11 +11,11 @@ use i18n::I18nKey;
 static UID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[1-9][0-9]{8}$").unwrap());
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Uid {
+pub struct AcountUid {
     inner: String,
 }
 
-impl Uid {
+impl AcountUid {
     pub fn new(uid: &str) -> Result<Self> {
         if !Self::is_valid(uid) {
             bail!(I18nKey::InvalidUidFormat);
@@ -30,7 +30,7 @@ impl Uid {
     }
 }
 
-impl Deref for Uid {
+impl Deref for AcountUid {
     type Target = str;
 
     fn deref(&self) -> &str {
@@ -38,34 +38,34 @@ impl Deref for Uid {
     }
 }
 
-impl AsRef<str> for Uid {
+impl AsRef<str> for AcountUid {
     fn as_ref(&self) -> &str {
         &self.inner
     }
 }
 
-impl From<Uid> for String {
-    fn from(value: Uid) -> Self {
+impl From<AcountUid> for String {
+    fn from(value: AcountUid) -> Self {
         value.inner
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Account {
-    pub uid: Uid,
+    pub uid: AcountUid,
     pub game_biz: GameBiz,
     pub server_time_zone: i8,
 }
 
 impl Account {
     pub fn new(uid: &str) -> Result<Self> {
-        if !Uid::is_valid(uid) {
+        if !AcountUid::is_valid(uid) {
             bail!(I18nKey::InvalidUidFormat);
         }
         let game_biz = GameBiz::from_uid(uid);
         let server_time_zone = Self::calc_server_time_zone(uid);
         Ok(Self {
-            uid: Uid::new(uid)?,
+            uid: AcountUid::new(uid)?,
             game_biz,
             server_time_zone,
         })
@@ -120,7 +120,7 @@ impl AccountService {
         Ok(existing_account.is_some())
     }
 
-    pub async fn all_uids() -> Result<Vec<String>> {
+    pub async fn get_all_uid_list() -> Result<Vec<String>> {
         logger::debug!("Getting all account UIDs");
         let account_list = tokio::task::spawn_blocking(AccountRepo::select_all).await??;
         Ok(account_list)

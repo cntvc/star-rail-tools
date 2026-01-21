@@ -4,7 +4,9 @@ use db_helper::FromRow;
 use rusqlite::{OptionalExtension, params};
 use tracing::instrument;
 
-use crate::core::{GachaAnalysisEntity, GachaPullInfoEntity, GachaRecordEntity, GachaType};
+use crate::core::{
+    GachaAnalysisEntity, GachaAnalysisResult, GachaPullInfoEntity, GachaRecordEntity, GachaType,
+};
 use crate::database::DatabaseService;
 use crate::{Result, logger};
 
@@ -171,10 +173,7 @@ pub fn calc_total_count(uid: &str) -> Result<Vec<(u8, u32)>> {
 }
 
 #[instrument(level = "debug", skip_all)]
-pub fn insert_or_update_analysis_result(
-    uid: &str,
-    data: &HashMap<u8, GachaAnalysisEntity>,
-) -> Result<()> {
+pub fn insert_or_update_analysis_result(uid: &str, data: &GachaAnalysisResult) -> Result<()> {
     logger::debug!("Saving or updating analysis result for user: {}", uid);
     let mut conn = DatabaseService::connection()?;
     let tx = conn.transaction()?;
@@ -184,7 +183,7 @@ pub fn insert_or_update_analysis_result(
             VALUES (?1, ?2, ?3, ?4, ?5);";
         let mut stmt = tx.prepare(sql)?;
 
-        for (gacha_type, analysis) in data {
+        for (gacha_type, analysis) in data.iter() {
             stmt.execute(params![
                 uid,
                 gacha_type,
@@ -199,7 +198,7 @@ pub fn insert_or_update_analysis_result(
 }
 
 #[instrument(level = "debug", skip_all)]
-pub fn select_analysis_result(uid: &str) -> Result<HashMap<u8, GachaAnalysisEntity>> {
+pub fn select_analysis_result(uid: &str) -> Result<GachaAnalysisResult> {
     logger::debug!("Querying analysis result for user: {}", uid);
     let sql = "SELECT uid, gacha_type, pity_count, total_count, rank5 FROM gacha_analysis WHERE uid = ?1;";
     let conn = DatabaseService::connection()?;
@@ -211,7 +210,7 @@ pub fn select_analysis_result(uid: &str) -> Result<HashMap<u8, GachaAnalysisEnti
         let i = row?;
         results.insert(i.gacha_type, i);
     }
-    Ok(results)
+    Ok(GachaAnalysisResult::new(results))
 }
 
 #[instrument(level = "debug", skip_all)]

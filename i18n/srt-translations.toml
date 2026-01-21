@@ -41,8 +41,8 @@ zh_cn = "抽卡记录为空"
 en_us = "Gacha record is empty"
 
 [GachaUidMismatch]
-zh_cn = "抽卡记录的 UID 与当前账户不匹配，请切换账户后重试"
-en_us = "UID in gacha record does not match the current account. Please switch accounts and try again"
+zh_cn = "游戏中的 UID 与当前账户不匹配，请切换账户后重试"
+en_us = "UID in game does not match the current account. Please switch accounts and try again"
 
 [InvalidUIGFFormat]
 zh_cn = "文件数据格式无效"
@@ -89,8 +89,8 @@ en_us = "miHoYo API error: Invalid access key. Please reopen the gacha history p
 
 # 其他错误
 [CheckUpdateFailed]
-zh_cn = "检查更新失败"
-en_us = "Failed to check for updates"
+zh_cn = "新版本检测失败"
+en_us = "New version check failed"
 
 [MetadataNotAvailable]
 zh_cn = "元数据不可用"
