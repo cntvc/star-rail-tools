@@ -1,5 +1,3 @@
-use std::cell::Ref;
-
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     Frame,
@@ -68,27 +66,30 @@ impl RefreshMenuWidget {
             KeyCode::Enter => {
                 if let Some(selected) = self.selected_index.selected() {
                     if selected == 0 {
-                        return Some(Action::Gacha(GachaAction::StartRefresh(false)));
+                        return Some(Action::Gacha(GachaAction::Refresh(false)));
                     } else {
-                        return Some(Action::Gacha(GachaAction::StartRefresh(true)));
+                        return Some(Action::Gacha(GachaAction::Refresh(true)));
                     }
                 }
                 None
             }
-            KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
+            KeyCode::Esc => {
+                self.selected_index.select(Some(0));
+                Some(Action::Route(RouteRequest::Close))
+            }
             _ => None,
         }
     }
 
     fn select_prev(&mut self) {
         let current = self.selected_index.selected().unwrap_or(0);
-        let prev = if current == 0 { 1 } else { current - 1 };
+        let prev = (current + 1) % 2;
         self.selected_index.select(Some(prev));
     }
 
     fn select_next(&mut self) {
         let current = self.selected_index.selected().unwrap_or(0);
-        let next = if current >= 1 { 0 } else { current + 1 };
+        let next = (current + 1) % 2;
         self.selected_index.select(Some(next));
     }
 }

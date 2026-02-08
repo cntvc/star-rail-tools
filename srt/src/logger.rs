@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 
 use regex::Regex;
 pub use tracing::Level;
-pub use tracing::{debug, error, info, warn};
+pub use tracing::{debug, error, info, trace, warn};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::filter::EnvFilter;
 use tracing_subscriber::{fmt, prelude::*, reload};
@@ -50,9 +50,7 @@ pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
 
     // 创建过滤器：默认显示所有 info 日志，但屏蔽常见的嘈杂第三方库
     let level = level.map_or("info".to_string(), |l| l.to_string());
-    let filter = EnvFilter::new(&level)
-        .add_directive("hyper=off".parse().unwrap())
-        .add_directive("reqwest=off".parse().unwrap());
+    let filter = build_filter(&level);
     let (filter_layer, reload_handle) = reload::Layer::new(filter);
 
     tracing_subscriber::registry()
@@ -61,7 +59,7 @@ pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
         .init();
 
     LOG_LEVEL_HANDLE.set(reload_handle).ok();
-    // TODO: 保存 guard 待确认实现方式
+
     LOG_GUARD.set(guard).ok();
     info!("Logger initialized with default level: {}", level);
     Ok(())
@@ -72,9 +70,7 @@ pub fn update_level(level: Level) -> Result<()> {
         .get()
         .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "Logger not initialized"))?;
 
-    let filter = EnvFilter::new(level.to_string())
-        .add_directive("hyper=off".parse().unwrap())
-        .add_directive("reqwest=off".parse().unwrap());
+    let filter = build_filter(&level.to_string());
 
     handle.reload(filter).map_err(|e| {
         std::io::Error::new(
@@ -87,13 +83,10 @@ pub fn update_level(level: Level) -> Result<()> {
     Ok(())
 }
 
-/// Explicitly flush logs by signaling the guard should be dropped at shutdown.
-/// Note: The guard in OnceLock will be automatically dropped when the program exits.
-/// This function is provided for documentation purposes.
-pub fn flush_logs() {
-    // The WorkerGuard stored in LOG_GUARD will be automatically dropped
-    // when the program exits, ensuring all buffered logs are flushed.
-    // There's no need for manual intervention in most cases.
+fn build_filter(level: &str) -> EnvFilter {
+    EnvFilter::new(level)
+        .add_directive("hyper=off".parse().unwrap())
+        .add_directive("reqwest=off".parse().unwrap())
 }
 
 struct FormatTime;

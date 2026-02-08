@@ -3,7 +3,7 @@ pub mod core;
 pub(crate) mod database;
 pub(crate) mod error;
 pub mod logger;
-pub(crate) mod updater;
+pub mod updater;
 pub(crate) mod utils;
 
 pub use config::AppConfig;
@@ -26,6 +26,7 @@ pub struct AppPath {
     pub log_dir: PathBuf,
     pub cache_dir: PathBuf,
     pub db_dir: PathBuf,
+    pub import_dir: PathBuf,
 }
 
 impl AppPath {
@@ -34,11 +35,13 @@ impl AppPath {
         let log_dir = root_dir.join("Logs");
         let cache_dir = root_dir.join("Cache");
         let db_dir = root_dir.join("Database");
+        let import_dir = root_dir.join("Import");
         AppPath {
             root_dir,
             log_dir,
             cache_dir,
             db_dir,
+            import_dir,
         }
     }
 
@@ -46,6 +49,7 @@ impl AppPath {
         std::fs::create_dir_all(&self.log_dir)?;
         std::fs::create_dir_all(&self.cache_dir)?;
         std::fs::create_dir_all(&self.db_dir)?;
+        std::fs::create_dir_all(&self.import_dir)?;
         Ok(())
     }
 }

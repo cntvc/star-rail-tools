@@ -18,13 +18,8 @@ pub async fn get_latest_release_version() -> Result<Option<String>> {
         .await;
 
     let resp = match resp_result {
-        Ok(r) => {
-            logger::debug!("GitHub API request completed");
-            r.json::<serde_json::Value>().await?
-        }
-        Err(_) => {
-            bail!(I18nKey::CheckUpdateFailed);
-        }
+        Ok(r) => r.json::<serde_json::Value>().await?,
+        Err(_) => bail!(I18nKey::CheckUpdateFailed),
     };
 
     if let Some(message) = resp.get("message").and_then(|v| v.as_str()) {

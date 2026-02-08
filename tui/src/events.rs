@@ -35,6 +35,7 @@ impl EventListener {
                     Some(Ok(event)) = event_reader.next().fuse() => {
                         match event {
                             CrosstermEvent::Key(key) if key.kind == KeyEventKind::Release => {
+                                logger::trace!("Key: {:?}", key);
                                 if tx.send(Event::Key(key)).is_err() {
                                     break;
                                 }

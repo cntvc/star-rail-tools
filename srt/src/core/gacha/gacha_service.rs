@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use tracing::instrument;
 
@@ -147,16 +148,23 @@ impl GachaService {
     }
 
     #[instrument(level = "info", skip_all)]
-    pub async fn import_record(uid: &str, path: &Path, metadata: &Metadata) -> Result<usize> {
-        ImportService::import_from_file(uid, path, metadata).await
+    pub async fn import_record(uid: &str, path: &Path, metadata: Arc<Metadata>) -> Result<usize> {
+        let count = ImportService::import_from_file(uid, path, metadata).await?;
+        Self::update_analysis(uid).await?;
+        Ok(count)
+    }
+
+    #[instrument(level = "info", skip_all)]
+    pub async fn get_json_file_list(path: &Path) -> Result<Vec<PathBuf>> {
+        ImportService::get_json_file_list(path).await
     }
 
     #[instrument(level = "info", skip_all)]
     pub async fn export_to_uigf(
         uid: &str,
         dir: &Path,
-        export_lang: &Lang,
-        metadata: &Metadata,
+        export_lang: Lang,
+        metadata: Arc<Metadata>,
     ) -> Result<()> {
         ExportService::export_to_uigf(uid, dir, export_lang, metadata).await
     }

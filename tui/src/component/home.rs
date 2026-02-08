@@ -1,14 +1,12 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
-    DefaultTerminal, Frame,
+    Frame,
     buffer::Buffer,
     layout::{Constraint, Layout, Rect, Spacing},
-    style::{Color, Style, Stylize},
-    symbols::{self, border, merge::MergeStrategy},
-    text::{Line, Span},
-    widgets::{
-        Block, BorderType, List, ListItem, ListState, Paragraph, StatefulWidget, Tabs, Widget,
-    },
+    style::{Color, Style},
+    symbols::merge::MergeStrategy,
+    text::Line,
+    widgets::{Block, BorderType, Paragraph, Tabs, Widget},
 };
 
 use srt::{
@@ -19,10 +17,11 @@ use srt::{
 use unicode_width::UnicodeWidthStr;
 
 use super::account::AccountListWidget;
+use super::import_export::ImportExportWidget;
 use super::refresh::RefreshMenuWidget;
 use crate::app::{AppModel, FocusNode};
 use crate::{
-    action::{Action, GachaAction, RouteRequest},
+    action::{Action, RouteRequest},
     app,
 };
 
@@ -36,6 +35,7 @@ pub struct HomeWidget {
     account_menu_widget: AccountListWidget,
 
     refresh_menu_widget: RefreshMenuWidget,
+    import_export_menu_widget: ImportExportWidget,
     gacha_data_widget: GachaDataWidget,
 }
 
@@ -45,17 +45,21 @@ impl HomeWidget {
             focus: Focus::Welcome,
             account_menu_widget: AccountListWidget::new(),
             refresh_menu_widget: RefreshMenuWidget::new(),
+            import_export_menu_widget: ImportExportWidget::new(),
             gacha_data_widget: GachaDataWidget::new(),
         }
     }
 
     pub fn render(&mut self, app_model: &mut AppModel, area: Rect, frame: &mut Frame) {
-        if !app_model.gacha_analysis.is_empty() {
-            self.focus = Focus::GachaData;
-            self.gacha_data_widget.render(app_model, area, frame);
-        } else {
-            self.focus = Focus::Welcome;
-            Welcome.render(area, frame);
+        match app_model.home_mode {
+            app::HomeMode::Data => {
+                self.focus = Focus::GachaData;
+                self.gacha_data_widget.render(app_model, area, frame);
+            }
+            app::HomeMode::Welcome => {
+                self.focus = Focus::Welcome;
+                Welcome.render(area, frame);
+            }
         }
         match app_model.focus_path.as_slice() {
             [FocusNode::Home, FocusNode::AccountList, ..] => {
@@ -63,6 +67,10 @@ impl HomeWidget {
             }
             [FocusNode::Home, FocusNode::UpdateMenu] => {
                 self.refresh_menu_widget.render(area, frame);
+            }
+            [FocusNode::Home, FocusNode::ImportExportMenu, ..] => {
+                self.import_export_menu_widget
+                    .render(app_model, area, frame);
             }
             _ => {}
         }
@@ -72,16 +80,33 @@ impl HomeWidget {
         logger::debug!("home widget focus_path: {:?}", focus_path);
 
         match focus_path {
-            [FocusNode::Home] => match self.focus {
-                Focus::Welcome => Welcome.handle_key_event(key),
-                Focus::GachaData => self.gacha_data_widget.handle_key_event(key),
-            },
+            [FocusNode::Home] => {
+                match key.code {
+                    KeyCode::Char('a') | KeyCode::Char('A') => {
+                        return Some(Action::Route(RouteRequest::OpenAccountList));
+                    }
+                    KeyCode::Char('u') | KeyCode::Char('U') => {
+                        return Some(Action::Route(RouteRequest::OpenUpdateGachaDataMenu));
+                    }
+                    KeyCode::Char('d') | KeyCode::Char('D') => {
+                        return Some(Action::Route(RouteRequest::OpenImportExportMenu));
+                    }
+                    _ => {}
+                };
+                match self.focus {
+                    Focus::Welcome => None,
+                    Focus::GachaData => self.gacha_data_widget.handle_key_event(key),
+                }
+            }
             [FocusNode::Home, FocusNode::AccountList, ..] => self
                 .account_menu_widget
                 .handle_key_event(key, &focus_path[1..]),
             [FocusNode::Home, FocusNode::UpdateMenu] => {
                 self.refresh_menu_widget.handle_key_event(key)
             }
+            [FocusNode::Home, FocusNode::ImportExportMenu, ..] => self
+                .import_export_menu_widget
+                .handle_key_event(key, &focus_path[1..]),
             _ => None,
         }
     }
@@ -106,43 +131,44 @@ impl Welcome {
             .centered()
             .render(inner_area, frame.buffer_mut());
     }
-
-    pub fn handle_key_event(&self, key: KeyEvent) -> Option<Action> {
-        match key.code {
-            KeyCode::Char('a') | KeyCode::Char('A') => {
-                Some(Action::Route(RouteRequest::OpenAccountListWidget))
-            }
-            KeyCode::Char('u') | KeyCode::Char('U') => {
-                Some(Action::Route(RouteRequest::OpenUpdateDataWidget))
-            }
-            _ => None,
-        }
-    }
 }
 
+const GACHA_TAB_MAX_COUNT: usize = GachaType::as_array().len();
+
 struct GachaDataWidget {
-    scroll_row_offset: usize,
+    /// [srt::core::GachaType::as_array] 顺序的索引
+    tab_index: usize,
+    scroll_row_offset: [usize; GACHA_TAB_MAX_COUNT],
 }
 
 impl GachaDataWidget {
     pub fn new() -> Self {
         Self {
-            scroll_row_offset: 0,
+            tab_index: 0,
+            scroll_row_offset: [0; GACHA_TAB_MAX_COUNT],
         }
     }
 
-    pub fn handle_key_event(&self, key: KeyEvent) -> Option<Action> {
+    pub fn handle_key_event(&mut self, key: KeyEvent) -> Option<Action> {
         match key.code {
-            KeyCode::Char('a') | KeyCode::Char('A') => {
-                Some(Action::Route(RouteRequest::OpenAccountListWidget))
+            KeyCode::Left => {
+                self.prev_tab();
+                None
             }
-            KeyCode::Char('u') | KeyCode::Char('U') => {
-                Some(Action::Route(RouteRequest::OpenUpdateDataWidget))
+            KeyCode::Right => {
+                self.next_tab();
+                None
             }
-            KeyCode::Left => Some(Action::Gacha(GachaAction::PrevTab)),
-            KeyCode::Right => Some(Action::Gacha(GachaAction::NextTab)),
             _ => None,
         }
+    }
+
+    fn next_tab(&mut self) {
+        self.tab_index = (self.tab_index + 1) % GACHA_TAB_MAX_COUNT;
+    }
+
+    fn prev_tab(&mut self) {
+        self.tab_index = (self.tab_index + GACHA_TAB_MAX_COUNT - 1) % GACHA_TAB_MAX_COUNT;
     }
 
     pub fn render(&self, app_model: &AppModel, area: Rect, frame: &mut Frame) {
@@ -154,15 +180,14 @@ impl GachaDataWidget {
         .areas(area);
 
         let gacha_type_array = GachaType::as_array().map(|i| i as u8);
-        let gacha_type = gacha_type_array[app_model.gacha_type_index];
+        let gacha_type = gacha_type_array[self.tab_index];
 
-        self.render_tabs(app_model.gacha_type_index, tab_area, frame.buffer_mut());
+        self.render_tabs(self.tab_index, tab_area, frame.buffer_mut());
 
         let analysis = app_model.gacha_analysis.get(&gacha_type);
         self.render_header(analysis, header_area, frame.buffer_mut());
 
         if let Some(analysis) = analysis {
-            // TODO 缓存结果 缓存含name的数据
             let max_name_width = self.calc_max_name_width(app_model);
             self.render_grid(
                 analysis,
@@ -197,7 +222,6 @@ impl GachaDataWidget {
             .render(separator_area, buf);
     }
 
-    // TODO 滚动索引数组
     fn render_header(&self, analysis: Option<&GachaAnalysisEntity>, area: Rect, buf: &mut Buffer) {
         if analysis.is_none() {
             return;
@@ -276,7 +300,7 @@ impl GachaDataWidget {
         const ROW_HEIGHT: u16 = 3;
         // +1 是追加底部无缝裁剪的一行
         let visible_rows = area.height as usize / (ROW_HEIGHT as usize - 1) + 1;
-        let start_row = self.scroll_row_offset;
+        let start_row = self.scroll_row_offset[self.tab_index];
         let end_row = (start_row + visible_rows).min(rows);
 
         let col_constraints = (0..cols).map(|_| Constraint::Fill(1));

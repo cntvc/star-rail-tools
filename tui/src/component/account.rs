@@ -1,21 +1,18 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
-    DefaultTerminal, Frame,
-    buffer::Buffer,
-    layout::{Alignment, Constraint, Layout, Rect, Spacing},
-    style::{Color, Modifier, Style, Stylize},
-    symbols::{border, merge::MergeStrategy},
+    Frame,
+    layout::{Alignment, Constraint, Layout, Rect},
+    style::{Color, Style},
     text::{Line, Span},
     widgets::{
-        Block, BorderType, Borders, Clear, List, ListItem, ListState, Paragraph, StatefulWidget,
-        Widget,
+        Block, BorderType, Borders, Clear, List, ListItem, Paragraph, StatefulWidget, Widget,
     },
 };
+
 use srt::logger;
-use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use crate::action::{AccountAction, Action, RouteRequest};
-use crate::app::{App, AppModel, FocusNode};
+use crate::app::{AppModel, FocusNode};
 
 pub struct AccountListWidget {
     add_account_widget: AddAccountWidget,
@@ -62,10 +59,7 @@ struct UidListWidget;
 
 impl UidListWidget {
     fn render(app_model: &mut AppModel, area: Rect, frame: &mut Frame) {
-        let content_height = app_model.uid_list.len() as u16;
-        let total_height = (content_height + 2).min(10);
-
-        let center_area = area.centered(Constraint::Length(19), Constraint::Length(total_height));
+        let center_area = area.centered(Constraint::Length(19), Constraint::Length(10));
 
         let block = Block::default()
             .borders(Borders::ALL)
@@ -103,12 +97,12 @@ impl UidListWidget {
             KeyCode::Down => Some(Action::Account(AccountAction::SelectNext)),
             KeyCode::Up => Some(Action::Account(AccountAction::SelectPrev)),
             KeyCode::Char('+') | KeyCode::Char('=') => {
-                Some(Action::Route(RouteRequest::OpenAddAccountWidget))
+                Some(Action::Route(RouteRequest::OpenAddAccount))
             }
             KeyCode::Char('-') | KeyCode::Char('_') => {
-                Some(Action::Route(RouteRequest::OpenDeleteAccountWidget))
+                Some(Action::Route(RouteRequest::OpenDeleteAccount))
             }
-            KeyCode::Enter => Some(Action::Account(AccountAction::StartLogin)),
+            KeyCode::Enter => Some(Action::Account(AccountAction::Login)),
             KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
             _ => None,
         }
@@ -197,9 +191,7 @@ impl DeleteAccountWidget {
 
     fn handle_key_event(&self, key: KeyEvent) -> Option<Action> {
         match key.code {
-            KeyCode::Char('y') | KeyCode::Char('Y') => {
-                Some(Action::Account(AccountAction::StartDelete))
-            }
+            KeyCode::Char('y') | KeyCode::Char('Y') => Some(Action::Account(AccountAction::Delete)),
             KeyCode::Char('n') | KeyCode::Char('N') => Some(Action::Route(RouteRequest::Close)),
             KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
             _ => None,
@@ -230,7 +222,7 @@ impl AddAccountWidget {
                 if self.input_value.len() == Self::MAX_LEN {
                     let uid = self.input_value.clone();
                     self.input_value.clear();
-                    Some(Action::Account(AccountAction::StartAdd(uid)))
+                    Some(Action::Account(AccountAction::Add(uid)))
                 } else {
                     None
                 }

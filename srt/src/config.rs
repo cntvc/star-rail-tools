@@ -20,7 +20,7 @@ impl ConfigItem {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct AppConfig {
     pub log_level: Level,
     pub language: Lang,
@@ -69,25 +69,7 @@ impl AppConfig {
         tokio::task::spawn_blocking({
             let config = config.clone();
             move || {
-                let conn = DatabaseService::connection()?;
-
-                ConfigRepo::update(
-                    &conn,
-                    ConfigItem::LogLevel.as_str(),
-                    &config.log_level.to_string(),
-                )?;
-
-                ConfigRepo::update(
-                    &conn,
-                    ConfigItem::Language.as_str(),
-                    config.language.as_str(),
-                )?;
-                ConfigRepo::update(
-                    &conn,
-                    ConfigItem::CheckUpdate.as_str(),
-                    &config.check_update.to_string(),
-                )?;
-
+                ConfigRepo::update_all(&config)?;
                 Ok(())
             }
         })

@@ -218,7 +218,7 @@ pub fn select_all(uid: &str) -> Result<Vec<GachaRecordEntity>> {
     logger::debug!("Querying all gacha records for user: {}", uid);
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare("SELECT id, batch_id, uid, gacha_id, gacha_type, item_id, time, rank_type FROM gacha_record WHERE uid = ?1 ORDER BY id;")?;
-    let rows = stmt.query_map([uid], GachaRecordEntity::from_row)?;
+    let rows = stmt.query_map(params![uid], GachaRecordEntity::from_row)?;
     let res = rows.collect::<Result<Vec<_>, _>>()?;
     Ok(res)
 }

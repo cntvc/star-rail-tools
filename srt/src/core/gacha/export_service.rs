@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::Arc;
 
 use super::entity::{GachaRecordItem, Metadata};
 use super::types::GachaItemType;
@@ -15,8 +16,8 @@ impl ExportService {
     pub async fn export_to_uigf(
         uid: &str,
         dir: &Path,
-        export_lang: &Lang,
-        metadata: &Metadata,
+        export_lang: Lang,
+        metadata: Arc<Metadata>,
     ) -> Result<()> {
         logger::info!(
             "Exporting gacha record for {} with lang {}",

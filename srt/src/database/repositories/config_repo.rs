@@ -1,6 +1,7 @@
 use rusqlite::{OptionalExtension, params};
 
-use crate::{Result, logger};
+use crate::config::ConfigItem;
+use crate::{AppConfig, DatabaseService, Result, logger};
 
 pub fn select(conn: &rusqlite::Connection, key: &str) -> Result<Option<String>> {
     logger::debug!("Getting setting: {}", key);
@@ -11,9 +12,27 @@ pub fn select(conn: &rusqlite::Connection, key: &str) -> Result<Option<String>> 
     Ok(result.flatten())
 }
 
-pub fn update(conn: &rusqlite::Connection, key: &str, value: &str) -> Result<bool> {
-    logger::debug!("Setting setting: {}, value: {}", key, value);
-    let mut stmt = conn.prepare("INSERT OR REPLACE INTO setting (key, value) VALUES (?1, ?2);")?;
-    let res = stmt.execute(params![key, value])?;
-    Ok(res > 0)
+pub fn update_all(config: &AppConfig) -> Result<bool> {
+    logger::debug!("Save config {:?}", config);
+    let mut conn = DatabaseService::connection()?;
+    let tx = conn.transaction()?;
+    {
+        let sql = "INSERT OR REPLACE INTO setting (key, value) VALUES (?1, ?2);";
+        let mut stmt = tx.prepare(sql)?;
+
+        stmt.execute(params![
+            ConfigItem::LogLevel.as_str(),
+            config.log_level.as_str()
+        ])?;
+        stmt.execute(params![
+            ConfigItem::Language.as_str(),
+            config.language.as_str()
+        ])?;
+        stmt.execute(params![
+            ConfigItem::CheckUpdate.as_str(),
+            &config.check_update.to_string()
+        ])?;
+    }
+    tx.commit()?;
+    Ok(true)
 }

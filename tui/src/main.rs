@@ -6,7 +6,7 @@ mod notification;
 mod task;
 
 use app::App;
-use srt::{APP_PATH, AppConfig, Result, logger};
+use srt::{APP_PATH, Result, logger};
 
 #[tokio::main]
 async fn main() -> Result<()> {

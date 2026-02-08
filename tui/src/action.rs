@@ -1,10 +1,10 @@
-use srt::AppError;
+use std::path::PathBuf;
+
 use srt::core::{GachaAnalysisResult, Metadata};
+use srt::{AppConfig, AppError};
 
 use crate::notification::NotificationType;
 use crate::task::TaskId;
-
-/// 应用业务动作 - 描述"发生了什么"
 
 pub enum Action {
     Quit,
@@ -15,7 +15,13 @@ pub enum Action {
 
     Gacha(GachaAction),
 
+    Import(ImportAction),
+
+    Export(ExportAction),
+
     Metadata(MetadataAction),
+
+    Setting(SettingAction),
 
     Task(TaskAction),
 
@@ -27,27 +33,36 @@ pub enum Action {
 
 pub enum RouteRequest {
     Close,
-    OpenAccountListWidget,
-    OpenAddAccountWidget,
-    OpenDeleteAccountWidget,
-    OpenUpdateDataWidget,
+    SwitchToHome,
+    SwitchToSetting,
+    SwitchToHelp,
+
+    OpenAccountList,
+    OpenAddAccount,
+    OpenDeleteAccount,
+
+    OpenUpdateGachaDataMenu,
+
+    OpenImportExportMenu,
+    OpenImportFileList,
+
+    OpenSaveSettingConfirm,
+    OpenAbout,
 }
 
 pub enum AccountAction {
     SelectNext,
     SelectPrev,
-    StartLogin,
+    Login,
     LoginSuccess(String),
-    StartAdd(String),
+    Add(String),
     AddSuccess(String),
-    StartDelete,
+    Delete,
     DeleteSuccess,
 }
 
 pub enum GachaAction {
-    NextTab,
-    PrevTab,
-    StartRefresh(bool),
+    Refresh(bool),
     RefreshSuccess(usize),
     AnalysisLoaded(GachaAnalysisResult),
 }
@@ -60,6 +75,25 @@ pub enum TaskAction {
 }
 
 pub enum MetadataAction {
-    Synced,
-    Reloaded(Metadata),
+    SyncSuccess,
+    ReloadSuccess(Metadata),
+}
+
+pub enum SettingAction {
+    SaveSuccess,
+    Save(AppConfig),
+}
+
+pub enum ImportAction {
+    SelectNext,
+    SelectPrev,
+    ScanFile,
+    ScanFileSuccess(Vec<PathBuf>),
+    Import,
+    ImportSuccess(usize),
+}
+
+pub enum ExportAction {
+    Export,
+    ExportSuccess,
 }

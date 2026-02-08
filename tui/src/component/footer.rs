@@ -4,12 +4,14 @@ use unicode_width::UnicodeWidthStr;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Paragraph, Widget},
 };
 
 use crate::app::{self, AppModel, FocusNode};
+
+pub const SPINNERS: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
 pub struct Footer;
 
@@ -35,30 +37,53 @@ impl Footer {
         ])
         .areas(area);
 
-        // 渲染全局菜单
         self.render_spans(&global_menu_spans, global_area, buf);
 
-        // 渲染 UID
         let uid_span = Span::styled(uid_text, Style::default().fg(Color::White));
         self.render_spans(&[uid_span], uid_area, buf);
 
-        // 第二层布局：焦点快捷键 | 任务进度
-        // 目前任务进度为空，所以全部空间给焦点快捷键
-        let task_progress_width = 0u16; // TODO: 实现任务进度时修改
+        // 计算任务进度区域宽度
+        let task_progress_width = if app_model.visible_tasks.is_empty() {
+            0
+        } else {
+            // spinner(2) + 空格(1) + 描述文字 + 左右边距(2)
+            let desc_len = app_model
+                .visible_tasks
+                .front()
+                .map(|task| task.description.len())
+                .unwrap_or(0);
+            (desc_len + 5).min(30) as u16 // 最大30字符
+        };
 
-        let [shortcuts_area, _task_area] =
+        let [shortcuts_area, task_area] =
             Layout::horizontal([Constraint::Min(1), Constraint::Length(task_progress_width)])
                 .areas(middle_area);
 
-        // 渲染焦点快捷键
         self.render_focus_shortcuts(app_model, shortcuts_area, buf);
+
+        if task_progress_width > 0 {
+            self.render_task_progress(app_model, task_area, buf);
+        }
+    }
+
+    fn render_task_progress(&self, app_model: &AppModel, area: Rect, buf: &mut Buffer) {
+        if let Some(task) = app_model.visible_tasks.front() {
+            let spinner = SPINNERS[app_model.spinner_index];
+            let text = format!(" {} {} ", task.description, spinner);
+
+            let span = Span::styled(text, Style::default().fg(Color::White));
+
+            self.render_spans(&[span], area, buf);
+        }
     }
 
     fn build_global_menu_spans(&self, app_model: &AppModel) -> Vec<Span<'static>> {
         let current_root = app_model.focus_path.root_path();
 
         let style = Style::default().fg(Color::White);
-        let highlight_style = Style::default().fg(Color::Yellow).bold();
+        let highlight_style = Style::default()
+            .fg(Color::White)
+            .bg(Color::Rgb(30, 134, 204));
         let mut spans = Vec::new();
 
         let home_style = if current_root == Some(FocusNode::Home) {
@@ -66,13 +91,24 @@ impl Footer {
         } else {
             style
         };
-        spans.push(Span::styled("[主页(h)]".to_string(), home_style));
-
         spans.push(Span::raw(" "));
-        spans.push(Span::styled("[设置(s)]".to_string(), style));
+        spans.push(Span::styled("主页(h)".to_string(), home_style));
 
+        let setting_style = if current_root == Some(FocusNode::Setting) {
+            highlight_style
+        } else {
+            style
+        };
         spans.push(Span::raw(" "));
-        spans.push(Span::styled("[帮助(?)]".to_string(), style));
+        spans.push(Span::styled("设置(s)".to_string(), setting_style));
+
+        let help_style = if current_root == Some(FocusNode::Help) {
+            highlight_style
+        } else {
+            style
+        };
+        spans.push(Span::raw(" "));
+        spans.push(Span::styled("帮助(?)".to_string(), help_style));
 
         spans
     }
@@ -162,18 +198,25 @@ impl<'a> Shortcut<'a> {
 fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
     match app_model.focus_path.last() {
         Some(app::FocusNode::Home) => {
-            vec![
+            let mut shortcuts = vec![
                 Shortcut::new("a", "账户"),
                 Shortcut::new("u", "更新"),
-                Shortcut::new("◄ ►", "切换"),
-            ]
+                Shortcut::new("d", "导入导出"),
+            ];
+            match app_model.home_mode {
+                app::HomeMode::Welcome => shortcuts,
+                app::HomeMode::Data => {
+                    shortcuts.extend(vec![Shortcut::new("←→", "切换")]);
+                    shortcuts
+                }
+            }
         }
         Some(app::FocusNode::AccountList) => {
             vec![
                 Shortcut::new("+", "添加"),
                 Shortcut::new("-", "删除"),
                 Shortcut::new("Enter", "登录"),
-                Shortcut::new("▲ ▼", "选择"),
+                Shortcut::new("↑↓", "选择"),
                 Shortcut::new("Esc", "返回"),
             ]
         }
@@ -183,8 +226,35 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
         Some(app::FocusNode::DeleteAccount) => {
             vec![Shortcut::new("Y", "删除"), Shortcut::new("N/Esc", "取消")]
         }
-        Some(app::FocusNode::UpdateMenu) => {
-            vec![Shortcut::new("▲ ▼", "选择"), Shortcut::new("Esc", "返回")]
+        Some(app::FocusNode::UpdateMenu | app::FocusNode::ImportExportMenu) => {
+            vec![Shortcut::new("↑↓", "选择"), Shortcut::new("Esc", "返回")]
+        }
+        Some(app::FocusNode::ImportFileList) => {
+            vec![
+                Shortcut::new("↑↓", "选择"),
+                Shortcut::new("f", "刷新"),
+                Shortcut::new("Enter", "导入"),
+                Shortcut::new("Esc", "返回"),
+            ]
+        }
+        Some(app::FocusNode::Setting) => {
+            vec![
+                Shortcut::new("Tab/↑↓", "切换项"),
+                Shortcut::new("←→", "切换值"),
+                Shortcut::new("Ctrl+S", "保存"),
+            ]
+        }
+        Some(app::FocusNode::SettingSaveConfirm) => {
+            vec![
+                Shortcut::new("Enter", "确认保存"),
+                Shortcut::new("Esc", "取消"),
+            ]
+        }
+        Some(app::FocusNode::Help) => {
+            vec![Shortcut::new("a", "关于"), Shortcut::new("↑↓", "滚动")]
+        }
+        Some(app::FocusNode::About) => {
+            vec![Shortcut::new("Esc", "返回")]
         }
         None => vec![],
     }

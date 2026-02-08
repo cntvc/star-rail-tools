@@ -180,7 +180,7 @@ impl FromRow for GachaMetadataEntity {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Metadata {
     inner: HashMap<u32, GachaMetadataEntity>,
 }
@@ -223,6 +223,15 @@ pub struct GachaAnalysisResult {
 impl GachaAnalysisResult {
     pub fn new(data: HashMap<u8, GachaAnalysisEntity>) -> Self {
         Self { inner: data }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        for (_, v) in self.inner.iter() {
+            if v.total_count > 0 {
+                return false;
+            }
+        }
+        true
     }
 }
 

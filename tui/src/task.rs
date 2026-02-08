@@ -53,16 +53,26 @@ pub struct Task {
     pub group: TaskGroupId,
     pub name: String,
     pub status: TaskStatus,
+    pub visible: bool,
+    pub description: String,
     pub(crate) cancel_token: CancellationToken,
 }
 
 impl Task {
-    fn new(id: TaskId, group: TaskGroupId, name: String) -> Self {
+    fn new(
+        id: TaskId,
+        group: TaskGroupId,
+        name: String,
+        visible: bool,
+        description: String,
+    ) -> Self {
         Self {
             id,
             group,
             name,
             status: TaskStatus::Pending,
+            visible,
+            description,
             cancel_token: CancellationToken::new(),
         }
     }
@@ -92,6 +102,8 @@ impl TaskManager {
         &mut self,
         name: impl Into<String>,
         group: TaskGroupId,
+        visible: bool,
+        description: impl Into<String>,
         fut: F,
     ) -> Option<TaskId>
     where
@@ -110,7 +122,13 @@ impl TaskManager {
             return None;
         }
 
-        let mut task = Task::new(task_id.clone(), group, task_name.clone());
+        let mut task = Task::new(
+            task_id.clone(),
+            group,
+            task_name.clone(),
+            visible,
+            description.into(),
+        );
         let cancel_token = task.cancel_token.clone();
         task.status = TaskStatus::Running;
         logger::debug!("task start, id: {} name: {}", task.id, task.name);
@@ -156,15 +174,15 @@ impl TaskManager {
         }
     }
 
-    pub fn cancel(&mut self, task_id: TaskId) {
-        if let Some(task) = self.tasks.get_mut(&task_id) {
+    pub fn cancel(&mut self, task_id: &TaskId) {
+        if let Some(task) = self.tasks.get_mut(task_id) {
             task.cancel_token.cancel();
             task.status = TaskStatus::Cancelled;
         }
     }
 
-    pub fn get_task(&mut self, task_id: TaskId) -> Option<&mut Task> {
-        self.tasks.get_mut(&task_id)
+    pub fn get_task(&mut self, task_id: &TaskId) -> Option<&mut Task> {
+        self.tasks.get_mut(task_id)
     }
 
     pub fn cleanup_finished(&mut self) {
@@ -184,10 +202,14 @@ mod tests {
         let mut manager = TaskManager::new(tx);
 
         let id1 = manager
-            .start("task1", TaskGroupId::Global, async { Ok(()) })
+            .start("task1", TaskGroupId::Global, false, "".to_string(), async {
+                Ok(())
+            })
             .expect("task1 should start");
         let id2 = manager
-            .start("task2", TaskGroupId::Global, async { Ok(()) })
+            .start("task2", TaskGroupId::Global, false, "".to_string(), async {
+                Ok(())
+            })
             .expect("task2 should start");
 
         assert_ne!(id1, id2);
@@ -199,7 +221,13 @@ mod tests {
         let mut manager = TaskManager::new(tx);
 
         let task_id = manager
-            .start("test_task", TaskGroupId::Global, async { Ok(()) })
+            .start(
+                "test_task",
+                TaskGroupId::Global,
+                false,
+                "".to_string(),
+                async { Ok(()) },
+            )
             .expect("task should start");
 
         if let Some(Action::Task(TaskAction::Started(id))) = rx.recv().await {
@@ -221,15 +249,21 @@ mod tests {
         let mut manager = TaskManager::new(tx);
 
         let task_id = manager
-            .start("test_task", TaskGroupId::Global, async {
-                sleep(Duration::from_secs(10)).await;
-                Ok(())
-            })
+            .start(
+                "test_task",
+                TaskGroupId::Global,
+                false,
+                "".to_string(),
+                async {
+                    sleep(Duration::from_secs(10)).await;
+                    Ok(())
+                },
+            )
             .expect("task should start");
 
         let _ = rx.recv().await;
 
-        manager.cancel(task_id.clone());
+        manager.cancel(&task_id);
 
         if let Some(Action::Task(TaskAction::Cancelled(id))) = rx.recv().await {
             assert_eq!(id, task_id);
@@ -244,13 +278,13 @@ mod tests {
         let mut manager = TaskManager::new(tx);
 
         let id1 = manager
-            .start("task1", TaskGroupId::User, async {
+            .start("task1", TaskGroupId::User, false, "".to_string(), async {
                 sleep(Duration::from_secs(10)).await;
                 Ok(())
             })
             .expect("task1 should start");
         let id2 = manager
-            .start("task2", TaskGroupId::User, async {
+            .start("task2", TaskGroupId::User, false, "".to_string(), async {
                 sleep(Duration::from_secs(10)).await;
                 Ok(())
             })
@@ -275,7 +309,13 @@ mod tests {
     #[test]
     fn test_task_is_finished() {
         let task_id = TaskId::new("test", TaskGroupId::Global);
-        let task = Task::new(task_id, TaskGroupId::Global, "test".to_string());
+        let task = Task::new(
+            task_id,
+            TaskGroupId::Global,
+            "test".to_string(),
+            false,
+            "".to_string(),
+        );
         assert!(!task.is_finished()); // Pending
 
         let mut task = task;
@@ -298,15 +338,33 @@ mod tests {
         let mut manager = TaskManager::new(tx);
 
         let task1_id = TaskId::new("task1", TaskGroupId::Global);
-        let mut task1 = Task::new(task1_id.clone(), TaskGroupId::Global, "task1".to_string());
+        let mut task1 = Task::new(
+            task1_id.clone(),
+            TaskGroupId::Global,
+            "task1".to_string(),
+            false,
+            "".to_string(),
+        );
         task1.status = TaskStatus::Completed;
 
         let task2_id = TaskId::new("task2", TaskGroupId::Global);
-        let mut task2 = Task::new(task2_id.clone(), TaskGroupId::Global, "task2".to_string());
+        let mut task2 = Task::new(
+            task2_id.clone(),
+            TaskGroupId::Global,
+            "task2".to_string(),
+            false,
+            "".to_string(),
+        );
         task2.status = TaskStatus::Running;
 
         let task3_id = TaskId::new("task3", TaskGroupId::Global);
-        let mut task3 = Task::new(task3_id.clone(), TaskGroupId::Global, "task3".to_string());
+        let mut task3 = Task::new(
+            task3_id.clone(),
+            TaskGroupId::Global,
+            "task3".to_string(),
+            false,
+            "".to_string(),
+        );
         task3.status = TaskStatus::Failed;
 
         manager.tasks.insert(task1_id, task1);

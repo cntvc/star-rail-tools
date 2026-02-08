@@ -1,5 +1,7 @@
-use std::collections::HashMap;
+use std::collections::VecDeque;
 use std::ops::{Deref, DerefMut};
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
@@ -7,41 +9,48 @@ use ratatui::{
     layout::{Constraint, Layout},
     widgets::{ListState, Widget},
 };
+use srt::APP_PATH;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use srt::{
-    Result,
+    AppConfig, Result,
     core::{
-        Account, AccountService, AppStateService, GachaAnalysisEntity, GachaAnalysisResult,
-        GachaService, GachaType, Metadata, MetadataService,
+        AccountService, AppStateService, GachaAnalysisResult, GachaService, Metadata,
+        MetadataService,
     },
-    logger,
+    logger, updater,
 };
 
-use super::action::{AccountAction, Action, GachaAction, MetadataAction, RouteRequest, TaskAction};
-use crate::component::{Footer, HomeWidget};
+use super::action::{
+    AccountAction, Action, ExportAction, GachaAction, ImportAction, MetadataAction, RouteRequest,
+    SettingAction, TaskAction,
+};
+use crate::component::{Footer, HelpWidget, HomeWidget, SPINNERS, SettingWidget};
 use crate::events::{Event, EventListener};
 use crate::notification::{Notification, NotificationManager, NotificationType};
-use crate::task::{TaskGroupId, TaskManager, TaskStatus};
+use crate::task::{TaskGroupId, TaskId, TaskManager, TaskStatus};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FocusNode {
     // level 0
     Home,
-    // Setting,
-    // Help,
+    Setting,
+    Help,
 
     // level 1
     AccountList,
     UpdateMenu,
-    // DataMenu,
+    ImportExportMenu,
+    SettingSaveConfirm,
+    About,
 
     // level 2
     AddAccount,
     DeleteAccount,
+    ImportFileList,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct FocusPath {
     inner: Vec<FocusNode>,
 }
@@ -67,6 +76,19 @@ impl FocusPath {
 }
 
 #[derive(Default)]
+pub enum HomeMode {
+    #[default]
+    Welcome,
+    Data,
+}
+
+#[derive(Debug, Clone)]
+pub struct VisibleTask {
+    pub id: TaskId,
+    pub description: String,
+}
+
+#[derive(Default)]
 pub struct AppModel {
     pub focus_path: FocusPath,
 
@@ -76,11 +98,19 @@ pub struct AppModel {
     pub uid_list_index: ListState,
 
     pub gacha_analysis: GachaAnalysisResult,
-    /// gacha type array 顺序的索引
-    pub gacha_type_index: usize,
 
-    pub metadata: Metadata,
+    pub home_mode: HomeMode,
+
+    pub import_file_list: Vec<PathBuf>,
+    pub import_file_list_index: ListState,
+
+    pub metadata: Arc<Metadata>,
     pub metadata_updated: bool,
+
+    pub config: AppConfig,
+
+    pub visible_tasks: VecDeque<VisibleTask>,
+    pub spinner_index: usize,
 }
 
 impl AppModel {
@@ -88,9 +118,6 @@ impl AppModel {
         let mut state = AppModel::default();
 
         state.focus_path.push(FocusNode::Home);
-        if !state.uid_list.is_empty() {
-            state.uid_list_index.select(Some(0));
-        }
         state
     }
 }
@@ -100,6 +127,8 @@ pub struct App {
 
     model: AppModel,
     home_widget: HomeWidget,
+    help_widget: HelpWidget,
+    setting_widget: SettingWidget,
 
     event_tx: UnboundedSender<Event>,
     event_rx: UnboundedReceiver<Event>,
@@ -121,6 +150,8 @@ impl App {
             exit: false,
             model: AppModel::new(),
             home_widget: HomeWidget::new(),
+            help_widget: HelpWidget::new(),
+            setting_widget: SettingWidget::new(),
             event_tx,
             event_rx,
             action_tx,
@@ -135,21 +166,42 @@ impl App {
         let uid = AppStateService::get_default_uid().await?;
         self.model.uid = uid.clone();
         self.model.uid_list = AccountService::get_all_uid_list().await?;
-        self.model.metadata = MetadataService::load_metadata().await?;
+        if !self.model.uid_list.is_empty() {
+            self.model.uid_list_index.select(Some(0));
+        }
+        self.model.metadata = Arc::new(MetadataService::load_metadata().await?);
+
+        self.model.config = AppConfig::load_config().await?;
+        i18n::set_lang(self.model.config.language);
+
         if let Some(uid) = uid {
             self.model.gacha_analysis = GachaService::load_analysis(&uid).await?;
         }
-        // TODO 加载配置 设置语言
+        if self.model.gacha_analysis.is_empty() {
+            self.model.home_mode = HomeMode::Welcome;
+        } else {
+            self.model.home_mode = HomeMode::Data;
+        }
         Ok(())
     }
 
     fn start_task(&mut self) -> Result<()> {
-        // TODO 检查新版本
+        self.task_manager.start(
+            "check_update",
+            TaskGroupId::Global,
+            true,
+            "检测更新",
+            check_update(self.action_tx.clone()),
+        );
+
         self.task_manager.start(
             "sync_metadata",
             TaskGroupId::Global,
+            true,
+            "同步元数据",
             sync_metadata(self.action_tx.clone()),
         );
+
         Ok(())
     }
 
@@ -189,6 +241,10 @@ impl App {
         let root_path = self.model.focus_path.root_path().unwrap();
         match root_path {
             FocusNode::Home => self.home_widget.render(&mut self.model, main_area, frame),
+            FocusNode::Setting => self
+                .setting_widget
+                .render(&mut self.model, main_area, frame),
+            FocusNode::Help => self.help_widget.render(&mut self.model, main_area, frame),
             _ => {}
         }
 
@@ -213,6 +269,10 @@ impl App {
             Event::Tick => {
                 self.notification_manager.remove_expired();
                 self.task_manager.cleanup_finished();
+
+                if !self.model.visible_tasks.is_empty() {
+                    self.model.spinner_index = (self.model.spinner_index + 1) % SPINNERS.len();
+                }
                 None
             }
         }
@@ -231,10 +291,24 @@ impl App {
             }
             KeyEvent {
                 code: KeyCode::Char('h'),
+                modifiers: KeyModifiers::NONE,
                 ..
             } => {
-                self.go_to_root(FocusNode::Home);
-                return None;
+                return Some(Action::Route(RouteRequest::SwitchToHome));
+            }
+            KeyEvent {
+                code: KeyCode::Char('s'),
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                return Some(Action::Route(RouteRequest::SwitchToSetting));
+            }
+            KeyEvent {
+                code: KeyCode::Char('?') | KeyCode::Char('/'),
+                modifiers: KeyModifiers::NONE,
+                ..
+            } => {
+                return Some(Action::Route(RouteRequest::SwitchToHelp));
             }
             _ => {}
         }
@@ -247,11 +321,18 @@ impl App {
             | FocusNode::AccountList
             | FocusNode::AddAccount
             | FocusNode::DeleteAccount
-            | FocusNode::UpdateMenu => self
+            | FocusNode::UpdateMenu
+            | FocusNode::ImportExportMenu
+            | FocusNode::ImportFileList => self
                 .home_widget
                 .handle_key_event(key, &self.model.focus_path),
-            // FocusNode::Setting => None,
-            // FocusNode::Help => None,
+            FocusNode::Setting | FocusNode::SettingSaveConfirm => self
+                .setting_widget
+                .handle_key_event(key, &self.model.focus_path),
+
+            FocusNode::Help | FocusNode::About => self
+                .help_widget
+                .handle_key_event(key, &self.model.focus_path),
         }
     }
 
@@ -264,7 +345,10 @@ impl App {
             Action::Route(r) => self.handle_route_action(r),
             Action::Account(a) => self.handle_account_action(a),
             Action::Gacha(g) => self.handle_gacha_action(g),
+            Action::Import(i) => self.handle_import_action(i),
+            Action::Export(e) => self.handle_export_action(e),
             Action::Metadata(m) => self.handle_metadata_action(m),
+            Action::Setting(s) => self.handle_setting_action(s),
             Action::Task(t) => self.handle_task_action(t),
             Action::Notify {
                 message,
@@ -285,6 +369,24 @@ impl App {
         self.notification_manager
             .add(Notification::new(message, notification_type));
     }
+
+    fn reset_widgets(&mut self) {
+        // 只有 home 状态需要重置
+        self.home_widget = HomeWidget::new();
+    }
+
+    fn add_visible_task(&mut self, task_id: TaskId) {
+        if let Some(task) = self.task_manager.get_task(&task_id) {
+            self.model.visible_tasks.push_front(VisibleTask {
+                id: task_id,
+                description: task.description.clone(),
+            });
+        }
+    }
+
+    fn remove_visible_task(&mut self, task_id: &TaskId) {
+        self.model.visible_tasks.retain(|task| &task.id != task_id);
+    }
 }
 
 // =========================================================================
@@ -298,14 +400,49 @@ impl App {
                     self.model.focus_path.pop();
                 }
             }
-            RouteRequest::OpenAccountListWidget => {
-                self.model.focus_path.push(FocusNode::AccountList)
+            RouteRequest::SwitchToHome => {
+                self.go_to_root(FocusNode::Home);
             }
-            RouteRequest::OpenAddAccountWidget => self.model.focus_path.push(FocusNode::AddAccount),
-            RouteRequest::OpenDeleteAccountWidget => {
-                self.model.focus_path.push(FocusNode::DeleteAccount)
+            RouteRequest::SwitchToSetting => {
+                self.go_to_root(FocusNode::Setting);
+                self.setting_widget.load_config(&self.model.config);
             }
-            RouteRequest::OpenUpdateDataWidget => self.model.focus_path.push(FocusNode::UpdateMenu),
+            RouteRequest::SwitchToHelp => {
+                self.go_to_root(FocusNode::Help);
+            }
+            RouteRequest::OpenAccountList => self.model.focus_path.push(FocusNode::AccountList),
+            RouteRequest::OpenAddAccount => self.model.focus_path.push(FocusNode::AddAccount),
+            RouteRequest::OpenDeleteAccount => self.model.focus_path.push(FocusNode::DeleteAccount),
+            RouteRequest::OpenUpdateGachaDataMenu => {
+                if self.model.uid.is_none() {
+                    self.notify("请先登录账号", NotificationType::Warn);
+                    return;
+                }
+
+                self.model.focus_path.push(FocusNode::UpdateMenu)
+            }
+            RouteRequest::OpenImportExportMenu => {
+                if self.model.uid.is_none() {
+                    self.notify("请先登录账号", NotificationType::Warn);
+                    return;
+                }
+
+                self.model.focus_path.push(FocusNode::ImportExportMenu)
+            }
+            RouteRequest::OpenImportFileList => {
+                self.model.focus_path.push(FocusNode::ImportFileList);
+                self.task_manager.start(
+                    "scan_import_file_list",
+                    TaskGroupId::User,
+                    false,
+                    "scan_import_file_list",
+                    scan_import_file_list(self.action_tx.clone()),
+                );
+            }
+            RouteRequest::OpenSaveSettingConfirm => {
+                self.model.focus_path.push(FocusNode::SettingSaveConfirm)
+            }
+            RouteRequest::OpenAbout => self.model.focus_path.push(FocusNode::About),
         }
     }
 
@@ -333,10 +470,12 @@ impl App {
                 let prev = if current == 0 { len - 1 } else { current - 1 };
                 self.model.uid_list_index.select(Some(prev));
             }
-            AccountAction::StartAdd(uid) => {
+            AccountAction::Add(uid) => {
                 self.task_manager.start(
                     "register_account",
                     TaskGroupId::Global,
+                    false,
+                    "register_account",
                     register_account(self.action_tx.clone(), uid),
                 );
                 self.model.focus_path.pop();
@@ -347,11 +486,13 @@ impl App {
                 self.model.uid_list_index.select(Some(0));
                 self.model.uid_list.sort();
             }
-            AccountAction::StartDelete => {
+            AccountAction::Delete => {
                 if let Some(idx) = self.model.uid_list_index.selected() {
                     self.task_manager.start(
                         "delete_account",
                         TaskGroupId::User,
+                        false,
+                        "delete_account",
                         unregister_account(
                             self.action_tx.clone(),
                             self.model.uid_list[idx].clone(),
@@ -370,6 +511,7 @@ impl App {
                         self.task_manager.cancel_group(TaskGroupId::User);
                         self.model.uid = None;
                         self.model.gacha_analysis = GachaAnalysisResult::default();
+                        self.model.home_mode = HomeMode::Welcome;
                     }
 
                     if self.model.uid_list.is_empty() {
@@ -379,7 +521,7 @@ impl App {
                     }
                 }
             }
-            AccountAction::StartLogin => {
+            AccountAction::Login => {
                 self.model.focus_path.pop();
 
                 if let Some(idx) = self.model.uid_list_index.selected() {
@@ -389,6 +531,8 @@ impl App {
                         self.task_manager.start(
                             "set_default_account",
                             TaskGroupId::Global,
+                            false,
+                            "set_default_account",
                             set_default_account(self.action_tx.clone(), uid.clone()),
                         );
                     }
@@ -399,28 +543,32 @@ impl App {
                 self.task_manager.start(
                     "load_analysis",
                     TaskGroupId::Global,
+                    false,
+                    "load_analysis",
                     load_analysis(self.action_tx.clone(), uid),
                 );
+                self.reset_widgets();
             }
         }
     }
 
     fn handle_gacha_action(&mut self, gacha_action: GachaAction) {
         match gacha_action {
-            GachaAction::NextTab => {
-                self.model.gacha_type_index = (self.model.gacha_type_index + 1) % 6;
-            }
-            GachaAction::PrevTab => {
-                self.model.gacha_type_index = (self.model.gacha_type_index + 5) % 6;
-            }
             GachaAction::AnalysisLoaded(analysis) => {
                 self.model.gacha_analysis = analysis;
+                if self.model.gacha_analysis.is_empty() {
+                    self.model.home_mode = HomeMode::Welcome;
+                } else {
+                    self.model.home_mode = HomeMode::Data;
+                }
             }
-            GachaAction::StartRefresh(fetch_all) => {
+            GachaAction::Refresh(fetch_all) => {
                 if let Some(uid) = self.model.uid.clone() {
                     self.task_manager.start(
                         "refresh_gacha_records",
                         TaskGroupId::User,
+                        true,
+                        "更新跃迁记录",
                         refresh_gacha_records(self.action_tx.clone(), uid, fetch_all),
                     );
                 }
@@ -432,39 +580,175 @@ impl App {
         }
     }
 
+    fn handle_import_action(&mut self, import_action: ImportAction) {
+        match import_action {
+            ImportAction::SelectNext => {
+                if self.model.import_file_list.is_empty() {
+                    return;
+                }
+                match self.model.import_file_list_index.selected() {
+                    None => {
+                        self.model.import_file_list_index.select(Some(0));
+                    }
+                    Some(idx) => {
+                        self.model
+                            .import_file_list_index
+                            .select(Some((idx + 1) % self.model.import_file_list.len()));
+                    }
+                }
+            }
+            ImportAction::SelectPrev => {
+                if self.model.import_file_list.is_empty() {
+                    return;
+                }
+                match self.model.import_file_list_index.selected() {
+                    None => {
+                        self.model.import_file_list_index.select(Some(0));
+                    }
+                    Some(idx) => {
+                        self.model.import_file_list_index.select(Some(
+                            (idx + self.model.import_file_list.len() - 1)
+                                % self.model.import_file_list.len(),
+                        ));
+                    }
+                }
+            }
+            ImportAction::ScanFile => {
+                self.task_manager.start(
+                    "scan_import_file_list",
+                    TaskGroupId::User,
+                    true,
+                    "扫描导入文件",
+                    scan_import_file_list(self.action_tx.clone()),
+                );
+            }
+            ImportAction::ScanFileSuccess(files) => {
+                self.model.import_file_list = files;
+                if !self.model.import_file_list.is_empty() {
+                    self.model.import_file_list_index.select(Some(0));
+                }
+            }
+            ImportAction::Import => {
+                if let Some(idx) = self.model.import_file_list_index.selected() {
+                    if let Some(file_path) = self.model.import_file_list.get(idx) {
+                        self.task_manager.start(
+                            "import_gacha_record",
+                            TaskGroupId::User,
+                            false,
+                            "import_gacha_record",
+                            import_gacha_record(
+                                self.action_tx.clone(),
+                                self.model.uid.clone().unwrap(), // 这里必定有值，在进入前已进行判断
+                                file_path.clone(),
+                                Arc::clone(&self.model.metadata),
+                            ),
+                        );
+                    }
+                }
+            }
+            ImportAction::ImportSuccess(count) => {
+                self.notify(
+                    &format!("导入成功，新增 {} 条数据", count),
+                    NotificationType::Info,
+                );
+                self.task_manager.start(
+                    "load_analysis",
+                    TaskGroupId::Global,
+                    false,
+                    "load_analysis",
+                    load_analysis(self.action_tx.clone(), self.model.uid.clone().unwrap()),
+                );
+            }
+        }
+    }
+
+    fn handle_export_action(&mut self, export_action: ExportAction) {
+        match export_action {
+            ExportAction::Export => {
+                if self.model.uid.is_none() {
+                    self.notify("请先登录账号", NotificationType::Warn);
+                    return;
+                }
+                self.task_manager.start(
+                    "export_gacha_record",
+                    TaskGroupId::User,
+                    false,
+                    "export_gacha_record",
+                    export_gacha_record(
+                        self.action_tx.clone(),
+                        self.model.uid.clone().unwrap(),
+                        self.model.config.language.clone(),
+                        Arc::clone(&self.model.metadata),
+                    ),
+                );
+            }
+            ExportAction::ExportSuccess => {
+                self.notify("导出成功", NotificationType::Info);
+            }
+        }
+    }
+
     fn handle_metadata_action(&mut self, metadata_action: MetadataAction) {
         match metadata_action {
-            MetadataAction::Synced => {
+            MetadataAction::SyncSuccess => {
                 self.task_manager.start(
                     "load_metadata",
                     TaskGroupId::Global,
+                    false,
+                    "load_metadata",
                     reload_metadata(self.action_tx.clone()),
                 );
             }
-
-            MetadataAction::Reloaded(metadata) => {
-                self.model.metadata = metadata;
+            MetadataAction::ReloadSuccess(metadata) => {
+                self.model.metadata = Arc::new(metadata);
                 self.model.metadata_updated = true;
+            }
+        }
+    }
+
+    fn handle_setting_action(&mut self, setting_action: SettingAction) {
+        match setting_action {
+            SettingAction::Save(config) => {
+                self.model.config = config;
+                self.task_manager.start(
+                    "save_config",
+                    TaskGroupId::Global,
+                    false,
+                    "save_config",
+                    save_config(self.action_tx.clone(), self.model.config),
+                );
+            }
+            SettingAction::SaveSuccess => {
+                self.model.focus_path.pop();
             }
         }
     }
 
     fn handle_task_action(&mut self, task_action: TaskAction) {
         match task_action {
-            TaskAction::Failed(_, error) => {
+            TaskAction::Failed(task_id, error) => {
                 // TODO 区分类型发送不同级别的通知
                 self.notify(i18n::loc(error.msg.key), NotificationType::Error);
+                self.remove_visible_task(&task_id);
             }
-            TaskAction::Cancelled(_task_id) => {
-                if let Some(task) = self.task_manager.get_task(_task_id) {
+            TaskAction::Cancelled(task_id) => {
+                if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Cancelled;
                 }
+                self.remove_visible_task(&task_id);
             }
-            TaskAction::Started(_task_id) => {}
-            TaskAction::Completed(_task_id) => {
-                if let Some(task) = self.task_manager.get_task(_task_id) {
+            TaskAction::Started(task_id) => {
+                if let Some(task) = self.task_manager.get_task(&task_id) {
+                    if task.visible {
+                        self.add_visible_task(task_id);
+                    }
+                }
+            }
+            TaskAction::Completed(task_id) => {
+                if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Completed;
                 }
+                self.remove_visible_task(&task_id);
             }
         }
     }
@@ -475,14 +759,17 @@ impl App {
 // =========================================================================
 
 async fn sync_metadata(tx: UnboundedSender<Action>) -> Result<()> {
+    // TODO 添加 5 秒延迟用于测试 spinner 动画
+    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+
     MetadataService::sync_metadata().await?;
-    let _ = tx.send(Action::Metadata(MetadataAction::Synced));
+    let _ = tx.send(Action::Metadata(MetadataAction::SyncSuccess));
     Ok(())
 }
 
 async fn reload_metadata(tx: UnboundedSender<Action>) -> Result<()> {
     let metadata = MetadataService::load_metadata().await?;
-    let _ = tx.send(Action::Metadata(MetadataAction::Reloaded(metadata)));
+    let _ = tx.send(Action::Metadata(MetadataAction::ReloadSuccess(metadata)));
     Ok(())
 }
 
@@ -519,5 +806,54 @@ async fn refresh_gacha_records(
     let _ = tx.send(Action::Gacha(GachaAction::RefreshSuccess(count)));
     let analysis = GachaService::update_analysis(&uid).await?;
     let _ = tx.send(Action::Gacha(GachaAction::AnalysisLoaded(analysis)));
+    Ok(())
+}
+
+async fn save_config(tx: UnboundedSender<Action>, config: AppConfig) -> Result<()> {
+    AppConfig::save_config(&config).await?;
+    let _ = tx.send(Action::Setting(SettingAction::SaveSuccess));
+    Ok(())
+}
+
+async fn check_update(tx: UnboundedSender<Action>) -> Result<()> {
+    let latest_version = updater::get_latest_release_version().await?;
+    let msg = match latest_version {
+        Some(version) => format!("检测到新版本: {}", version),
+        None => "当前已是最新版本".to_string(),
+    };
+
+    let _ = tx.send(Action::Notify {
+        message: msg,
+        notification_type: NotificationType::Info,
+    });
+    Ok(())
+}
+
+async fn scan_import_file_list(tx: UnboundedSender<Action>) -> Result<()> {
+    let files = GachaService::get_json_file_list(&APP_PATH.import_dir).await?;
+    let _ = tx.send(Action::Import(ImportAction::ScanFileSuccess(files)));
+    Ok(())
+}
+
+async fn import_gacha_record(
+    tx: UnboundedSender<Action>,
+    uid: String,
+    file_path: PathBuf,
+    metadata: Arc<Metadata>,
+) -> Result<()> {
+    let count = GachaService::import_record(&uid, &file_path, metadata).await?;
+    let _ = tx.send(Action::Import(ImportAction::ImportSuccess(count)));
+    Ok(())
+}
+
+async fn export_gacha_record(
+    tx: UnboundedSender<Action>,
+    uid: String,
+    lang: i18n::Lang,
+    metadata: Arc<Metadata>,
+) -> Result<()> {
+    let export_dir = APP_PATH.root_dir.join(&uid);
+    GachaService::export_to_uigf(&uid, &export_dir, lang, metadata).await?;
+    let _ = tx.send(Action::Export(ExportAction::ExportSuccess));
     Ok(())
 }

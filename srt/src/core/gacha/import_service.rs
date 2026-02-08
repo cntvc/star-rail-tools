@@ -1,4 +1,5 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use super::entity::{GachaRecordEntity, GachaRecordItem, Metadata};
 use super::uigf::*;
@@ -24,7 +25,24 @@ struct ImportData {
 }
 
 impl ImportService {
-    pub async fn import_from_file(uid: &str, path: &Path, metadata: &Metadata) -> Result<usize> {
+    pub async fn get_json_file_list(path: &Path) -> Result<Vec<PathBuf>> {
+        let mut result = Vec::new();
+        let mut entries = tokio::fs::read_dir(path).await?;
+        while let Some(entry) = entries.next_entry().await? {
+            let file_path = entry.path();
+            if file_path.is_file() && file_path.extension().map_or(false, |ext| ext == "json") {
+                result.push(file_path);
+            }
+        }
+        result.sort();
+        Ok(result)
+    }
+
+    pub async fn import_from_file(
+        uid: &str,
+        path: &Path,
+        metadata: Arc<Metadata>,
+    ) -> Result<usize> {
         logger::info!(
             "Importing gacha records for uid: {} from file: {}",
             uid,
@@ -79,7 +97,7 @@ impl ImportService {
         bail!(I18nKey::InvalidUIGFFormat);
     }
 
-    fn parse_uigf(uid: &str, content: &str, metadata: &Metadata) -> Result<Option<ImportData>> {
+    fn parse_uigf(uid: &str, content: &str, metadata: Arc<Metadata>) -> Result<Option<ImportData>> {
         logger::debug!("Parsing UIGF format file");
         let uigf: Uigf = serde_json::from_str(content)?;
         for i in uigf.hkrpg {
@@ -105,7 +123,7 @@ impl ImportService {
         bail!(I18nKey::GachaUidMismatch)
     }
 
-    fn parse_srgf(uid: &str, content: &str, metadata: &Metadata) -> Result<Option<ImportData>> {
+    fn parse_srgf(uid: &str, content: &str, metadata: Arc<Metadata>) -> Result<Option<ImportData>> {
         logger::debug!("Parsing SRGF format file");
         let srgf: Srgf = serde_json::from_str(content)?;
         if uid != srgf.info.uid {
@@ -134,7 +152,7 @@ impl ImportService {
     fn convert_to_entities(
         uid: &str,
         items: &[GachaRecordItem],
-        metadata: &Metadata,
+        metadata: Arc<Metadata>,
     ) -> Result<Vec<GachaRecordEntity>> {
         let mut result = Vec::with_capacity(items.len());
         for item in items {
