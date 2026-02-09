@@ -1,13 +1,11 @@
-use ratatui::layout::{Constraint, Layout};
-use unicode_width::UnicodeWidthStr;
-
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
-    style::{Color, Modifier, Style},
+    layout::{Constraint, Layout, Rect},
+    style::{Color, Style},
     text::{Line, Span},
     widgets::{Paragraph, Widget},
 };
+use unicode_width::UnicodeWidthStr;
 
 use crate::app::{self, AppModel, FocusNode};
 
@@ -50,9 +48,9 @@ impl Footer {
             let desc_len = app_model
                 .visible_tasks
                 .front()
-                .map(|task| task.description.len())
+                .map(|task| task.description.width())
                 .unwrap_or(0);
-            (desc_len + 5).min(30) as u16 // 最大30字符
+            (desc_len + 4).min(30) as u16
         };
 
         let [shortcuts_area, task_area] =
@@ -72,7 +70,6 @@ impl Footer {
             let text = format!(" {} {} ", task.description, spinner);
 
             let span = Span::styled(text, Style::default().fg(Color::White));
-
             self.render_spans(&[span], area, buf);
         }
     }

@@ -9,11 +9,10 @@ use ratatui::{
     layout::{Constraint, Layout},
     widgets::{ListState, Widget},
 };
-use srt::APP_PATH;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use srt::{
-    AppConfig, Result,
+    APP_PATH, AppConfig, Result,
     core::{
         AccountService, AppStateService, GachaAnalysisResult, GachaService, Metadata,
         MetadataService,
@@ -386,6 +385,9 @@ impl App {
 
     fn remove_visible_task(&mut self, task_id: &TaskId) {
         self.model.visible_tasks.retain(|task| &task.id != task_id);
+        if self.model.visible_tasks.is_empty() {
+            self.model.spinner_index = 0;
+        }
     }
 }
 
@@ -727,9 +729,23 @@ impl App {
     fn handle_task_action(&mut self, task_action: TaskAction) {
         match task_action {
             TaskAction::Failed(task_id, error) => {
-                // TODO 区分类型发送不同级别的通知
-                self.notify(i18n::loc(error.msg.key), NotificationType::Error);
+                let notification_type = match error.msg.key {
+                    i18n::I18nKey::TaskExecutionFailed
+                    | i18n::I18nKey::IoError
+                    | i18n::I18nKey::TimeParseError
+                    | i18n::I18nKey::DatabaseError => NotificationType::Error,
+                    _ => NotificationType::Warn,
+                };
+                self.notify(i18n::loc(error.msg.key), notification_type);
                 self.remove_visible_task(&task_id);
+
+                if let Some(task) = self.task_manager.get_task(&task_id) {
+                    task.status = TaskStatus::Failed;
+                }
+
+                if error.msg.key == i18n::I18nKey::DatabaseError {
+                    self.exit = true;
+                }
             }
             TaskAction::Cancelled(task_id) => {
                 if let Some(task) = self.task_manager.get_task(&task_id) {
@@ -759,9 +775,6 @@ impl App {
 // =========================================================================
 
 async fn sync_metadata(tx: UnboundedSender<Action>) -> Result<()> {
-    // TODO 添加 5 秒延迟用于测试 spinner 动画
-    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-
     MetadataService::sync_metadata().await?;
     let _ = tx.send(Action::Metadata(MetadataAction::SyncSuccess));
     Ok(())

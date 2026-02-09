@@ -10,11 +10,8 @@ use ratatui::{
     },
 };
 
+use crate::action::{Action, ExportAction, RouteRequest};
 use crate::app::{AppModel, FocusNode};
-use crate::{
-    action::{Action, ExportAction, RouteRequest},
-    app,
-};
 
 pub struct ImportExportWidget {
     import_export_menu_widget: ImportExportMenuWidget,

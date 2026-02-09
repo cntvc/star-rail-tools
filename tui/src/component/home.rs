@@ -139,6 +139,7 @@ struct GachaDataWidget {
     /// [srt::core::GachaType::as_array] 顺序的索引
     tab_index: usize,
     scroll_row_offset: [usize; GACHA_TAB_MAX_COUNT],
+    max_scroll_offset: [usize; GACHA_TAB_MAX_COUNT],
 }
 
 impl GachaDataWidget {
@@ -146,6 +147,7 @@ impl GachaDataWidget {
         Self {
             tab_index: 0,
             scroll_row_offset: [0; GACHA_TAB_MAX_COUNT],
+            max_scroll_offset: [0; GACHA_TAB_MAX_COUNT],
         }
     }
 
@@ -159,8 +161,27 @@ impl GachaDataWidget {
                 self.next_tab();
                 None
             }
+            KeyCode::Down => {
+                self.scroll_down(1);
+                None
+            }
+            KeyCode::Up => {
+                self.scroll_up(1);
+                None
+            }
             _ => None,
         }
+    }
+
+    fn scroll_down(&mut self, lines: usize) {
+        self.scroll_row_offset[self.tab_index] = self.scroll_row_offset[self.tab_index]
+            .saturating_add(lines)
+            .min(self.max_scroll_offset[self.tab_index]);
+    }
+
+    fn scroll_up(&mut self, lines: usize) {
+        self.scroll_row_offset[self.tab_index] =
+            self.scroll_row_offset[self.tab_index].saturating_sub(lines);
     }
 
     fn next_tab(&mut self) {
@@ -171,7 +192,7 @@ impl GachaDataWidget {
         self.tab_index = (self.tab_index + GACHA_TAB_MAX_COUNT - 1) % GACHA_TAB_MAX_COUNT;
     }
 
-    pub fn render(&self, app_model: &AppModel, area: Rect, frame: &mut Frame) {
+    pub fn render(&mut self, app_model: &AppModel, area: Rect, frame: &mut Frame) {
         let [tab_area, header_area, grid_area] = Layout::vertical([
             Constraint::Length(2), // Tab栏
             Constraint::Length(3), // Header汇总区
@@ -279,9 +300,8 @@ impl GachaDataWidget {
             .render(inner, buf);
     }
 
-    // BUG 绘制只有1列时，出现中间cell被挤压的情况
     fn render_grid(
-        &self,
+        &mut self,
         analysis: &GachaAnalysisEntity,
         metadata: &Metadata,
         max_name_width: usize,
@@ -294,12 +314,16 @@ impl GachaDataWidget {
             抽数 "★ {pity_count}" 固定4字符长
             序号 "{seq}. " 最少4字符长
         */
-        let cell_width = (max_name_width + 10).max(30).min(40);
+        let cell_width = (max_name_width + 10).clamp(30, 40);
         let (cols, rows) = self.calc_grid_size(area, cell_width, analysis);
 
         const ROW_HEIGHT: u16 = 3;
         // +1 是追加底部无缝裁剪的一行
         let visible_rows = area.height as usize / (ROW_HEIGHT as usize - 1) + 1;
+
+        // 更新最大滚动偏移量
+        self.max_scroll_offset[self.tab_index] = rows.saturating_sub(visible_rows) + 1;
+
         let start_row = self.scroll_row_offset[self.tab_index];
         let end_row = (start_row + visible_rows).min(rows);
 
@@ -309,27 +333,41 @@ impl GachaDataWidget {
         let horizontal = Layout::horizontal(col_constraints).spacing(Spacing::Overlap(1));
         let vertical = Layout::vertical(row_constraints).spacing(Spacing::Overlap(1));
 
-        let cells = area
+        // 虚拟 buffer
+        let virtual_area = Rect {
+            x: 0,
+            y: 0,
+            width: area.width,
+            height: visible_rows as u16 * (ROW_HEIGHT - 1) + 1,
+        };
+        let mut virtual_buf = Buffer::empty(virtual_area);
+
+        let cells = virtual_area
             .layout_vec(&vertical)
             .iter()
             .flat_map(|row| row.layout_vec(&horizontal))
             .collect::<Vec<_>>();
-
         let total_count = analysis.rank5.len() + 1;
 
-        // 第一屏时，第一个 cell 绘制保底计数
+        // 第一行时，第一个 cell 绘制保底计数
         if start_row == 0 {
-            self.render_card(cells[0], total_count, "保底计数", analysis.pity_count, buf);
+            self.render_card(
+                cells[0],
+                total_count,
+                "保底计数",
+                analysis.pity_count,
+                &mut virtual_buf,
+            );
         }
 
         // 需绘制的 rank5 起始索引
         let rank5_start_idx = if start_row == 0 {
-            0 // 第一屏从 rank5[0] 开始
+            0 // 第一行从 rank5[0] 开始
         } else {
-            start_row * cols - 1 // 后续屏减去保底计数占据的1个位置
+            start_row * cols - 1 // 后续行减去保底计数占据的1个位置
         };
 
-        // 遍历剩余的 cells（第一屏跳过第一个）
+        // 遍历剩余的 cells（第一行跳过第一个）
         let cells_iter = if start_row == 0 {
             cells.iter().skip(1)
         } else {
@@ -349,9 +387,28 @@ impl GachaDataWidget {
                     .and_then(|name| Some(name.to_string()))
                     .unwrap_or(format!("{}", item.id));
 
-                self.render_card(*cell_area, seq, &name, item.pull_index, buf);
+                self.render_card(*cell_area, seq, &name, item.pull_index, &mut virtual_buf);
             } else {
                 break;
+            }
+        }
+
+        // 将虚拟 buffer 渲染到实际的 buffer
+        for y in 0..virtual_area.height {
+            let dst_y = y + area.y;
+            if dst_y >= area.bottom() {
+                break;
+            }
+
+            for x in 0..virtual_area.width {
+                let dst_x = x + area.x;
+                if dst_x >= area.right() {
+                    break;
+                }
+
+                if let Some(cell) = virtual_buf.cell((x, y)) {
+                    buf[(dst_x, dst_y)] = cell.clone();
+                }
             }
         }
     }
@@ -379,11 +436,12 @@ impl GachaDataWidget {
         analysis: &GachaAnalysisEntity,
     ) -> (usize, usize) {
         // 最少绘制一列
+        // -1 是因为 border 重合，相当于各个方向上单个 cell 只占1条 border
         let col_count = ((area.width as usize - 1) / (cell_width - 1)).max(1);
         // +1 是保底计数 cell
         let total_cells = analysis.rank5.len() + 1;
         // 向上取整
-        let row_count = (total_cells + col_count - 1) / col_count;
+        let row_count = total_cells.div_ceil(col_count);
         (col_count, row_count)
     }
 
