@@ -335,7 +335,7 @@ impl GachaDataWidget {
         let visible_rows = area.height as usize / (ROW_HEIGHT as usize - 1) + 1;
 
         // 更新最大滚动偏移量
-        self.max_scroll_offset[self.tab_index] = rows.saturating_sub(visible_rows) + 1;
+        self.max_scroll_offset[self.tab_index] = rows.saturating_sub(visible_rows - 1);
 
         let start_row = self.scroll_row_offset[self.tab_index];
         let end_row = (start_row + visible_rows).min(rows);
