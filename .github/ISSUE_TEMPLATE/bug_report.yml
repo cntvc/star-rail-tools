@@ -1,0 +1,46 @@
+name: Bug 反馈 (Bug Report)
+description: 提交 Bug 反馈 (Bug Report)
+labels: ["bug"]
+assignees:
+  - cntvc
+body:
+  - type: input
+    id: app-version
+    validations:
+      required: true
+    attributes:
+      label: 软件版本 (Software version)
+
+  - type: textarea
+    attributes:
+      label: 问题描述 (Description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 (Steps to Reproduce)
+      description: |
+        请提供重现该行为的详细操作步骤 (Please provide the necessary steps to reproduce this behavior.)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志输出文本 (Relevant log output)
+      render: Text
+      description: |
+        请复制并粘贴任何相关的日志输出。这将自动格式化为代码，因此无需反引号。
+        Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      placeholder: |
+        日志文件路径(Log file path): StarRailTools/Logs/{star-rail-tools-YYYYMMDD_HHMMSS}.log
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: 附加信息 (Additional information)
+      description: |
+        如果你还有其他需要提供的信息，可以在这里填写（可以提供软件截图、视频或者日志文件等）。
+        If you have other information to note, you can fill it in here (You can provide screenshots, videos or log files, etc.).

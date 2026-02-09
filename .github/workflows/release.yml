@@ -1,0 +1,43 @@
+name: Release
+
+env:
+  PROJECT_NAME: StarRailTools
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: powershell
+
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build package
+        run: cargo build --release -p tui
+
+      - name: Generate package name
+        run: |
+          echo "file-name=${{ env.PROJECT_NAME }}_${{ github.ref_name }}" >> $env:GITHUB_ENV
+      
+      - name: Move and rename exe
+        run: |
+          Move-Item -Path .\target\release\${{ env.PROJECT_NAME }}.exe -Destination .\${{ env.file-name }}.exe
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: ${{ env.PROJECT_NAME }} ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: |
+            ${{ env.file-name }}.exe
+          fail_on_unmatched_files: true

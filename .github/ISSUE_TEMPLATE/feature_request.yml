@@ -1,0 +1,29 @@
+name: 功能建议 (Feature Request)
+description: 提交功能建议 (File a feature request)
+labels: ["enhancement"]
+assignees:
+  - cntvc
+body:
+  - type: markdown
+    attributes:
+      value: "## 环境信息 ( Environment)"
+  - type: input
+    id: app-version
+    validations:
+      required: true
+    attributes:
+      label: 你当前使用的软件版本 (The software version you are currently using)
+
+  - type: markdown
+    attributes:
+      value: "## 详细信息 (Details)"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 描述一下背景以及具体的功能或优化点 (Describe the feature and reason)
+      description: |
+        在此的阐述你的想法，可以提供截图，视频等信息
+        Explain your ideas in detail, you can provide screenshots, videos and other information
+    validations:
+      required: true
