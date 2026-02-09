@@ -33,7 +33,7 @@ pub async fn get_latest_release_version() -> Result<Option<String>> {
         )
     })?;
 
-    if APP_VERSION <= tag_name {
+    if APP_VERSION < tag_name {
         logger::info!(
             "New version available: {} (current: {})",
             tag_name,
