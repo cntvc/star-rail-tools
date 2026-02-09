@@ -24,6 +24,7 @@ use crate::{
     action::{Action, RouteRequest},
     app,
 };
+use i18n::I18nKey;
 
 enum Focus {
     Welcome,
@@ -118,11 +119,11 @@ impl Welcome {
     pub fn render(&self, area: Rect, frame: &mut Frame) {
         let instructions = vec![
             Line::from(format!("{} v{}", APP_NAME, APP_VERSION)),
-            Line::from("一个星穹铁道抽卡统计工具"),
+            Line::from(i18n::loc(I18nKey::TuiHomeWelcomeDesc)),
             Line::from(""),
-            Line::from("按 [a] 添加账户"),
-            Line::from("按 [?] 查看帮助"),
-            Line::from("按 [ctrl+q] 退出程序"),
+            Line::from(i18n::loc(I18nKey::TuiHomeWelcomeAddAccount)),
+            Line::from(i18n::loc(I18nKey::TuiHomeWelcomeHelp)),
+            Line::from(i18n::loc(I18nKey::TuiHomeWelcomeQuit)),
         ];
 
         let content_height = instructions.len() as u16;
@@ -277,27 +278,39 @@ impl GachaDataWidget {
         // 渲染总抽数区域
         let inner = block.inner(total_count_area);
         block.clone().render(total_count_area, buf);
-        Paragraph::new(format!("总抽数: {}", total_count))
-            .centered()
-            .style(Style::default().fg(Color::White))
-            .render(inner, buf);
+        Paragraph::new(format!(
+            "{}: {}",
+            i18n::loc(I18nKey::TuiGachaTotalPulls),
+            total_count
+        ))
+        .centered()
+        .style(Style::default().fg(Color::White))
+        .render(inner, buf);
 
         // 渲染五星数区域
         let inner = block.inner(rank5_count_area);
         block.clone().render(rank5_count_area, buf);
-        Paragraph::new(format!("五星数: {}", rank5_count))
-            .centered()
-            .style(Style::default().fg(Color::White))
-            .render(inner, buf);
+        Paragraph::new(format!(
+            "{}: {}",
+            i18n::loc(I18nKey::TuiGachaRank5Count),
+            rank5_count
+        ))
+        .centered()
+        .style(Style::default().fg(Color::White))
+        .render(inner, buf);
 
         // 渲染平均抽数区域
 
         let inner = block.inner(avg_pity_area);
         block.render(avg_pity_area, buf);
-        Paragraph::new(format!("平均抽数: {:.1}", avg_pity))
-            .centered()
-            .style(Style::default().fg(Color::White))
-            .render(inner, buf);
+        Paragraph::new(format!(
+            "{}: {:.1}",
+            i18n::loc(I18nKey::TuiGachaAvgPity),
+            avg_pity
+        ))
+        .centered()
+        .style(Style::default().fg(Color::White))
+        .render(inner, buf);
     }
 
     fn render_grid(
@@ -354,7 +367,7 @@ impl GachaDataWidget {
             self.render_card(
                 cells[0],
                 total_count,
-                "保底计数",
+                i18n::loc(I18nKey::TuiGachaPityCounter),
                 analysis.pity_count,
                 &mut virtual_buf,
             );

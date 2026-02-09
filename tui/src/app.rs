@@ -104,7 +104,7 @@ pub struct AppModel {
     pub import_file_list_index: ListState,
 
     pub metadata: Arc<Metadata>,
-    pub metadata_updated: bool,
+    pub metadata_is_updated: bool,
 
     pub config: AppConfig,
 
@@ -189,7 +189,7 @@ impl App {
             "check_update",
             TaskGroupId::Global,
             true,
-            "检测更新",
+            i18n::loc(i18n::I18nKey::TaskCheckUpdate),
             check_update(self.action_tx.clone()),
         );
 
@@ -197,7 +197,7 @@ impl App {
             "sync_metadata",
             TaskGroupId::Global,
             true,
-            "同步元数据",
+            i18n::loc(i18n::I18nKey::TaskSyncMetadata),
             sync_metadata(self.action_tx.clone()),
         );
 
@@ -417,7 +417,10 @@ impl App {
             RouteRequest::OpenDeleteAccount => self.model.focus_path.push(FocusNode::DeleteAccount),
             RouteRequest::OpenUpdateGachaDataMenu => {
                 if self.model.uid.is_none() {
-                    self.notify("请先登录账号", NotificationType::Warn);
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyPleaseLoginFirst),
+                        NotificationType::Warning,
+                    );
                     return;
                 }
 
@@ -425,7 +428,10 @@ impl App {
             }
             RouteRequest::OpenImportExportMenu => {
                 if self.model.uid.is_none() {
-                    self.notify("请先登录账号", NotificationType::Warn);
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyPleaseLoginFirst),
+                        NotificationType::Warning,
+                    );
                     return;
                 }
 
@@ -458,7 +464,7 @@ impl App {
                 }
 
                 let current = self.model.uid_list_index.selected().unwrap_or(len - 1);
-                let next = if current + 1 >= len { 0 } else { current + 1 };
+                let next = (current + 1) % len;
                 self.model.uid_list_index.select(Some(next));
             }
             AccountAction::SelectPrev => {
@@ -469,7 +475,7 @@ impl App {
                 }
 
                 let current = self.model.uid_list_index.selected().unwrap_or(0);
-                let prev = if current == 0 { len - 1 } else { current - 1 };
+                let prev = (current + len - 1) % len;
                 self.model.uid_list_index.select(Some(prev));
             }
             AccountAction::Add(uid) => {
@@ -483,7 +489,10 @@ impl App {
                 self.model.focus_path.pop();
             }
             AccountAction::AddSuccess(uid) => {
-                self.notify(&format!("账户 {} 添加成功", uid), NotificationType::Info);
+                self.notify(
+                    i18n::loc(i18n::I18nKey::NotifyAccountAddedSuccessfully),
+                    NotificationType::Info,
+                );
                 self.model.uid_list.push(uid);
                 self.model.uid_list_index.select(Some(0));
                 self.model.uid_list.sort();
@@ -507,7 +516,10 @@ impl App {
                 if let Some(idx) = self.model.uid_list_index.selected() {
                     let uid = self.model.uid_list.remove(idx);
 
-                    self.notify(&format!("账户 {} 删除成功", uid), NotificationType::Info);
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyAccountDeletedSuccessfully),
+                        NotificationType::Info,
+                    );
 
                     if Some(uid) == self.model.uid {
                         self.task_manager.cancel_group(TaskGroupId::User);
@@ -565,19 +577,31 @@ impl App {
                 }
             }
             GachaAction::Refresh(fetch_all) => {
+                if !self.model.metadata_is_updated {
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyWaitForMetadataUpdate),
+                        NotificationType::Warning,
+                    );
+                    return;
+                }
+
                 if let Some(uid) = self.model.uid.clone() {
                     self.task_manager.start(
                         "refresh_gacha_records",
                         TaskGroupId::User,
                         true,
-                        "更新跃迁记录",
+                        i18n::loc(i18n::I18nKey::TaskRefreshGachaRecords),
                         refresh_gacha_records(self.action_tx.clone(), uid, fetch_all),
                     );
                 }
                 self.model.focus_path.pop();
             }
             GachaAction::RefreshSuccess(count) => {
-                self.notify(&format!("更新了 {} 条记录", count), NotificationType::Info);
+                self.notify(
+                    &i18n::loc(i18n::I18nKey::NotifyRecordsUpdated)
+                        .replace("{0}", &count.to_string()),
+                    NotificationType::Info,
+                );
             }
         }
     }
@@ -620,7 +644,7 @@ impl App {
                     "scan_import_file_list",
                     TaskGroupId::User,
                     true,
-                    "扫描导入文件",
+                    i18n::loc(i18n::I18nKey::TaskScanImportFiles),
                     scan_import_file_list(self.action_tx.clone()),
                 );
             }
@@ -631,6 +655,14 @@ impl App {
                 }
             }
             ImportAction::Import => {
+                if !self.model.metadata_is_updated {
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyWaitForMetadataUpdate),
+                        NotificationType::Warning,
+                    );
+                    return;
+                }
+
                 if let Some(idx) = self.model.import_file_list_index.selected() {
                     if let Some(file_path) = self.model.import_file_list.get(idx) {
                         self.task_manager.start(
@@ -650,7 +682,8 @@ impl App {
             }
             ImportAction::ImportSuccess(count) => {
                 self.notify(
-                    &format!("导入成功，新增 {} 条数据", count),
+                    &i18n::loc(i18n::I18nKey::NotifyImportSuccess)
+                        .replace("{0}", &count.to_string()),
                     NotificationType::Info,
                 );
                 self.task_manager.start(
@@ -668,7 +701,10 @@ impl App {
         match export_action {
             ExportAction::Export => {
                 if self.model.uid.is_none() {
-                    self.notify("请先登录账号", NotificationType::Warn);
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyPleaseLoginFirst),
+                        NotificationType::Warning,
+                    );
                     return;
                 }
                 self.task_manager.start(
@@ -685,7 +721,12 @@ impl App {
                 );
             }
             ExportAction::ExportSuccess => {
-                self.notify("导出成功", NotificationType::Info);
+                let path = APP_PATH.root_dir.join(&self.model.uid.clone().unwrap());
+                self.notify(
+                    &i18n::loc(i18n::I18nKey::NotifyExportSuccess)
+                        .replace("{0}", &path.display().to_string()),
+                    NotificationType::Info,
+                );
             }
         }
     }
@@ -703,7 +744,7 @@ impl App {
             }
             MetadataAction::ReloadSuccess(metadata) => {
                 self.model.metadata = Arc::new(metadata);
-                self.model.metadata_updated = true;
+                self.model.metadata_is_updated = true;
             }
         }
     }
@@ -734,7 +775,7 @@ impl App {
                     | i18n::I18nKey::IoError
                     | i18n::I18nKey::TimeParseError
                     | i18n::I18nKey::DatabaseError => NotificationType::Error,
-                    _ => NotificationType::Warn,
+                    _ => NotificationType::Warning,
                 };
                 self.notify(i18n::loc(error.msg.key), notification_type);
                 self.remove_visible_task(&task_id);

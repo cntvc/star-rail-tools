@@ -13,7 +13,7 @@ use unicode_width::UnicodeWidthStr;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum NotificationType {
     Info,
-    Warn,
+    Warning,
     Error,
 }
 
@@ -26,25 +26,27 @@ pub struct Notification {
 }
 
 impl Notification {
-    const DEFAULT_DURATION: Duration = Duration::from_secs(5);
-    const ERROR_DURATION: Duration = Duration::from_secs(10);
-
     pub fn new(message: &str, notification_level: NotificationType) -> Self {
-        let duration = match notification_level {
-            NotificationType::Error => Self::ERROR_DURATION,
-            _ => Self::DEFAULT_DURATION,
-        };
+        let duration = Self::notification_duration(notification_level);
 
         Self {
             message: message.to_string(),
             level: notification_level,
             created_time: Instant::now(),
-            duration,
+            duration: Duration::from_secs(duration),
         }
     }
 
     pub fn is_expired(&self) -> bool {
         self.created_time.elapsed() >= self.duration
+    }
+
+    fn notification_duration(level: NotificationType) -> u64 {
+        match level {
+            NotificationType::Error => 10,
+            NotificationType::Warning => 7,
+            NotificationType::Info => 5,
+        }
     }
 }
 
@@ -78,7 +80,7 @@ impl Widget for &Notification {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let border_style = match self.level {
             NotificationType::Info => Style::default().fg(Color::Green),
-            NotificationType::Warn => Style::default().fg(Color::Yellow),
+            NotificationType::Warning => Style::default().fg(Color::Yellow),
             NotificationType::Error => Style::default().fg(Color::Red),
         };
 

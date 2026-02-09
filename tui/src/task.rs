@@ -175,13 +175,6 @@ impl TaskManager {
         }
     }
 
-    pub fn cancel(&mut self, task_id: &TaskId) {
-        if let Some(task) = self.tasks.get_mut(task_id) {
-            task.cancel_token.cancel();
-            task.status = TaskStatus::Cancelled;
-        }
-    }
-
     pub fn get_task(&mut self, task_id: &TaskId) -> Option<&mut Task> {
         self.tasks.get_mut(task_id)
     }
@@ -264,7 +257,7 @@ mod tests {
 
         let _ = rx.recv().await;
 
-        manager.cancel(&task_id);
+        manager.cancel_all();
 
         if let Some(Action::Task(TaskAction::Cancelled(id))) = rx.recv().await {
             assert_eq!(id, task_id);

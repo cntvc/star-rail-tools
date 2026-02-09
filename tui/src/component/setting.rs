@@ -13,6 +13,7 @@ use crate::{
     action::{Action, RouteRequest, SettingAction},
     app::{AppModel, FocusNode},
 };
+use i18n::I18nKey;
 
 pub struct SettingWidget {
     selected_index: usize,
@@ -81,7 +82,7 @@ impl SettingWidget {
         let [title_area, items_area] =
             Layout::vertical([Constraint::Length(3), Constraint::Min(0)]).areas(center_area);
 
-        Paragraph::new("设置")
+        Paragraph::new(i18n::loc(I18nKey::TuiSettingTitle))
             .alignment(Alignment::Center)
             .block(
                 Block::default()
@@ -113,7 +114,7 @@ impl SettingWidget {
 
         self.render_setting_item(
             self.selected_index == 0,
-            "语言",
+            i18n::loc(I18nKey::TuiSettingLanguage),
             &format!("[{}]", self.get_language_display()),
             items_area[1],
             frame,
@@ -121,7 +122,7 @@ impl SettingWidget {
 
         self.render_setting_item(
             self.selected_index == 1,
-            "自动检查更新",
+            i18n::loc(I18nKey::TuiSettingAutoCheckUpdate),
             &format!(
                 "[{}]",
                 if self.temp_config.check_update {
@@ -136,7 +137,7 @@ impl SettingWidget {
 
         self.render_setting_item(
             self.selected_index == 2,
-            "日志等级",
+            i18n::loc(I18nKey::TuiSettingLogLevel),
             &format!("[{}]", self.temp_config.log_level),
             items_area[5],
             frame,
@@ -276,8 +277,8 @@ impl SettingSaveConfirmWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title_alignment(Alignment::Center)
-            .border_style(Style::default().fg(Color::Yellow));
+            .title_alignment(Alignment::Left)
+            .border_style(Style::default().fg(Color::White));
 
         let inner_area = block.inner(center_area);
         frame.render_widget(block, center_area);
@@ -285,19 +286,20 @@ impl SettingSaveConfirmWidget {
         let message = vec![
             Line::from(""),
             Line::from(Span::styled(
-                "是否保存设置？",
+                i18n::loc(I18nKey::TuiSettingSaveConfirm),
                 Style::default().fg(Color::White),
             )),
             Line::from(Span::styled(
-                "（重启后生效）",
-                Style::default().fg(Color::DarkGray),
+                i18n::loc(I18nKey::TuiSettingRestartHint),
+                Style::default().fg(Color::Red),
             )),
             Line::from(""),
             Line::from(vec![
-                Span::styled("[Enter] ", Style::default().fg(Color::Green)),
-                Span::raw("确认  "),
-                Span::styled("[Esc] ", Style::default().fg(Color::Red)),
-                Span::raw("取消"),
+                Span::styled("[Enter] ", Style::default().fg(Color::White)),
+                Span::raw(i18n::loc(I18nKey::TuiConfirm)),
+                Span::raw("  "),
+                Span::styled("[Esc] ", Style::default().fg(Color::White)),
+                Span::raw(i18n::loc(I18nKey::TuiCancel)),
             ]),
         ];
 

@@ -8,7 +8,9 @@ use ratatui::{
         Block, BorderType, Borders, Clear, List, ListItem, Paragraph, StatefulWidget, Widget,
     },
 };
+use unicode_width::UnicodeWidthStr;
 
+use i18n::I18nKey;
 use srt::logger;
 
 use crate::action::{AccountAction, Action, RouteRequest};
@@ -16,14 +18,12 @@ use crate::app::{AppModel, FocusNode};
 
 pub struct AccountListWidget {
     add_account_widget: AddAccountWidget,
-    delete_account_widget: DeleteAccountWidget,
 }
 
 impl AccountListWidget {
     pub fn new() -> Self {
         Self {
             add_account_widget: AddAccountWidget::new(),
-            delete_account_widget: DeleteAccountWidget::new(),
         }
     }
 
@@ -34,7 +34,7 @@ impl AccountListWidget {
                 self.add_account_widget.render(area, frame)
             }
             [FocusNode::AccountList, FocusNode::DeleteAccount, ..] => {
-                self.delete_account_widget.render(app_model, area, frame)
+                DeleteAccountWidget::render(app_model, area, frame)
             }
             _ => {}
         }
@@ -48,7 +48,7 @@ impl AccountListWidget {
                 self.add_account_widget.handle_key_event(key)
             }
             [FocusNode::AccountList, FocusNode::DeleteAccount] => {
-                self.delete_account_widget.handle_key_event(key)
+                DeleteAccountWidget::handle_key_event(key)
             }
             _ => None,
         }
@@ -64,7 +64,7 @@ impl UidListWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title("账号列表")
+            .title(i18n::loc(I18nKey::TuiAccountListTitle))
             .title_alignment(Alignment::Left);
 
         let items: Vec<ListItem> = app_model
@@ -112,12 +112,8 @@ impl UidListWidget {
 struct DeleteAccountWidget;
 
 impl DeleteAccountWidget {
-    fn new() -> Self {
-        Self {}
-    }
-
-    fn render(&self, app_model: &AppModel, area: Rect, frame: &mut Frame) {
-        let popup_width = 40;
+    fn render(app_model: &AppModel, area: Rect, frame: &mut Frame) {
+        let popup_width = i18n::loc(I18nKey::TuiAccountDeleteWarning).width() as u16 + 2;
         let popup_height = 10;
 
         let center_area = area.centered(
@@ -130,7 +126,7 @@ impl DeleteAccountWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title("删除账户")
+            .title(i18n::loc(I18nKey::TuiAccountDeleteTitle))
             .title_alignment(Alignment::Left);
 
         let inner_area = block.inner(center_area);
@@ -139,9 +135,10 @@ impl DeleteAccountWidget {
         // 获取当前选中的 UID
         let uid = app_model
             .uid_list
-            .get(app_model.uid_list_index.selected().unwrap_or(0))
+            // 这里必定有值, 进入弹窗前已判断
+            .get(app_model.uid_list_index.selected().unwrap())
             .map(|s| s.as_str())
-            .unwrap_or("未知");
+            .unwrap();
 
         // 内部布局
         let layout = Layout::vertical([
@@ -163,7 +160,7 @@ impl DeleteAccountWidget {
             no_area,
         ] = layout.areas(inner_area);
 
-        let confirm_text = Paragraph::new("确定要删除该账户吗？")
+        let confirm_text = Paragraph::new(i18n::loc(I18nKey::TuiAccountDeleteConfirm))
             .style(Style::default())
             .alignment(Alignment::Center);
         frame.render_widget(confirm_text, confirm_area);
@@ -173,23 +170,23 @@ impl DeleteAccountWidget {
             .alignment(Alignment::Center);
         frame.render_widget(uid_text, uid_area);
 
-        let warning_text = Paragraph::new("该账户下的所有抽卡记录将被永久删除")
+        let warning_text = Paragraph::new(i18n::loc(I18nKey::TuiAccountDeleteWarning))
             .style(Style::default().fg(Color::Red).bold())
             .alignment(Alignment::Center);
         frame.render_widget(warning_text, warning_area);
 
-        let yes_text = Paragraph::new("按 Y 确认删除")
+        let yes_text = Paragraph::new(i18n::loc(I18nKey::TuiAccountDeleteConfirmKey))
             .style(Style::default())
             .alignment(Alignment::Center);
         frame.render_widget(yes_text, yes_area);
 
-        let no_text = Paragraph::new("按 N 或 Esc 取消")
+        let no_text = Paragraph::new(i18n::loc(I18nKey::TuiAccountDeleteCancelKey))
             .style(Style::default())
             .alignment(Alignment::Center);
         frame.render_widget(no_text, no_area);
     }
 
-    fn handle_key_event(&self, key: KeyEvent) -> Option<Action> {
+    fn handle_key_event(key: KeyEvent) -> Option<Action> {
         match key.code {
             KeyCode::Char('y') | KeyCode::Char('Y') => Some(Action::Account(AccountAction::Delete)),
             KeyCode::Char('n') | KeyCode::Char('N') => Some(Action::Route(RouteRequest::Close)),
@@ -254,7 +251,7 @@ impl AddAccountWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title("添加账户")
+            .title(i18n::loc(I18nKey::TuiAccountAddTitle))
             .title_alignment(Alignment::Left);
 
         let inner_area = block.inner(center_area);
@@ -267,7 +264,7 @@ impl AddAccountWidget {
         ])
         .areas(inner_area);
 
-        let label = Paragraph::new("请输入 UID:")
+        let label = Paragraph::new(i18n::loc(I18nKey::TuiAccountAddPrompt))
             .style(Style::default())
             .alignment(Alignment::Center);
         frame.render_widget(label, label_area);

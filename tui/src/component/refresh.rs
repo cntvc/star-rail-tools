@@ -7,8 +7,10 @@ use ratatui::{
         Block, BorderType, Borders, Clear, List, ListItem, ListState, StatefulWidget, Widget,
     },
 };
+use unicode_width::UnicodeWidthStr;
 
 use crate::action::{Action, GachaAction, RouteRequest};
+use i18n::I18nKey;
 
 pub struct RefreshMenuWidget {
     selected_index: ListState,
@@ -22,7 +24,8 @@ impl RefreshMenuWidget {
     }
 
     pub fn render(&mut self, area: Rect, frame: &mut Frame) {
-        let popup_width = 20;
+        // 选择最长的字符串长度
+        let popup_width = i18n::loc(I18nKey::TuiRefreshIncremental).width() as u16 + 6;
         let popup_height = 4;
 
         let center_area = area.centered(
@@ -35,10 +38,13 @@ impl RefreshMenuWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title("更新记录")
+            .title(i18n::loc(I18nKey::TuiRefreshMenuTitle))
             .title_alignment(Alignment::Left);
 
-        let items = vec![ListItem::new("增量更新"), ListItem::new("全量更新")];
+        let items = vec![
+            ListItem::new(i18n::loc(I18nKey::TuiRefreshIncremental)),
+            ListItem::new(i18n::loc(I18nKey::TuiRefreshFull)),
+        ];
 
         let list = List::new(items)
             .block(block)

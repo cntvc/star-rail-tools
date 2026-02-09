@@ -8,6 +8,7 @@ use ratatui::{
 use unicode_width::UnicodeWidthStr;
 
 use crate::app::{self, AppModel, FocusNode};
+use i18n::I18nKey;
 
 pub const SPINNERS: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
@@ -89,7 +90,10 @@ impl Footer {
             style
         };
         spans.push(Span::raw(" "));
-        spans.push(Span::styled("主页(h)".to_string(), home_style));
+        spans.push(Span::styled(
+            i18n::loc(I18nKey::TuiFooterHomeMenu),
+            home_style,
+        ));
 
         let setting_style = if current_root == Some(FocusNode::Setting) {
             highlight_style
@@ -97,7 +101,10 @@ impl Footer {
             style
         };
         spans.push(Span::raw(" "));
-        spans.push(Span::styled("设置(s)".to_string(), setting_style));
+        spans.push(Span::styled(
+            i18n::loc(I18nKey::TuiFooterSettingMenu),
+            setting_style,
+        ));
 
         let help_style = if current_root == Some(FocusNode::Help) {
             highlight_style
@@ -105,7 +112,10 @@ impl Footer {
             style
         };
         spans.push(Span::raw(" "));
-        spans.push(Span::styled("帮助(?)".to_string(), help_style));
+        spans.push(Span::styled(
+            i18n::loc(I18nKey::TuiFooterHelpMenu),
+            help_style,
+        ));
 
         spans
     }
@@ -196,62 +206,80 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
     match app_model.focus_path.last() {
         Some(app::FocusNode::Home) => {
             let mut shortcuts = vec![
-                Shortcut::new("a", "账户"),
-                Shortcut::new("u", "更新"),
-                Shortcut::new("d", "导入导出"),
+                Shortcut::new("a", i18n::loc(I18nKey::TuiFooterShortcutAccount)),
+                Shortcut::new("u", i18n::loc(I18nKey::TuiFooterShortcutUpdate)),
+                Shortcut::new("d", i18n::loc(I18nKey::TuiFooterShortcutImportExport)),
             ];
             match app_model.home_mode {
                 app::HomeMode::Welcome => shortcuts,
                 app::HomeMode::Data => {
-                    shortcuts.extend(vec![Shortcut::new("←→", "切换")]);
+                    shortcuts.extend(vec![Shortcut::new(
+                        "←→",
+                        i18n::loc(I18nKey::TuiFooterShortcutSwitch),
+                    )]);
                     shortcuts
                 }
             }
         }
         Some(app::FocusNode::AccountList) => {
             vec![
-                Shortcut::new("+", "添加"),
-                Shortcut::new("-", "删除"),
-                Shortcut::new("Enter", "登录"),
-                Shortcut::new("↑↓", "选择"),
-                Shortcut::new("Esc", "返回"),
+                Shortcut::new("+", i18n::loc(I18nKey::TuiFooterShortcutAdd)),
+                Shortcut::new("-", i18n::loc(I18nKey::TuiFooterShortcutDelete)),
+                Shortcut::new("Enter", i18n::loc(I18nKey::TuiFooterShortcutLogin)),
+                Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutSelect)),
+                Shortcut::new("Esc", i18n::loc(I18nKey::TuiFooterShortcutReturn)),
             ]
         }
         Some(app::FocusNode::AddAccount) => {
-            vec![Shortcut::new("Enter", "添加"), Shortcut::new("Esc", "返回")]
+            vec![
+                Shortcut::new("Enter", i18n::loc(I18nKey::TuiFooterShortcutAdd)),
+                Shortcut::new("Esc", i18n::loc(I18nKey::TuiFooterShortcutReturn)),
+            ]
         }
         Some(app::FocusNode::DeleteAccount) => {
-            vec![Shortcut::new("Y", "删除"), Shortcut::new("N/Esc", "取消")]
+            vec![
+                Shortcut::new("Y", i18n::loc(I18nKey::TuiFooterShortcutDelete)),
+                Shortcut::new("N/Esc", i18n::loc(I18nKey::TuiCancel)),
+            ]
         }
         Some(app::FocusNode::UpdateMenu | app::FocusNode::ImportExportMenu) => {
-            vec![Shortcut::new("↑↓", "选择"), Shortcut::new("Esc", "返回")]
+            vec![
+                Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutSelect)),
+                Shortcut::new("Esc", i18n::loc(I18nKey::TuiFooterShortcutReturn)),
+            ]
         }
         Some(app::FocusNode::ImportFileList) => {
             vec![
-                Shortcut::new("↑↓", "选择"),
-                Shortcut::new("f", "刷新"),
-                Shortcut::new("Enter", "导入"),
-                Shortcut::new("Esc", "返回"),
+                Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutSelect)),
+                Shortcut::new("f", i18n::loc(I18nKey::TuiFooterShortcutRefresh)),
+                Shortcut::new("Enter", i18n::loc(I18nKey::TuiFooterShortcutImport)),
+                Shortcut::new("Esc", i18n::loc(I18nKey::TuiFooterShortcutReturn)),
             ]
         }
         Some(app::FocusNode::Setting) => {
             vec![
-                Shortcut::new("Tab/↑↓", "切换项"),
-                Shortcut::new("←→", "切换值"),
-                Shortcut::new("Ctrl+S", "保存"),
+                Shortcut::new("Tab/↑↓", i18n::loc(I18nKey::TuiFooterShortcutSwitchItem)),
+                Shortcut::new("←→", i18n::loc(I18nKey::TuiFooterShortcutSwitchValue)),
+                Shortcut::new("Ctrl+S", i18n::loc(I18nKey::TuiFooterShortcutSave)),
             ]
         }
         Some(app::FocusNode::SettingSaveConfirm) => {
             vec![
-                Shortcut::new("Enter", "确认保存"),
-                Shortcut::new("Esc", "取消"),
+                Shortcut::new("Enter", i18n::loc(I18nKey::TuiConfirm)),
+                Shortcut::new("Esc", i18n::loc(I18nKey::TuiCancel)),
             ]
         }
         Some(app::FocusNode::Help) => {
-            vec![Shortcut::new("a", "关于"), Shortcut::new("↑↓", "滚动")]
+            vec![
+                Shortcut::new("a", i18n::loc(I18nKey::TuiFooterShortcutAbout)),
+                Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutScroll)),
+            ]
         }
         Some(app::FocusNode::About) => {
-            vec![Shortcut::new("Esc", "返回")]
+            vec![Shortcut::new(
+                "Esc",
+                i18n::loc(I18nKey::TuiFooterShortcutReturn),
+            )]
         }
         None => vec![],
     }

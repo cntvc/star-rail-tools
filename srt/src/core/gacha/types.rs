@@ -40,14 +40,14 @@ impl GachaType {
         ]
     }
 
-    pub const fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match *self as u8 {
-            1 => "RegularWarp",
-            2 => "StarterWarp",
-            11 => "CharacterEventWarp",
-            12 => "LightConeEventWarp",
-            21 => "CharacterCollaborationWarp",
-            22 => "LightConeCollaborationWarp",
+            1 => i18n::loc(i18n::I18nKey::RegularWarp),
+            2 => i18n::loc(i18n::I18nKey::StarterWarp),
+            11 => i18n::loc(i18n::I18nKey::CharacterEventWarp),
+            12 => i18n::loc(i18n::I18nKey::LightConeEventWarp),
+            21 => i18n::loc(i18n::I18nKey::CharacterCollaborationWarp),
+            22 => i18n::loc(i18n::I18nKey::LightConeCollaborationWarp),
             _ => unreachable!(),
         }
     }

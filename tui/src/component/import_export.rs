@@ -9,9 +9,11 @@ use ratatui::{
         Widget,
     },
 };
+use unicode_width::UnicodeWidthStr;
 
 use crate::action::{Action, ExportAction, RouteRequest};
 use crate::app::{AppModel, FocusNode};
+use i18n::I18nKey;
 
 pub struct ImportExportWidget {
     import_export_menu_widget: ImportExportMenuWidget,
@@ -55,7 +57,7 @@ impl ImportExportMenuWidget {
     }
 
     pub fn render(&mut self, area: Rect, frame: &mut Frame) {
-        let popup_width = 14;
+        let popup_width = i18n::loc(I18nKey::TuiImportExportMenuTitle).width() as u16 + 4;
         let popup_height = 4;
 
         let center_area = area.centered(
@@ -68,10 +70,13 @@ impl ImportExportMenuWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title("导入导出")
-            .title_alignment(Alignment::Center);
+            .title(i18n::loc(I18nKey::TuiImportExportMenuTitle))
+            .title_alignment(Alignment::Left);
 
-        let items = vec![ListItem::new("导入数据"), ListItem::new("导出数据")];
+        let items = vec![
+            ListItem::new(i18n::loc(I18nKey::TuiImportData)),
+            ListItem::new(i18n::loc(I18nKey::TuiExportData)),
+        ];
 
         let list = List::new(items)
             .block(block)
@@ -144,7 +149,7 @@ impl ImportListWidget {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .title("选择导入文件")
+            .title(i18n::loc(I18nKey::TuiSelectImportFile))
             .title_alignment(Alignment::Left);
 
         let inner_area = block.inner(center_area);
@@ -161,22 +166,19 @@ impl ImportListWidget {
         let text = vec![
             Line::from(""),
             Line::from(Span::styled(
-                "未找到可导入的文件",
+                i18n::loc(I18nKey::TuiImportNoFilesFound),
                 Style::default().fg(Color::Yellow),
             )),
             Line::from(""),
             Line::from(Span::styled(
-                "请将 UIGF/SRGF 格式的 JSON 文件放入",
-                Style::default().fg(Color::Gray),
-            )),
-            Line::from(Span::styled("Import", Style::default().fg(Color::Cyan))),
-            Line::from(Span::styled(
-                "目录下，然后按 f 刷新",
+                i18n::loc(I18nKey::TuiImportFilesHint),
                 Style::default().fg(Color::Gray),
             )),
         ];
 
-        let paragraph = Paragraph::new(text).alignment(Alignment::Center);
+        let paragraph = Paragraph::new(text)
+            .alignment(Alignment::Center)
+            .wrap(ratatui::widgets::Wrap { trim: true });
         frame.render_widget(paragraph, area);
     }
 

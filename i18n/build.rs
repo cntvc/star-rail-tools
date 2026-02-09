@@ -237,7 +237,7 @@ impl FromStr for Lang {{
 }
 
 fn main() {
-    let translations_path = "srt-translations.toml";
+    let translations_path = "translations.toml";
     let translations_config = fs::read_to_string(translations_path).unwrap();
 
     let contents = generate_i18n(&translations_config);
