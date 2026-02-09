@@ -33,8 +33,8 @@ en_us = "Invalid UID format. Please check your input"
 
 # 抽卡记录相关错误
 [GachaUrlNotFound]
-zh_cn = "未找到抽卡记录链接，请先在游戏中打开抽卡历史页面"
-en_us = "Gacha record URL not found. Please open the gacha history page in the game first"
+zh_cn = "未找到抽卡记录链接，请先在游戏中打开抽卡历史页面后重试"
+en_us = "Gacha record URL not found. Please open the gacha history page in the game first and try again"
 
 [GachaRecordIsEmpty]
 zh_cn = "抽卡记录为空"
@@ -442,6 +442,14 @@ en_us = "Import successful, added {0} records"
 [NotifyExportSuccess]
 zh_cn = "导出成功，文件位于 {0} 目录"
 en_us = "Export successful, files located in {0} directory"
+
+[NotifyNewVersionAvailable]
+zh_cn = "检测到新版本: {0}"
+en_us = "New version available: {0}"
+
+[NotifyAlreadyLatestVersion]
+zh_cn = "当前已是最新版本"
+en_us = "Already on the latest version"
 
 # TUI - Help Component
 [TuiHelpIntroTitle]

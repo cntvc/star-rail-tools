@@ -184,13 +184,15 @@ impl App {
     }
 
     fn start_task(&mut self) -> Result<()> {
-        self.task_manager.start(
-            "check_update",
-            TaskGroupId::Global,
-            true,
-            i18n::loc(i18n::I18nKey::TaskCheckUpdate),
-            check_update(self.action_tx.clone()),
-        );
+        if self.model.config.check_update {
+            self.task_manager.start(
+                "check_update",
+                TaskGroupId::Global,
+                true,
+                i18n::loc(i18n::I18nKey::TaskCheckUpdate),
+                check_update(self.action_tx.clone()),
+            );
+        }
 
         self.task_manager.start(
             "sync_metadata",
@@ -870,8 +872,10 @@ async fn save_config(tx: UnboundedSender<Action>, config: AppConfig) -> Result<(
 async fn check_update(tx: UnboundedSender<Action>) -> Result<()> {
     let latest_version = updater::get_latest_release_version().await?;
     let msg = match latest_version {
-        Some(version) => format!("检测到新版本: {}", version),
-        None => "当前已是最新版本".to_string(),
+        Some(version) => {
+            i18n::loc(i18n::I18nKey::NotifyNewVersionAvailable).replace("{0}", &version)
+        }
+        None => i18n::loc(i18n::I18nKey::NotifyAlreadyLatestVersion).to_string(),
     };
 
     let _ = tx.send(Action::Notify {

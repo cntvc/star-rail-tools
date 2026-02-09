@@ -289,6 +289,7 @@ impl SettingSaveConfirmWidget {
                 i18n::loc(I18nKey::TuiSettingSaveConfirm),
                 Style::default().fg(Color::White),
             )),
+            Line::from(""),
             Line::from(Span::styled(
                 i18n::loc(I18nKey::TuiSettingRestartHint),
                 Style::default().fg(Color::Red),

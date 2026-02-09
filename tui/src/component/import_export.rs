@@ -57,7 +57,7 @@ impl ImportExportMenuWidget {
     }
 
     pub fn render(&mut self, area: Rect, frame: &mut Frame) {
-        let popup_width = i18n::loc(I18nKey::TuiImportExportMenuTitle).width() as u16 + 4;
+        let popup_width = i18n::loc(I18nKey::TuiImportExportMenuTitle).width() as u16 + 6;
         let popup_height = 4;
 
         let center_area = area.centered(
