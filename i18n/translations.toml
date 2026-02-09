@@ -506,38 +506,44 @@ en_us = "Import/Export Guide"
 
 [TuiHelpImportGuide]
 zh_cn = """
-【数据目录】\n
-所有数据文件存储在程序目录下的 "StarRailTools" 文件夹中\n
-导入时需将文件放入 "Import" 文件夹\n
-导出时会生成以 UID 命名的文件夹\n
+【数据目录说明】\n
+数据文件默认存储位置：程序目录/StarRailTools/\n
+  • 导入目录：StarRailTools/Import/\n
+  • 导出目录：StarRailTools/<UID>/\n
 
 【导入数据】\n
-  1. 将 UIGF/SRGF 格式的 JSON 文件放入 "Import" 目录\n
-  2. 按 [d] 键打开导入导出菜单\n
-  3. 选择"导入数据"并选择要导入的文件\n
-  4. 按 [f] 键刷新文件列表\n
-  路径示例: StarRailTools/Import/import_data.json\n
+  1. 登录目标账户并切换至主页\n
+  2. 将 UIGF/SRGF 格式的 JSON 文件放入 Import 目录\n
+  3. 按 [d] 键打开导入导出菜单\n
+  4. 选择"导入数据"并选择要导入的文件\n
+  5. 如列表中无文件，将文件放入 Import 目录后按 [f] 键刷新\n
+  示例路径：StarRailTools/Import/import_data.json\n
+
 【导出数据】\n
-  1. 按 [d] 键打开导入导出菜单\n
-  2. 选择"导出数据"\n
-  3. 导出文件将保存到以 UID 命名的文件夹中\n
-  路径示例: StarRailTools/123456789/GachaRecord_UIGF_123456789.json"""
+  1. 登录目标账户并切换至主页\n
+  2. 按 [d] 键打开导入导出菜单\n
+  3. 选择"导出数据"\n
+  4. 文件将自动保存至以当前 UID 命名的文件夹\n
+  示例路径：StarRailTools/123456789/GachaRecord_UIGF_123456789.json"""
 en_us = """
-【Data Directory】\n
-All data files are stored in the "StarRailTools" folder under the program directory\n
-For import, place files in the "Import" folder\n
-For export, a folder named with the UID will be generated\n
+【Data Directory Structure】\n
+Default data storage location: Program Directory/StarRailTools/\n
+  • Import directory: StarRailTools/Import/\n
+  • Export directory: StarRailTools/<UID>/\n
 
 【Import Data】\n
-  1. Place UIGF/SRGF format JSON files in the "Import" folder\n
-  2. Press [d] to open the Import/Export menu\n
-  3. Select "Import Data" and choose the file to import\n
-  4. Press [f] to refresh the file list\n
+  1. Log into the target account and navigate to the home page\n
+  2. Place UIGF/SRGF format JSON files in the Import directory\n
+  3. Press [d] to open the Import/Export menu\n
+  4. Select "Import Data" and choose the file to import\n
+  5. If no files appear, press [f] to refresh the list after placing files in the Import directory\n
   Example path: StarRailTools/Import/import_data.json\n
+
 【Export Data】\n
-  1. Press [d] to open the Import/Export menu\n
-  2. Select "Export Data"\n
-  3. Exported files will be saved in a folder named with the UID\n
+  1. Log into the target account and navigate to the home page\n
+  2. Press [d] to open the Import/Export menu\n
+  3. Select "Export Data"\n
+  4. Files will be automatically saved to a folder named with the current UID\n
   Example path: StarRailTools/123456789/GachaRecord_UIGF_123456789.json"""
 
 [TuiHelpErrorsTitle]

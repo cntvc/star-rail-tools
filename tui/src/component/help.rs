@@ -133,12 +133,12 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpIntroDesc)));
     lines.push(empty_line.clone());
 
-    // Privacy
+    // Import/Export
     lines.push(separator.clone());
-    lines.push(Line::from(i18n::loc(I18nKey::TuiHelpPrivacyTitle)).centered());
+    lines.push(Line::from(i18n::loc(I18nKey::TuiHelpImportExportTitle)).centered());
     lines.push(separator.clone());
     lines.push(empty_line.clone());
-    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpPrivacyDesc)));
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpImportGuide)));
     lines.push(empty_line.clone());
 
     // UIGF
@@ -155,20 +155,20 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     )));
     lines.push(empty_line.clone());
 
-    // Import/Export
-    lines.push(separator.clone());
-    lines.push(Line::from(i18n::loc(I18nKey::TuiHelpImportExportTitle)).centered());
-    lines.push(separator.clone());
-    lines.push(empty_line.clone());
-    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpImportGuide)));
-    lines.push(empty_line.clone());
-
     // Errors
     lines.push(separator.clone());
     lines.push(Line::from(i18n::loc(I18nKey::TuiHelpErrorsTitle)).centered());
     lines.push(separator.clone());
     lines.push(empty_line.clone());
     lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpErrorMetadata)));
+    lines.push(empty_line.clone());
+
+    // Privacy
+    lines.push(separator.clone());
+    lines.push(Line::from(i18n::loc(I18nKey::TuiHelpPrivacyTitle)).centered());
+    lines.push(separator.clone());
+    lines.push(empty_line.clone());
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpPrivacyDesc)));
     lines.push(empty_line.clone());
 
     lines
