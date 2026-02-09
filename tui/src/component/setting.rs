@@ -52,8 +52,7 @@ impl SettingWidget {
                     None
                 }
                 KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                    self.save_confirm_widget
-                        .set_config(self.temp_config.clone());
+                    self.save_confirm_widget.set_config(self.temp_config);
                     Some(Action::Route(RouteRequest::OpenSaveSettingConfirm))
                 }
                 KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
@@ -67,7 +66,7 @@ impl SettingWidget {
     }
 
     pub fn load_config(&mut self, config: &AppConfig) {
-        self.temp_config = config.clone();
+        self.temp_config = *config;
     }
 
     pub fn render(&self, app_model: &AppModel, area: Rect, frame: &mut Frame) {
@@ -93,11 +92,9 @@ impl SettingWidget {
 
         self.render_settings(items_area, frame);
 
-        match app_model.focus_path.as_slice() {
-            [FocusNode::Setting, FocusNode::SettingSaveConfirm] => {
-                self.save_confirm_widget.render(area, frame);
-            }
-            _ => {}
+        if let [FocusNode::Setting, FocusNode::SettingSaveConfirm] = app_model.focus_path.as_slice()
+        {
+            self.save_confirm_widget.render(area, frame);
         }
     }
 
@@ -310,7 +307,7 @@ impl SettingSaveConfirmWidget {
 
     pub fn handle_key_event(&self, key: KeyEvent) -> Option<Action> {
         match key.code {
-            KeyCode::Enter => Some(Action::Setting(SettingAction::Save(self.config.clone()))),
+            KeyCode::Enter => Some(Action::Setting(SettingAction::Save(self.config))),
             KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
             _ => None,
         }

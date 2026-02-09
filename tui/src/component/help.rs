@@ -99,7 +99,7 @@ fn calculate_total_lines(content: &[Line], max_width: u16) -> u16 {
             // 但对于中英文混排且以中文为主的内容，按字符宽度估算通常足够接近。
             // 如果是纯英文长单词，Ratatui 可能会提前换行导致我们少算行数，
             // 但考虑到 context 是帮助文档，这种情况较少。
-            count += (line_width + max_width - 1) / max_width;
+            count += line_width.div_ceil(max_width);
         }
     }
     count as u16
@@ -138,7 +138,7 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     lines.push(Line::from(i18n::loc(I18nKey::TuiHelpPrivacyTitle)).centered());
     lines.push(separator.clone());
     lines.push(empty_line.clone());
-    lines.extend(text_to_lines(&i18n::loc(I18nKey::TuiHelpPrivacyDesc)));
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpPrivacyDesc)));
     lines.push(empty_line.clone());
 
     // UIGF
@@ -146,7 +146,7 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     lines.push(Line::from(i18n::loc(I18nKey::TuiHelpUigfTitle)).centered());
     lines.push(separator.clone());
     lines.push(empty_line.clone());
-    lines.extend(text_to_lines(&i18n::loc(I18nKey::TuiHelpUigfDesc)));
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpUigfDesc)));
     lines.push(empty_line.clone());
     // Website link
     lines.push(Line::from(Span::styled(
@@ -160,9 +160,7 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     lines.push(Line::from(i18n::loc(I18nKey::TuiHelpImportExportTitle)).centered());
     lines.push(separator.clone());
     lines.push(empty_line.clone());
-    // Handle placeholders: {0} = StarRailTools, {1} = Import
-    let import_export_guide = i18n::loc(I18nKey::TuiHelpImportGuide);
-    lines.extend(text_to_lines(&import_export_guide));
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpImportGuide)));
     lines.push(empty_line.clone());
 
     // Errors
@@ -170,7 +168,7 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     lines.push(Line::from(i18n::loc(I18nKey::TuiHelpErrorsTitle)).centered());
     lines.push(separator.clone());
     lines.push(empty_line.clone());
-    lines.extend(text_to_lines(&i18n::loc(I18nKey::TuiHelpErrorMetadata)));
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpErrorMetadata)));
     lines.push(empty_line.clone());
 
     lines

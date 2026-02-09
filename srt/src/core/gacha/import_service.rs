@@ -30,7 +30,7 @@ impl ImportService {
         let mut entries = tokio::fs::read_dir(path).await?;
         while let Some(entry) = entries.next_entry().await? {
             let file_path = entry.path();
-            if file_path.is_file() && file_path.extension().map_or(false, |ext| ext == "json") {
+            if file_path.is_file() && file_path.extension().is_some_and(|ext| ext == "json") {
                 result.push(file_path);
             }
         }

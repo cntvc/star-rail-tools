@@ -14,7 +14,7 @@ pub struct TaskId(String);
 
 impl TaskId {
     fn new(name: &str, group: TaskGroupId) -> Self {
-        Self(format!("{}:{}", name, group.to_string()))
+        Self(format!("{}:{}", name, group.as_str()))
     }
 }
 
@@ -31,10 +31,10 @@ pub enum TaskGroupId {
 }
 
 impl TaskGroupId {
-    fn to_string(&self) -> String {
+    fn as_str(&self) -> &str {
         match self {
-            TaskGroupId::Global => "Global".to_string(),
-            TaskGroupId::User => "User".to_string(),
+            TaskGroupId::Global => "Global",
+            TaskGroupId::User => "User",
         }
     }
 }
@@ -153,7 +153,6 @@ impl TaskManager {
                 },
                 _ = cancel_token.cancelled() => {
                     let _ = tx.send(Action::Task(TaskAction::Cancelled(task_id_for_spawn)));
-                    return;
                 },
             };
         });

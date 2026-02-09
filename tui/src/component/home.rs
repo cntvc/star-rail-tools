@@ -381,11 +381,8 @@ impl GachaDataWidget {
         };
 
         // 遍历剩余的 cells（第一行跳过第一个）
-        let cells_iter = if start_row == 0 {
-            cells.iter().skip(1)
-        } else {
-            cells.iter().skip(0)
-        };
+        let skip_count = if start_row == 0 { 1 } else { 0 };
+        let cells_iter = cells.iter().skip(skip_count);
 
         let rank5_rev = analysis.rank5.iter().rev().collect::<Vec<_>>();
         for (offset, cell_area) in cells_iter.enumerate() {
@@ -397,7 +394,7 @@ impl GachaDataWidget {
                 let name = metadata.get_item_name(item.item_id, i18n::lang());
                 // 未查询到name时，使用id
                 let name = name
-                    .and_then(|name| Some(name.to_string()))
+                    .map(|name| name.to_string())
                     .unwrap_or(format!("{}", item.id));
 
                 self.render_card(*cell_area, seq, &name, item.pull_index, &mut virtual_buf);

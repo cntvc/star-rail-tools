@@ -33,7 +33,7 @@ pub fn select_all() -> Result<Vec<GachaMetadataEntity>> {
     logger::debug!("Querying all metadata");
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare("SELECT item_id, rarity, item_type, names FROM gacha_metadata;")?;
-    let rows = stmt.query_map([], |row| GachaMetadataEntity::from_row(&row))?;
+    let rows = stmt.query_map([], GachaMetadataEntity::from_row)?;
     rows.collect::<std::result::Result<Vec<_>, _>>()
         .map_err(Into::into)
 }

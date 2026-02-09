@@ -67,7 +67,7 @@ impl AppConfig {
 
     pub async fn save_config(config: &AppConfig) -> Result<()> {
         tokio::task::spawn_blocking({
-            let config = config.clone();
+            let config = *config;
             move || {
                 ConfigRepo::update_all(&config)?;
                 Ok(())

@@ -241,9 +241,7 @@ impl App {
         let root_path = self.model.focus_path.root_path().unwrap();
         match root_path {
             FocusNode::Home => self.home_widget.render(&mut self.model, main_area, frame),
-            FocusNode::Setting => self
-                .setting_widget
-                .render(&mut self.model, main_area, frame),
+            FocusNode::Setting => self.setting_widget.render(&self.model, main_area, frame),
             FocusNode::Help => self.help_widget.render(&mut self.model, main_area, frame),
             _ => {}
         }
@@ -538,18 +536,18 @@ impl App {
             AccountAction::Login => {
                 self.model.focus_path.pop();
 
-                if let Some(idx) = self.model.uid_list_index.selected() {
-                    if let Some(uid) = self.model.uid_list.get(idx) {
-                        self.task_manager.cancel_group(TaskGroupId::User);
+                if let Some(idx) = self.model.uid_list_index.selected()
+                    && let Some(uid) = self.model.uid_list.get(idx)
+                {
+                    self.task_manager.cancel_group(TaskGroupId::User);
 
-                        self.task_manager.start(
-                            "set_default_account",
-                            TaskGroupId::Global,
-                            false,
-                            "set_default_account",
-                            set_default_account(self.action_tx.clone(), uid.clone()),
-                        );
-                    }
+                    self.task_manager.start(
+                        "set_default_account",
+                        TaskGroupId::Global,
+                        false,
+                        "set_default_account",
+                        set_default_account(self.action_tx.clone(), uid.clone()),
+                    );
                 }
             }
             AccountAction::LoginSuccess(uid) => {
@@ -663,21 +661,21 @@ impl App {
                     return;
                 }
 
-                if let Some(idx) = self.model.import_file_list_index.selected() {
-                    if let Some(file_path) = self.model.import_file_list.get(idx) {
-                        self.task_manager.start(
-                            "import_gacha_record",
-                            TaskGroupId::User,
-                            false,
-                            "import_gacha_record",
-                            import_gacha_record(
-                                self.action_tx.clone(),
-                                self.model.uid.clone().unwrap(), // 这里必定有值，在进入前已进行判断
-                                file_path.clone(),
-                                Arc::clone(&self.model.metadata),
-                            ),
-                        );
-                    }
+                if let Some(idx) = self.model.import_file_list_index.selected()
+                    && let Some(file_path) = self.model.import_file_list.get(idx)
+                {
+                    self.task_manager.start(
+                        "import_gacha_record",
+                        TaskGroupId::User,
+                        false,
+                        "import_gacha_record",
+                        import_gacha_record(
+                            self.action_tx.clone(),
+                            self.model.uid.clone().unwrap(), // 这里必定有值，在进入前已进行判断
+                            file_path.clone(),
+                            Arc::clone(&self.model.metadata),
+                        ),
+                    );
                 }
             }
             ImportAction::ImportSuccess(count) => {
@@ -715,13 +713,13 @@ impl App {
                     export_gacha_record(
                         self.action_tx.clone(),
                         self.model.uid.clone().unwrap(),
-                        self.model.config.language.clone(),
+                        self.model.config.language,
                         Arc::clone(&self.model.metadata),
                     ),
                 );
             }
             ExportAction::ExportSuccess => {
-                let path = APP_PATH.root_dir.join(&self.model.uid.clone().unwrap());
+                let path = APP_PATH.root_dir.join(self.model.uid.clone().unwrap());
                 self.notify(
                     &i18n::loc(i18n::I18nKey::NotifyExportSuccess)
                         .replace("{0}", &path.display().to_string()),
@@ -795,10 +793,10 @@ impl App {
                 self.remove_visible_task(&task_id);
             }
             TaskAction::Started(task_id) => {
-                if let Some(task) = self.task_manager.get_task(&task_id) {
-                    if task.visible {
-                        self.add_visible_task(task_id);
-                    }
+                if let Some(task) = self.task_manager.get_task(&task_id)
+                    && task.visible
+                {
+                    self.add_visible_task(task_id);
                 }
             }
             TaskAction::Completed(task_id) => {

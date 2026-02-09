@@ -49,7 +49,7 @@ impl AppStateService {
     pub async fn set_default_uid(uid: &str) -> Result<()> {
         logger::info!("set default uid: {}", uid);
 
-        AppStateService::set(AppStateItem::DefaultAccount, &uid.to_string()).await?;
+        AppStateService::set(AppStateItem::DefaultAccount, uid).await?;
         Ok(())
     }
 

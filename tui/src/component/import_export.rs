@@ -189,7 +189,7 @@ impl ImportListWidget {
             .filter_map(|path| {
                 path.file_name()
                     .and_then(|name| name.to_str())
-                    .map(|name| ListItem::new(name))
+                    .map(ListItem::new)
             })
             .collect();
 

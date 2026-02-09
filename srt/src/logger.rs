@@ -68,16 +68,13 @@ pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
 pub fn update_level(level: Level) -> Result<()> {
     let handle = LOG_LEVEL_HANDLE
         .get()
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "Logger not initialized"))?;
+        .ok_or_else(|| std::io::Error::other("Logger not initialized"))?;
 
     let filter = build_filter(&level.to_string());
 
-    handle.reload(filter).map_err(|e| {
-        std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Failed to reload log filter: {}", e),
-        )
-    })?;
+    handle
+        .reload(filter)
+        .map_err(|e| std::io::Error::other(format!("Failed to reload log filter: {}", e)))?;
     // 如果级别过低，可能无法在日志看到 level 更新信息
     error!("Log level updated to: {:?}", level);
     Ok(())
