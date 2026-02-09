@@ -227,7 +227,7 @@ impl GachaDataWidget {
 
         let tabs_name = GachaType::as_array()
             .iter()
-            .map(|gacha_type| gacha_type.name())
+            .map(|gacha_type| gacha_type_name(*gacha_type))
             .collect::<Vec<&str>>();
 
         Tabs::new(tabs_name)
@@ -472,5 +472,17 @@ impl GachaDataWidget {
             }
         }
         max_name_len
+    }
+}
+
+pub fn gacha_type_name(gacha_type: GachaType) -> &'static str {
+    match gacha_type as u8 {
+        1 => i18n::loc(i18n::I18nKey::RegularWarp),
+        2 => i18n::loc(i18n::I18nKey::StarterWarp),
+        11 => i18n::loc(i18n::I18nKey::CharacterEventWarp),
+        12 => i18n::loc(i18n::I18nKey::LightConeEventWarp),
+        21 => i18n::loc(i18n::I18nKey::CharacterCollaborationWarp),
+        22 => i18n::loc(i18n::I18nKey::LightConeCollaborationWarp),
+        _ => unreachable!(),
     }
 }

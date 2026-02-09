@@ -442,3 +442,112 @@ en_us = "Import successful, added {0} records"
 [NotifyExportSuccess]
 zh_cn = "导出成功，文件位于 {0} 目录"
 en_us = "Export successful, files located in {0} directory"
+
+# TUI - Help Component
+[TuiHelpIntroTitle]
+zh_cn = "软件简介"
+en_us = "Introduction"
+
+[TuiHelpIntroDesc]
+zh_cn = """
+一个用于星穹铁道抽卡记录管理和分析的开源工具\n
+提供跃迁记录导入、导出、统计和可视化功能\n
+开源协议: GPL-3.0\n
+仓库: https://github.com/cntvc/star-rail-tools\n
+"""
+en_us = """
+A gacha record management and analysis tool for Honkai: Star Rail\n
+Provides features for importing, exporting, statistics, and visualization of warp records\n
+License: GPL-3.0\n
+Repository: https://github.com/cntvc/star-rail-tools\n
+"""
+
+[TuiHelpPrivacyTitle]
+zh_cn = "隐私声明"
+en_us = "Privacy Statement"
+
+[TuiHelpPrivacyDesc]
+zh_cn = """
+• 所有数据完全存储在本地，绝不上传任何用户数据\n
+• 不收集任何个人信息或隐私数据\n
+• 开源透明，代码可审计"""
+en_us = """
+• All data is stored completely locally, no user data is ever uploaded\n
+• No personal information or privacy data is collected\n
+• Open source and transparent, code is auditable"""
+
+[TuiHelpUigfTitle]
+zh_cn = "UIGF 数据格式支持"
+en_us = "UIGF Data Format Support"
+
+[TuiHelpUigfDesc]
+zh_cn = """
+本软件支持 SRGF/UIGF 统一可交换抽卡记录格式\n
+SRGF/UIGF 是由 UIGF-org 组织制定的开放数据交换标准"""
+en_us = """
+This software supports SRGF/UIGF (Uniformed Interchangeable GachaLog Format standard)\n
+SRGF/UIGF is an open data exchange standard established by the UIGF-org organization"""
+
+[TuiHelpUigfWebsite]
+zh_cn = "了解更多: https://uigf.org"
+en_us = "Learn more: https://uigf.org"
+
+[TuiHelpImportExportTitle]
+zh_cn = "导入导出操作指引"
+en_us = "Import/Export Guide"
+
+[TuiHelpImportGuide]
+zh_cn = """
+【数据目录】\n
+所有数据文件存储在程序目录下的 "StarRailTools" 文件夹中\n
+导入时需将文件放入 "Import" 文件夹\n
+导出时会生成以 UID 命名的文件夹\n
+
+【导入数据】\n
+  1. 将 UIGF/SRGF 格式的 JSON 文件放入 "Import" 目录\n
+  2. 按 [d] 键打开导入导出菜单\n
+  3. 选择"导入数据"并选择要导入的文件\n
+  4. 按 [f] 键刷新文件列表\n
+  路径示例: StarRailTools/Import/import_data.json\n
+【导出数据】\n
+  1. 按 [d] 键打开导入导出菜单\n
+  2. 选择"导出数据"\n
+  3. 导出文件将保存到以 UID 命名的文件夹中\n
+  路径示例: StarRailTools/123456789/GachaRecord_UIGF_123456789.json"""
+en_us = """
+【Data Directory】\n
+All data files are stored in the "StarRailTools" folder under the program directory\n
+For import, place files in the "Import" folder\n
+For export, a folder named with the UID will be generated\n
+
+【Import Data】\n
+  1. Place UIGF/SRGF format JSON files in the "Import" folder\n
+  2. Press [d] to open the Import/Export menu\n
+  3. Select "Import Data" and choose the file to import\n
+  4. Press [f] to refresh the file list\n
+  Example path: StarRailTools/Import/import_data.json\n
+【Export Data】\n
+  1. Press [d] to open the Import/Export menu\n
+  2. Select "Export Data"\n
+  3. Exported files will be saved in a folder named with the UID\n
+  Example path: StarRailTools/123456789/GachaRecord_UIGF_123456789.json"""
+
+[TuiHelpErrorsTitle]
+zh_cn = "常见错误处理"
+en_us = "Common Error Handling"
+
+[TuiHelpErrorMetadata]
+zh_cn = """
+• Metadata 更新失败，导致无法刷新或导入
+  解决方案：重启程序，软件会自动重新更新元数据\n
+• 获取跃迁记录失败
+  解决方案：请先在游戏中打开抽卡历史页面，然后重试\n
+• UID 不匹配错误
+  解决方案：请确保游戏账号与软件当前账号 UID 一致"""
+en_us = """
+• Metadata update failed, unable to refresh or import
+  Solution: Restart the program, it will automatically update metadata again\n
+• Failed to fetch warp records
+  Solution: Please open the gacha history page in the game first, then try again\n
+• UID mismatch error
+  Solution: Ensure the game account UID matches the current software account UID"""

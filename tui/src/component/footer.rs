@@ -17,7 +17,7 @@ pub struct Footer;
 impl Footer {
     pub fn render(&self, app_model: &AppModel, area: Rect, buf: &mut Buffer) {
         // 背景色填充
-        let bg_color = Color::Rgb(0, 119, 199); // #0077c7
+        let bg_color = Color::Rgb(0, 119, 199); // #0077c7  
         for y in area.top()..area.bottom() {
             for x in area.left()..area.right() {
                 buf[(x, y)].set_bg(bg_color);
@@ -79,9 +79,7 @@ impl Footer {
         let current_root = app_model.focus_path.root_path();
 
         let style = Style::default().fg(Color::White);
-        let highlight_style = Style::default()
-            .fg(Color::White)
-            .bg(Color::Rgb(30, 134, 204));
+        let highlight_style = Style::default().fg(Color::Rgb(255, 209, 102));
         let mut spans = Vec::new();
 
         let home_style = if current_root == Some(FocusNode::Home) {
@@ -274,12 +272,6 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
                 Shortcut::new("a", i18n::loc(I18nKey::TuiFooterShortcutAbout)),
                 Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutScroll)),
             ]
-        }
-        Some(app::FocusNode::About) => {
-            vec![Shortcut::new(
-                "Esc",
-                i18n::loc(I18nKey::TuiFooterShortcutReturn),
-            )]
         }
         None => vec![],
     }

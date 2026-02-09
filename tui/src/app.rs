@@ -41,7 +41,6 @@ pub enum FocusNode {
     UpdateMenu,
     ImportExportMenu,
     SettingSaveConfirm,
-    About,
 
     // level 2
     AddAccount,
@@ -329,7 +328,7 @@ impl App {
                 .setting_widget
                 .handle_key_event(key, &self.model.focus_path),
 
-            FocusNode::Help | FocusNode::About => self
+            FocusNode::Help => self
                 .help_widget
                 .handle_key_event(key, &self.model.focus_path),
         }
@@ -450,7 +449,6 @@ impl App {
             RouteRequest::OpenSaveSettingConfirm => {
                 self.model.focus_path.push(FocusNode::SettingSaveConfirm)
             }
-            RouteRequest::OpenAbout => self.model.focus_path.push(FocusNode::About),
         }
     }
 

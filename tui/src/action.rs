@@ -47,7 +47,6 @@ pub enum RouteRequest {
     OpenImportFileList,
 
     OpenSaveSettingConfirm,
-    OpenAbout,
 }
 
 pub enum AccountAction {

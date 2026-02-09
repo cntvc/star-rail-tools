@@ -36,6 +36,10 @@ pub fn delete_all_data(uid: &str) -> Result<()> {
     logger::debug!("Deleting all data for account: {}", uid);
     let mut conn = DatabaseService::connection()?;
     let tx = conn.transaction()?;
+    tx.execute(
+        "UPDATE app_state SET value = NULL WHERE key = 'DEFAULT_ACCOUNT' AND value = ?1;",
+        params![uid],
+    )?;
     tx.execute("DELETE FROM account WHERE uid = ?1;", params![uid])?;
     tx.execute("DELETE FROM gacha_record WHERE uid = ?1;", params![uid])?;
     tx.execute("DELETE FROM gacha_update_log WHERE uid = ?1;", params![uid])?;
