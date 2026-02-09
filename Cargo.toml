@@ -12,16 +12,16 @@ rust-version = "1.92.0"
 version = "3.0.0"
 
 [workspace.dependencies]
-serde = { version = "1.0.228"}
+serde = { version = "1.0.228" }
 tokio = { version = "1.49.0" }
 
 [profile.dev]
 incremental = false
 
 [profile.release]
-opt-level = "s"             # optimize for binary size
-debug = "full"              # No one needs an undebuggable release binary
-split-debuginfo = "packed"  # generates a separate *.dwp/*.dSYM so the binary can get stripped
-codegen-units = 1           
-lto = true                  
+opt-level = "s"   # optimize for binary size
+debug = false     # disable debug info
+strip = true      # strip symbols
+codegen-units = 1
+lto = true
 panic = "abort"

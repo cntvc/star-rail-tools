@@ -159,8 +159,6 @@ impl_from_error! {
     url::ParseError => UrlParseError,
     reqwest::Error => NetworkRequestFailed,
     serde_json::Error => JsonParseError,
-    glob::GlobError => IoError,
-    glob::PatternError => IoError,
     time::error::Parse => TimeParseError,
     rusqlite::Error => DatabaseError,
 }

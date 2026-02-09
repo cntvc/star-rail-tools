@@ -5,7 +5,6 @@ use std::{
     sync::LazyLock,
 };
 
-use glob;
 use regex::Regex;
 use url::Url;
 
@@ -115,16 +114,18 @@ impl UrlLocator {
 
     fn find_latest_cache_file(cache_dir: &Path) -> Result<PathBuf> {
         logger::debug!("get latest cache file");
-        let pattern = cache_dir
-            .join("*")
-            .join("Cache/Cache_Data/data_2")
-            .to_string_lossy()
-            .to_string();
 
         let mut results = Vec::new();
-        let paths = glob::glob(&pattern)?;
-        for path in paths {
-            results.push(path?);
+
+        for entry in std::fs::read_dir(cache_dir)? {
+            let entry = entry?;
+            if entry.file_type()?.is_dir() {
+                let cache_file = entry.path().join("Cache").join("Cache_Data").join("data_2");
+
+                if cache_file.exists() && cache_file.is_file() {
+                    results.push(cache_file);
+                }
+            }
         }
 
         results.sort_by_key(|pf| {
@@ -132,6 +133,7 @@ impl UrlLocator {
                 .and_then(|m| m.created())
                 .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
         });
+
         match results.last() {
             Some(pf) => Ok(pf.to_path_buf()),
             None => bail!(I18nKey::GameCacheFileNotFound),
