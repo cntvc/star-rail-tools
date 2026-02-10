@@ -81,14 +81,16 @@ impl SettingWidget {
         let [title_area, items_area] =
             Layout::vertical([Constraint::Length(3), Constraint::Min(0)]).areas(center_area);
 
-        Paragraph::new(i18n::loc(I18nKey::TuiSettingTitle))
-            .alignment(Alignment::Center)
-            .block(
-                Block::default()
-                    .borders(Borders::BOTTOM)
-                    .border_style(Style::default().fg(Color::DarkGray)),
-            )
-            .render(title_area, frame.buffer_mut());
+        let separator = Line::from("═".repeat(content_width as usize))
+            .style(Style::default().fg(Color::DarkGray));
+
+        Paragraph::new(vec![
+            separator.clone(),
+            Line::from(i18n::loc(I18nKey::TuiSettingTitle)),
+            separator,
+        ])
+        .alignment(Alignment::Center)
+        .render(title_area, frame.buffer_mut());
 
         self.render_settings(items_area, frame);
 
