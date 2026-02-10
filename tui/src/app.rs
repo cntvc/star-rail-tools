@@ -171,6 +171,7 @@ impl App {
 
         self.model.config = AppConfig::load_config().await?;
         i18n::set_lang(self.model.config.language);
+        logger::update_level(self.model.config.log_level)?;
 
         if let Some(uid) = uid {
             self.model.gacha_analysis = GachaService::load_analysis(&uid).await?;

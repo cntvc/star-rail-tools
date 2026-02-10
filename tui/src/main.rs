@@ -11,15 +11,14 @@ use srt::{APP_PATH, Result, logger};
 #[tokio::main]
 async fn main() -> Result<()> {
     APP_PATH.init()?;
-    logger::init(&APP_PATH.log_dir, Some(logger::Level::DEBUG))?;
+    logger::init(&APP_PATH.log_dir, Some(logger::Level::INFO))?;
     srt::DatabaseService::init()?;
-
-    let mut terminal = ratatui::init();
-
     let mut app = App::new();
     app.init().await?;
-    let result = app.run(&mut terminal).await;
-    ratatui::restore();
 
+    let mut terminal = ratatui::init();
+    let result = app.run(&mut terminal).await;
+
+    ratatui::restore();
     result
 }

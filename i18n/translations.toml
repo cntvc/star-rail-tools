@@ -241,9 +241,9 @@ en_us = "Update"
 zh_cn = "导入导出"
 en_us = "Import/Export"
 
-[TuiFooterShortcutSwitch]
-zh_cn = "切换"
-en_us = "Switch"
+[TuiFooterShortcutSwitchTab]
+zh_cn = "切换卡池"
+en_us = "Switch Tab"
 
 [TuiFooterShortcutAdd]
 zh_cn = "添加"
@@ -272,10 +272,6 @@ en_us = "Refresh"
 [TuiFooterShortcutImport]
 zh_cn = "导入"
 en_us = "Import"
-
-[TuiFooterShortcutSwitchItem]
-zh_cn = "切换项"
-en_us = "Switch Item"
 
 [TuiFooterShortcutSwitchValue]
 zh_cn = "切换值"
