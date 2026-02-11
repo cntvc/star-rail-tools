@@ -79,7 +79,7 @@ pub enum MetadataAction {
 }
 
 pub enum SettingAction {
-    SaveSuccess,
+    SaveSuccess(AppConfig),
     Save(AppConfig),
 }
 

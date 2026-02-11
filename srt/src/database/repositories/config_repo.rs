@@ -12,7 +12,7 @@ pub fn select(conn: &rusqlite::Connection, key: &str) -> Result<Option<String>> 
     Ok(result.flatten())
 }
 
-pub fn update_all(config: &AppConfig) -> Result<bool> {
+pub fn update_all(config: AppConfig) -> Result<bool> {
     logger::debug!("Save config {:?}", config);
     let mut conn = DatabaseService::connection()?;
     let tx = conn.transaction()?;

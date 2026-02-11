@@ -169,9 +169,8 @@ impl App {
         }
         self.model.metadata = Arc::new(MetadataService::load_metadata().await?);
 
-        self.model.config = AppConfig::load_config().await?;
-        i18n::set_lang(self.model.config.language);
-        logger::update_level(self.model.config.log_level)?;
+        let config = AppConfig::load_config().await?;
+        self.apply_config(config)?;
 
         if let Some(uid) = uid {
             self.model.gacha_analysis = GachaService::load_analysis(&uid).await?;
@@ -216,12 +215,12 @@ impl App {
             tokio::select! {
                 Some(event) = self.event_rx.recv() => {
                     if let Some(action) = self.handle_event(event) {
-                        self.update(action);
+                        self.update(action)?;
                     }
                 }
 
                 Some(action) = self.action_rx.recv() => {
-                    self.update(action);
+                    self.update(action)?;
                 }
             }
 
@@ -335,10 +334,11 @@ impl App {
         }
     }
 
-    fn update(&mut self, action: Action) {
+    fn update(&mut self, action: Action) -> Result<()> {
         match action {
             Action::Quit => {
                 self.exit = true;
+                Ok(())
             }
 
             Action::Route(r) => self.handle_route_action(r),
@@ -352,7 +352,10 @@ impl App {
             Action::Notify {
                 message,
                 notification_type,
-            } => self.notify(&message, notification_type),
+            } => {
+                self.notify(&message, notification_type);
+                Ok(())
+            }
         }
     }
 
@@ -389,13 +392,20 @@ impl App {
             self.model.spinner_index = 0;
         }
     }
+
+    fn apply_config(&mut self, config: AppConfig) -> Result<()> {
+        self.model.config = config;
+        i18n::set_lang(self.model.config.language);
+        logger::update_level(self.model.config.log_level)?;
+        Ok(())
+    }
 }
 
 // =========================================================================
 // 处理 Action
 // =========================================================================
 impl App {
-    fn handle_route_action(&mut self, route: RouteRequest) {
+    fn handle_route_action(&mut self, route: RouteRequest) -> Result<()> {
         match route {
             RouteRequest::Close => {
                 if self.model.focus_path.len() > 1 {
@@ -421,7 +431,7 @@ impl App {
                         i18n::loc(i18n::I18nKey::NotifyPleaseLoginFirst),
                         NotificationType::Warning,
                     );
-                    return;
+                    return Ok(());
                 }
 
                 self.model.focus_path.push(FocusNode::UpdateMenu)
@@ -432,7 +442,7 @@ impl App {
                         i18n::loc(i18n::I18nKey::NotifyPleaseLoginFirst),
                         NotificationType::Warning,
                     );
-                    return;
+                    return Ok(());
                 }
 
                 self.model.focus_path.push(FocusNode::ImportExportMenu)
@@ -451,31 +461,34 @@ impl App {
                 self.model.focus_path.push(FocusNode::SettingSaveConfirm)
             }
         }
+        Ok(())
     }
 
-    fn handle_account_action(&mut self, account_action: AccountAction) {
+    fn handle_account_action(&mut self, account_action: AccountAction) -> Result<()> {
         match account_action {
             AccountAction::SelectNext => {
                 let len = self.model.uid_list.len();
                 if len == 0 {
                     self.model.uid_list_index.select(None);
-                    return;
+                    return Ok(());
                 }
 
                 let current = self.model.uid_list_index.selected().unwrap_or(len - 1);
                 let next = (current + 1) % len;
                 self.model.uid_list_index.select(Some(next));
+                Ok(())
             }
             AccountAction::SelectPrev => {
                 let len = self.model.uid_list.len();
                 if len == 0 {
                     self.model.uid_list_index.select(None);
-                    return;
+                    return Ok(());
                 }
 
                 let current = self.model.uid_list_index.selected().unwrap_or(0);
                 let prev = (current + len - 1) % len;
                 self.model.uid_list_index.select(Some(prev));
+                Ok(())
             }
             AccountAction::Add(uid) => {
                 self.task_manager.start(
@@ -486,6 +499,7 @@ impl App {
                     register_account(self.action_tx.clone(), uid),
                 );
                 self.model.focus_path.pop();
+                Ok(())
             }
             AccountAction::AddSuccess(uid) => {
                 self.notify(
@@ -495,6 +509,7 @@ impl App {
                 self.model.uid_list.push(uid);
                 self.model.uid_list_index.select(Some(0));
                 self.model.uid_list.sort();
+                Ok(())
             }
             AccountAction::Delete => {
                 if let Some(idx) = self.model.uid_list_index.selected() {
@@ -510,6 +525,7 @@ impl App {
                     );
                 }
                 self.model.focus_path.pop();
+                Ok(())
             }
             AccountAction::DeleteSuccess => {
                 if let Some(idx) = self.model.uid_list_index.selected() {
@@ -533,6 +549,7 @@ impl App {
                         self.model.uid_list_index.select(Some(0));
                     }
                 }
+                Ok(())
             }
             AccountAction::Login => {
                 self.model.focus_path.pop();
@@ -550,6 +567,7 @@ impl App {
                         set_default_account(self.action_tx.clone(), uid.clone()),
                     );
                 }
+                Ok(())
             }
             AccountAction::LoginSuccess(uid) => {
                 self.model.uid = Some(uid.clone());
@@ -561,11 +579,12 @@ impl App {
                     load_analysis(self.action_tx.clone(), uid),
                 );
                 self.reset_widgets();
+                Ok(())
             }
         }
     }
 
-    fn handle_gacha_action(&mut self, gacha_action: GachaAction) {
+    fn handle_gacha_action(&mut self, gacha_action: GachaAction) -> Result<()> {
         match gacha_action {
             GachaAction::AnalysisLoaded(analysis) => {
                 self.model.gacha_analysis = analysis;
@@ -574,6 +593,7 @@ impl App {
                 } else {
                     self.model.home_mode = HomeMode::Data;
                 }
+                Ok(())
             }
             GachaAction::Refresh(fetch_all) => {
                 if !self.model.metadata_is_updated {
@@ -581,7 +601,7 @@ impl App {
                         i18n::loc(i18n::I18nKey::NotifyWaitForMetadataUpdate),
                         NotificationType::Warning,
                     );
-                    return;
+                    return Ok(());
                 }
 
                 if let Some(uid) = self.model.uid.clone() {
@@ -594,6 +614,7 @@ impl App {
                     );
                 }
                 self.model.focus_path.pop();
+                Ok(())
             }
             GachaAction::RefreshSuccess(count) => {
                 self.notify(
@@ -601,15 +622,16 @@ impl App {
                         .replace("{0}", &count.to_string()),
                     NotificationType::Info,
                 );
+                Ok(())
             }
         }
     }
 
-    fn handle_import_action(&mut self, import_action: ImportAction) {
+    fn handle_import_action(&mut self, import_action: ImportAction) -> Result<()> {
         match import_action {
             ImportAction::SelectNext => {
                 if self.model.import_file_list.is_empty() {
-                    return;
+                    return Ok(());
                 }
                 match self.model.import_file_list_index.selected() {
                     None => {
@@ -621,10 +643,11 @@ impl App {
                             .select(Some((idx + 1) % self.model.import_file_list.len()));
                     }
                 }
+                Ok(())
             }
             ImportAction::SelectPrev => {
                 if self.model.import_file_list.is_empty() {
-                    return;
+                    return Ok(());
                 }
                 match self.model.import_file_list_index.selected() {
                     None => {
@@ -637,6 +660,7 @@ impl App {
                         ));
                     }
                 }
+                Ok(())
             }
             ImportAction::ScanFile => {
                 self.task_manager.start(
@@ -646,12 +670,14 @@ impl App {
                     i18n::loc(i18n::I18nKey::TaskScanImportFiles),
                     scan_import_file_list(self.action_tx.clone()),
                 );
+                Ok(())
             }
             ImportAction::ScanFileSuccess(files) => {
                 self.model.import_file_list = files;
                 if !self.model.import_file_list.is_empty() {
                     self.model.import_file_list_index.select(Some(0));
                 }
+                Ok(())
             }
             ImportAction::Import => {
                 if !self.model.metadata_is_updated {
@@ -659,7 +685,7 @@ impl App {
                         i18n::loc(i18n::I18nKey::NotifyWaitForMetadataUpdate),
                         NotificationType::Warning,
                     );
-                    return;
+                    return Ok(());
                 }
 
                 if let Some(idx) = self.model.import_file_list_index.selected()
@@ -678,6 +704,7 @@ impl App {
                         ),
                     );
                 }
+                Ok(())
             }
             ImportAction::ImportSuccess(count) => {
                 self.notify(
@@ -692,11 +719,12 @@ impl App {
                     "load_analysis",
                     load_analysis(self.action_tx.clone(), self.model.uid.clone().unwrap()),
                 );
+                Ok(())
             }
         }
     }
 
-    fn handle_export_action(&mut self, export_action: ExportAction) {
+    fn handle_export_action(&mut self, export_action: ExportAction) -> Result<()> {
         match export_action {
             ExportAction::Export => {
                 if self.model.uid.is_none() {
@@ -704,7 +732,7 @@ impl App {
                         i18n::loc(i18n::I18nKey::NotifyPleaseLoginFirst),
                         NotificationType::Warning,
                     );
-                    return;
+                    return Ok(());
                 }
                 self.task_manager.start(
                     "export_gacha_record",
@@ -718,6 +746,7 @@ impl App {
                         Arc::clone(&self.model.metadata),
                     ),
                 );
+                Ok(())
             }
             ExportAction::ExportSuccess => {
                 let path = APP_PATH.root_dir.join(self.model.uid.clone().unwrap());
@@ -726,11 +755,12 @@ impl App {
                         .replace("{0}", &path.display().to_string()),
                     NotificationType::Info,
                 );
+                Ok(())
             }
         }
     }
 
-    fn handle_metadata_action(&mut self, metadata_action: MetadataAction) {
+    fn handle_metadata_action(&mut self, metadata_action: MetadataAction) -> Result<()> {
         match metadata_action {
             MetadataAction::SyncSuccess => {
                 self.task_manager.start(
@@ -740,15 +770,17 @@ impl App {
                     "load_metadata",
                     reload_metadata(self.action_tx.clone()),
                 );
+                Ok(())
             }
             MetadataAction::ReloadSuccess(metadata) => {
                 self.model.metadata = Arc::new(metadata);
                 self.model.metadata_is_updated = true;
+                Ok(())
             }
         }
     }
 
-    fn handle_setting_action(&mut self, setting_action: SettingAction) {
+    fn handle_setting_action(&mut self, setting_action: SettingAction) -> Result<()> {
         match setting_action {
             SettingAction::Save(config) => {
                 self.model.config = config;
@@ -759,14 +791,17 @@ impl App {
                     "save_config",
                     save_config(self.action_tx.clone(), self.model.config),
                 );
+                Ok(())
             }
-            SettingAction::SaveSuccess => {
+            SettingAction::SaveSuccess(config) => {
+                self.apply_config(config)?;
                 self.model.focus_path.pop();
+                Ok(())
             }
         }
     }
 
-    fn handle_task_action(&mut self, task_action: TaskAction) {
+    fn handle_task_action(&mut self, task_action: TaskAction) -> Result<()> {
         match task_action {
             TaskAction::Failed(task_id, error) => {
                 let notification_type = match error.msg.key {
@@ -786,12 +821,14 @@ impl App {
                 if error.msg.key == i18n::I18nKey::DatabaseError {
                     self.exit = true;
                 }
+                Ok(())
             }
             TaskAction::Cancelled(task_id) => {
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Cancelled;
                 }
                 self.remove_visible_task(&task_id);
+                Ok(())
             }
             TaskAction::Started(task_id) => {
                 if let Some(task) = self.task_manager.get_task(&task_id)
@@ -799,12 +836,14 @@ impl App {
                 {
                     self.add_visible_task(task_id);
                 }
+                Ok(())
             }
             TaskAction::Completed(task_id) => {
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Completed;
                 }
                 self.remove_visible_task(&task_id);
+                Ok(())
             }
         }
     }
@@ -863,8 +902,8 @@ async fn refresh_gacha_records(
 }
 
 async fn save_config(tx: UnboundedSender<Action>, config: AppConfig) -> Result<()> {
-    AppConfig::save_config(&config).await?;
-    let _ = tx.send(Action::Setting(SettingAction::SaveSuccess));
+    AppConfig::save_config(config).await?;
+    let _ = tx.send(Action::Setting(SettingAction::SaveSuccess(config)));
     Ok(())
 }
 

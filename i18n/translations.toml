@@ -381,10 +381,6 @@ en_us = "Log Level"
 zh_cn = "是否保存设置？"
 en_us = "Save settings?"
 
-[TuiSettingRestartHint]
-zh_cn = "（重启后生效）"
-en_us = "(Effective after restart)"
-
 [TuiConfirm]
 zh_cn = "确认"
 en_us = "Confirm"

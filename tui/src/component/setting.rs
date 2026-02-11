@@ -289,11 +289,6 @@ impl SettingSaveConfirmWidget {
                 Style::default().fg(Color::White),
             )),
             Line::from(""),
-            Line::from(Span::styled(
-                i18n::loc(I18nKey::TuiSettingRestartHint),
-                Style::default().fg(Color::Red),
-            )),
-            Line::from(""),
             Line::from(vec![
                 Span::styled("[Enter] ", Style::default().fg(Color::White)),
                 Span::raw(i18n::loc(I18nKey::TuiConfirm)),

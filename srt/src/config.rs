@@ -65,13 +65,10 @@ impl AppConfig {
         .await?
     }
 
-    pub async fn save_config(config: &AppConfig) -> Result<()> {
-        tokio::task::spawn_blocking({
-            let config = *config;
-            move || {
-                ConfigRepo::update_all(&config)?;
-                Ok(())
-            }
+    pub async fn save_config(config: AppConfig) -> Result<()> {
+        tokio::task::spawn_blocking(move || {
+            ConfigRepo::update_all(config)?;
+            Ok(())
         })
         .await?
     }
