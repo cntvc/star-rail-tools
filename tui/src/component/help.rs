@@ -63,6 +63,14 @@ impl HelpWidget {
                     self.scroll_offset = self.scroll_offset.saturating_sub(10);
                     None
                 }
+                KeyCode::Char('s') | KeyCode::Char('S') => {
+                    Some(Action::Route(RouteRequest::SwitchToSetting))
+                }
+
+                KeyCode::Char('h') | KeyCode::Char('H') => {
+                    Some(Action::Route(RouteRequest::SwitchToHome))
+                }
+
                 KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
                 _ => None,
             },

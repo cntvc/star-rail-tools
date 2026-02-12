@@ -51,6 +51,12 @@ impl SettingWidget {
                     self.increase_value();
                     None
                 }
+                KeyCode::Char('h') | KeyCode::Char('H') => {
+                    Some(Action::Route(RouteRequest::SwitchToHome))
+                }
+                KeyCode::Char('?') | KeyCode::Char('/') => {
+                    Some(Action::Route(RouteRequest::SwitchToHelp))
+                }
                 KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                     self.save_confirm_widget.set_config(self.temp_config);
                     Some(Action::Route(RouteRequest::OpenSaveSettingConfirm))

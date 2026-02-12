@@ -279,36 +279,8 @@ impl App {
     fn route_key_event(&mut self, key: KeyEvent) -> Option<Action> {
         logger::info!("route key: {:?}", key.code);
         // 全局快捷键
-        match key {
-            KeyEvent {
-                code: KeyCode::Char('q'),
-                modifiers: KeyModifiers::CONTROL,
-                ..
-            } => {
-                return Some(Action::Quit);
-            }
-            KeyEvent {
-                code: KeyCode::Char('h'),
-                modifiers: KeyModifiers::NONE,
-                ..
-            } => {
-                return Some(Action::Route(RouteRequest::SwitchToHome));
-            }
-            KeyEvent {
-                code: KeyCode::Char('s'),
-                modifiers: KeyModifiers::NONE,
-                ..
-            } => {
-                return Some(Action::Route(RouteRequest::SwitchToSetting));
-            }
-            KeyEvent {
-                code: KeyCode::Char('?') | KeyCode::Char('/'),
-                modifiers: KeyModifiers::NONE,
-                ..
-            } => {
-                return Some(Action::Route(RouteRequest::SwitchToHelp));
-            }
-            _ => {}
+        if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
+            return Some(Action::Quit);
         }
 
         // 2. 根据 focus_path 末端分发

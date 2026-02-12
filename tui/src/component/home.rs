@@ -83,6 +83,12 @@ impl HomeWidget {
         match focus_path {
             [FocusNode::Home] => {
                 match key.code {
+                    KeyCode::Char('s') | KeyCode::Char('S') => {
+                        return Some(Action::Route(RouteRequest::SwitchToSetting));
+                    }
+                    KeyCode::Char('?') | KeyCode::Char('/') => {
+                        return Some(Action::Route(RouteRequest::SwitchToHelp));
+                    }
                     KeyCode::Char('a') | KeyCode::Char('A') => {
                         return Some(Action::Route(RouteRequest::OpenAccountList));
                     }
