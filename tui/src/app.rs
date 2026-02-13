@@ -235,6 +235,12 @@ impl App {
 
     fn draw(&mut self, frame: &mut Frame) {
         let area = frame.area();
+
+        //  快速 resize 窗口大小时，可能导致值为 0，直接返回
+        if area.width == 0 || area.height == 0 {
+            return;
+        }
+
         let [main_area, footer_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
 

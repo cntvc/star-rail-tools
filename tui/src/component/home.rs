@@ -164,7 +164,7 @@ impl GachaDataWidget {
                 self.prev_tab();
                 None
             }
-            KeyCode::Right => {
+            KeyCode::Right | KeyCode::Tab => {
                 self.next_tab();
                 None
             }
@@ -340,14 +340,15 @@ impl GachaDataWidget {
         // +1 是追加底部无缝裁剪的一行
         let visible_rows = area.height as usize / (ROW_HEIGHT as usize - 1) + 1;
 
-        // 更新最大滚动偏移量
+        // 更新最大滚动行数
         self.max_scroll_offset[self.tab_index] = rows.saturating_sub(visible_rows - 1);
 
-        let start_row = self.scroll_row_offset[self.tab_index];
-        let end_row = (start_row + visible_rows).min(rows);
+        // 限制当前滚动行数
+        self.scroll_row_offset[self.tab_index] =
+            self.scroll_row_offset[self.tab_index].min(self.max_scroll_offset[self.tab_index]);
 
         let col_constraints = (0..cols).map(|_| Constraint::Fill(1));
-        let row_constraints = (start_row..end_row).map(|_| Constraint::Length(ROW_HEIGHT));
+        let row_constraints = (0..visible_rows).map(|_| Constraint::Length(ROW_HEIGHT));
 
         let horizontal = Layout::horizontal(col_constraints).spacing(Spacing::Overlap(1));
         let vertical = Layout::vertical(row_constraints).spacing(Spacing::Overlap(1));
@@ -367,45 +368,41 @@ impl GachaDataWidget {
             .flat_map(|row| row.layout_vec(&horizontal))
             .collect::<Vec<_>>();
         let total_count = analysis.rank5.len() + 1;
-
-        // 第一行时，第一个 cell 绘制保底计数
-        if start_row == 0 {
-            self.render_card(
-                cells[0],
-                total_count,
-                i18n::loc(I18nKey::TuiGachaPityCounter),
-                analysis.pity_count,
-                &mut virtual_buf,
-            );
-        }
-
-        // 需绘制的 rank5 起始索引
-        let rank5_start_idx = if start_row == 0 {
-            0 // 第一行从 rank5[0] 开始
-        } else {
-            start_row * cols - 1 // 后续行减去保底计数占据的1个位置
-        };
-
-        // 遍历剩余的 cells（第一行跳过第一个）
-        let skip_count = if start_row == 0 { 1 } else { 0 };
-        let cells_iter = cells.iter().skip(skip_count);
-
         let rank5_rev = analysis.rank5.iter().rev().collect::<Vec<_>>();
-        for (offset, cell_area) in cells_iter.enumerate() {
-            // rank5 在 analysis.rank5 的索引
-            let rank5_idx = rank5_start_idx + offset;
-            if rank5_idx < rank5_rev.len() {
-                let item = rank5_rev[rank5_idx];
-                let seq = total_count - 1 - rank5_idx;
-                let name = metadata.get_item_name(item.item_id, i18n::lang());
-                // 未查询到name时，使用id
-                let name = name
-                    .map(|name| name.to_string())
-                    .unwrap_or(format!("{}", item.id));
+        let start_row_index = self.scroll_row_offset[self.tab_index] * cols;
+        for (i, cell_area) in cells.iter().enumerate() {
+            // 计算当前格子对应的一维数据索引
+            let item_index = start_row_index + i;
 
-                self.render_card(*cell_area, seq, &name, item.pull_index, &mut virtual_buf);
-            } else {
+            // 如果索引超出总数据量，终止渲染剩余的空格子
+            if item_index >= total_count {
                 break;
+            }
+
+            if item_index == 0 {
+                // 索引 0 是保底计数
+                self.render_card(
+                    *cell_area,
+                    total_count,
+                    i18n::loc(I18nKey::TuiGachaPityCounter),
+                    analysis.pity_count,
+                    &mut virtual_buf,
+                );
+            } else {
+                // 因为 0 被保底占了，所以需要 - 1 来对齐 rank5_rev 数组
+                let rank5_idx = item_index - 1;
+
+                if rank5_idx < rank5_rev.len() {
+                    let item = rank5_rev[rank5_idx];
+                    let seq = total_count - 1 - rank5_idx;
+
+                    let name = metadata
+                        .get_item_name(item.item_id, i18n::lang())
+                        .map(|n| n.to_string())
+                        .unwrap_or_else(|| format!("{}", item.id));
+
+                    self.render_card(*cell_area, seq, &name, item.pull_index, &mut virtual_buf);
+                }
             }
         }
 
