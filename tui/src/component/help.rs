@@ -70,8 +70,6 @@ impl HelpWidget {
                 KeyCode::Char('h') | KeyCode::Char('H') => {
                     Some(Action::Route(RouteRequest::SwitchToHome))
                 }
-
-                KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
                 _ => None,
             },
             _ => None,

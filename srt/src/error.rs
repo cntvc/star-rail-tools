@@ -159,6 +159,7 @@ impl_from_error! {
     url::ParseError => UrlParseError,
     reqwest::Error => NetworkRequestFailed,
     serde_json::Error => JsonParseError,
+    std::env::VarError => EnvVarError,
     time::error::Parse => TimeParseError,
     rusqlite::Error => DatabaseError,
 }

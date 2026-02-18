@@ -149,9 +149,7 @@ impl GachaService {
 
     #[instrument(level = "info", skip_all)]
     pub async fn import_record(uid: &str, path: &Path, metadata: Arc<Metadata>) -> Result<usize> {
-        let count = ImportService::import_from_file(uid, path, metadata).await?;
-        Self::update_analysis(uid).await?;
-        Ok(count)
+        ImportService::import_from_file(uid, path, metadata).await
     }
 
     #[instrument(level = "info", skip_all)]

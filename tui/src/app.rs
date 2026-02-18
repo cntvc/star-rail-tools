@@ -596,7 +596,7 @@ impl App {
             }
             GachaAction::RefreshSuccess(count) => {
                 self.notify(
-                    &i18n::loc(i18n::I18nKey::NotifyRecordsUpdated)
+                    &i18n::loc(i18n::I18nKey::NotifyRecordsUpdateSuccess)
                         .replace("{0}", &count.to_string()),
                     NotificationType::Info,
                 );
@@ -685,18 +685,19 @@ impl App {
                 Ok(())
             }
             ImportAction::ImportSuccess(count) => {
-                self.notify(
-                    &i18n::loc(i18n::I18nKey::NotifyImportSuccess)
-                        .replace("{0}", &count.to_string()),
-                    NotificationType::Info,
-                );
-                self.task_manager.start(
-                    "load_analysis",
-                    TaskGroupId::Global,
-                    false,
-                    "load_analysis",
-                    load_analysis(self.action_tx.clone(), self.model.uid.clone().unwrap()),
-                );
+                if count > 0 {
+                    self.notify(
+                        &i18n::loc(i18n::I18nKey::NotifyRecordsUpdateSuccess)
+                            .replace("{0}", &count.to_string()),
+                        NotificationType::Info,
+                    );
+                } else {
+                    self.notify(
+                        i18n::loc(i18n::I18nKey::NotifyImportNoNewData),
+                        NotificationType::Info,
+                    );
+                }
+
                 Ok(())
             }
         }
@@ -874,8 +875,10 @@ async fn refresh_gacha_records(
 ) -> Result<()> {
     let count = GachaService::refresh_gacha_record(&uid, fetch_all).await?;
     let _ = tx.send(Action::Gacha(GachaAction::RefreshSuccess(count)));
-    let analysis = GachaService::update_analysis(&uid).await?;
-    let _ = tx.send(Action::Gacha(GachaAction::AnalysisLoaded(analysis)));
+    if count > 0 {
+        let analysis = GachaService::update_analysis(&uid).await?;
+        let _ = tx.send(Action::Gacha(GachaAction::AnalysisLoaded(analysis)));
+    }
     Ok(())
 }
 
@@ -915,6 +918,10 @@ async fn import_gacha_record(
 ) -> Result<()> {
     let count = GachaService::import_record(&uid, &file_path, metadata).await?;
     let _ = tx.send(Action::Import(ImportAction::ImportSuccess(count)));
+    if count > 0 {
+        let analysis = GachaService::update_analysis(&uid).await?;
+        let _ = tx.send(Action::Gacha(GachaAction::AnalysisLoaded(analysis)));
+    }
     Ok(())
 }
 

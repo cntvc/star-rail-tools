@@ -28,8 +28,8 @@ zh_cn = "未找到该账户"
 en_us = "Account not found"
 
 [InvalidUidFormat]
-zh_cn = "UID 格式无效，请检查输入"
-en_us = "Invalid UID format. Please check your input"
+zh_cn = "UID 格式错误"
+en_us = "Invalid UID format"
 
 # 抽卡记录相关错误
 [GachaUrlNotFound]
@@ -124,6 +124,10 @@ en_us = "Permission denied"
 [FileAlreadyExists]
 zh_cn = "文件已存在"
 en_us = "File already exists"
+
+[EnvVarError]
+zh_cn = "环境变量错误"
+en_us = "Environment variable error"
 
 [UrlParseError]
 zh_cn = "URL解析失败"
@@ -420,16 +424,16 @@ zh_cn = "成功删除账户"
 en_us = "Account deleted successfully"
 
 [NotifyWaitForMetadataUpdate]
-zh_cn = "请等待元数据更新完成后操作"
+zh_cn = "请等待元数据更新完成后再进行操作"
 en_us = "Please wait for metadata update to complete"
 
-[NotifyRecordsUpdated]
+[NotifyRecordsUpdateSuccess]
 zh_cn = "更新了 {0} 条记录"
 en_us = "Updated {0} records"
 
-[NotifyImportSuccess]
-zh_cn = "导入成功，新增 {0} 条数据"
-en_us = "Import successful, added {0} records"
+[NotifyImportNoNewData]
+zh_cn = "无新增数据"
+en_us = "No new data"
 
 [NotifyExportSuccess]
 zh_cn = "导出成功，文件位于 {0} 目录"
@@ -468,11 +472,11 @@ en_us = "Privacy Statement"
 
 [TuiHelpPrivacyDesc]
 zh_cn = """
-• 所有数据完全存储在本地，绝不上传任何用户数据\n
+• 绿色软件，所有数据完全存储在本地\n
 • 不收集任何个人信息或隐私数据\n
 • 开源透明，代码可审计"""
 en_us = """
-• All data is stored completely locally, no user data is ever uploaded\n
+• Green software, all data is stored completely locally\n
 • No personal information or privacy data is collected\n
 • Open source and transparent, code is auditable"""
 
@@ -545,14 +549,14 @@ en_us = "Common Error Handling"
 [TuiHelpErrorMetadata]
 zh_cn = """
 • Metadata 更新失败，导致无法刷新或导入
-  解决方案：重启程序，软件会自动重新更新元数据\n
+  解决方案：重启程序，软件会自动更新元数据\n
 • 获取跃迁记录失败
   解决方案：请先在游戏中打开抽卡历史页面，然后重试\n
 • UID 不匹配错误
   解决方案：请确保游戏账号与软件当前账号 UID 一致"""
 en_us = """
 • Metadata update failed, unable to refresh or import
-  Solution: Restart the program, it will automatically update metadata again\n
+  Solution: Restart the program, it will automatically update metadata\n
 • Failed to fetch warp records
   Solution: Please open the gacha history page in the game first, then try again\n
 • UID mismatch error

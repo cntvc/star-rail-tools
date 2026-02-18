@@ -243,6 +243,7 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
         Some(app::FocusNode::UpdateMenu | app::FocusNode::ImportExportMenu) => {
             vec![
                 Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutSelect)),
+                Shortcut::new("Enter", i18n::loc(I18nKey::TuiConfirm)),
                 Shortcut::new("Esc", i18n::loc(I18nKey::TuiFooterShortcutReturn)),
             ]
         }

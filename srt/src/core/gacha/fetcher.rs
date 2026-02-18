@@ -85,13 +85,15 @@ impl Fetcher {
                 .await?
                 .into_result()?;
 
-            if resp.is_none() {
-                continue;
-            }
-            // 前面逻辑已确认resp必定不为 None
-            let data = resp.unwrap();
-            if !data.list.is_empty() {
-                return Ok(Some(data.list[0].uid.clone()));
+            match resp {
+                None => {
+                    continue;
+                }
+                Some(data) => {
+                    if !data.list.is_empty() {
+                        return Ok(Some(data.list[0].uid.clone()));
+                    }
+                }
             }
         }
         Ok(None)
@@ -113,10 +115,12 @@ impl Fetcher {
                     .await?
                     .into_result()?;
 
-                if resp.is_none() {
-                    break;
-                }
-                let data = resp.unwrap();
+                let data = match resp {
+                    None => {
+                        break;
+                    }
+                    Some(data) => data,
+                };
 
                 let page_size = data.list.len();
 

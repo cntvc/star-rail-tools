@@ -61,7 +61,6 @@ impl SettingWidget {
                     self.save_confirm_widget.set_config(self.temp_config);
                     Some(Action::Route(RouteRequest::OpenSaveSettingConfirm))
                 }
-                KeyCode::Esc => Some(Action::Route(RouteRequest::Close)),
                 _ => None,
             },
             [FocusNode::Setting, FocusNode::SettingSaveConfirm] => {

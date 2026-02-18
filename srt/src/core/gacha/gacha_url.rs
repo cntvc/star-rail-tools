@@ -57,6 +57,7 @@ impl UrlValidator {
             bail!(I18nKey::UrlMissingRequiredParameters, missing_params);
         }
 
+        // 上面的逻辑已保证 required_params 中包含所有必需参数，下面的 unwrap 是安全的
         let game_biz = GameBiz::from_str(&required_params.get("game_biz").unwrap().to_lowercase())
             .with_context_key(I18nKey::InvalidGameBizParameter)?;
         let host = match game_biz {
@@ -81,7 +82,7 @@ impl UrlLocator {
 
     fn resolve_log_path(uid: &str) -> Result<PathBuf> {
         logger::debug!("get log path");
-        let user_home = std::env::var("USERPROFILE").unwrap();
+        let user_home = std::env::var("USERPROFILE")?;
         let user = Account::new(uid)?;
         let dir_name = match user.game_biz {
             GameBiz::CN => Self::LOG_PATH_CN,
