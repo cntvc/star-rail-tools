@@ -11,11 +11,11 @@ use i18n::I18nKey;
 static UID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[1-9][0-9]{8}$").unwrap());
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct AcountUid {
+pub struct Uid {
     inner: String,
 }
 
-impl AcountUid {
+impl Uid {
     pub fn new(uid: &str) -> Result<Self> {
         if !Self::is_valid(uid) {
             bail!(I18nKey::InvalidUidFormat);
@@ -30,7 +30,7 @@ impl AcountUid {
     }
 }
 
-impl Deref for AcountUid {
+impl Deref for Uid {
     type Target = str;
 
     fn deref(&self) -> &str {
@@ -38,34 +38,34 @@ impl Deref for AcountUid {
     }
 }
 
-impl AsRef<str> for AcountUid {
+impl AsRef<str> for Uid {
     fn as_ref(&self) -> &str {
         &self.inner
     }
 }
 
-impl From<AcountUid> for String {
-    fn from(value: AcountUid) -> Self {
+impl From<Uid> for String {
+    fn from(value: Uid) -> Self {
         value.inner
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Account {
-    pub uid: AcountUid,
+    pub uid: Uid,
     pub game_biz: GameBiz,
     pub server_time_zone: i8,
 }
 
 impl Account {
     pub fn new(uid: &str) -> Result<Self> {
-        if !AcountUid::is_valid(uid) {
+        if !Uid::is_valid(uid) {
             bail!(I18nKey::InvalidUidFormat);
         }
         let game_biz = GameBiz::from_uid(uid);
         let server_time_zone = Self::calc_server_time_zone(uid);
         Ok(Self {
-            uid: AcountUid::new(uid)?,
+            uid: Uid::new(uid)?,
             game_biz,
             server_time_zone,
         })
@@ -90,6 +90,9 @@ pub struct AccountService;
 impl AccountService {
     pub async fn register(uid: &str) -> Result<()> {
         logger::debug!("Registering account: {}", uid);
+        if !Uid::is_valid(uid) {
+            bail!(I18nKey::InvalidUidFormat);
+        }
         if Self::is_registered(uid).await? {
             bail!(I18nKey::AccountAlreadyExists);
         } else {

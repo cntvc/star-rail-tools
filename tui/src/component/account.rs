@@ -11,10 +11,11 @@ use ratatui::{
 use unicode_width::UnicodeWidthStr;
 
 use i18n::I18nKey;
-use srt::logger;
+use srt::{core::Uid, logger};
 
 use crate::action::{AccountAction, Action, RouteRequest};
 use crate::app::{AppModel, FocusNode};
+use crate::notification::NotificationType;
 
 pub struct AccountListWidget {
     add_account_widget: AddAccountWidget,
@@ -218,8 +219,16 @@ impl AddAccountWidget {
             KeyCode::Enter => {
                 if self.input_value.len() == Self::MAX_LEN {
                     let uid = self.input_value.clone();
-                    self.input_value.clear();
-                    Some(Action::Account(AccountAction::Add(uid)))
+
+                    if Uid::is_valid(&uid) {
+                        self.input_value.clear();
+                        Some(Action::Account(AccountAction::Add(uid)))
+                    } else {
+                        Some(Action::Notify {
+                            message: i18n::loc(I18nKey::InvalidUidFormat).to_string(),
+                            notification_type: NotificationType::Warning,
+                        })
+                    }
                 } else {
                     None
                 }
