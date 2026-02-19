@@ -542,6 +542,34 @@ Default data storage location: Program Directory/StarRailTools/\n
   4. Files will be automatically saved to a folder named with the current UID\n
   Example path: StarRailTools/123456789/GachaRecord_UIGF_123456789.json"""
 
+[TuiHelpShortcutsTitle]
+zh_cn = "快捷键一览"
+en_us = "Keyboard Shortcuts"
+
+[TuiHelpShortcutsDesc]
+zh_cn = """本软件支持以下键盘快捷键，可在各页面快速操作：\n
+【页面导航】\n
+  • [h]         — 切换到主页
+  • [s]         — 切换到设置页
+  • [?]         — 切换到帮助页
+
+【通用操作】\n
+  • [Ctrl+Q]    — 退出程序
+  • [Esc]       — 返回上一级 / 取消当前操作
+  • [Enter]     — 确认选择或进入对应功能
+  • [←→/↑↓]     — 在列表或选项之间导航"""
+en_us = """The following keyboard shortcuts are available across all pages:\n
+[Page Navigation]\n
+  • [h]         — Switch to Home page
+  • [s]         — Switch to Settings page
+  • [?]         — Switch to Help page
+
+[General Operations]\n
+  • [Ctrl+Q]    — Quit the application
+  • [Esc]       — Go back or cancel current operation
+  • [Enter]     — Confirm selection or enter a feature
+  • [←→/↑↓]     — Navigate between list items or options"""
+
 [TuiHelpErrorsTitle]
 zh_cn = "常见错误处理"
 en_us = "Common Error Handling"

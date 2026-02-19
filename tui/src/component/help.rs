@@ -137,7 +137,6 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
     lines.push(separator.clone());
     lines.push(empty_line.clone());
     lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpIntroDesc)));
-    lines.push(empty_line.clone());
 
     // Import/Export
     lines.push(separator.clone());
@@ -159,6 +158,14 @@ fn generate_content(width: usize) -> Vec<Line<'static>> {
         i18n::loc(I18nKey::TuiHelpUigfWebsite),
         Style::default().fg(Color::Cyan),
     )));
+    lines.push(empty_line.clone());
+
+    // Shortcuts
+    lines.push(separator.clone());
+    lines.push(Line::from(i18n::loc(I18nKey::TuiHelpShortcutsTitle)).centered());
+    lines.push(separator.clone());
+    lines.push(empty_line.clone());
+    lines.extend(text_to_lines(i18n::loc(I18nKey::TuiHelpShortcutsDesc)));
     lines.push(empty_line.clone());
 
     // Errors
