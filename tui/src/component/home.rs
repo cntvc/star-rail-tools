@@ -12,7 +12,6 @@ use ratatui::{
 use srt::{
     APP_NAME, APP_VERSION,
     core::{GachaAnalysisEntity, GachaType, Metadata},
-    logger,
 };
 use unicode_width::UnicodeWidthStr;
 
@@ -78,8 +77,6 @@ impl HomeWidget {
     }
 
     pub fn handle_key_event(&mut self, key: KeyEvent, focus_path: &[FocusNode]) -> Option<Action> {
-        logger::debug!("home widget focus_path: {:?}", focus_path);
-
         match focus_path {
             [FocusNode::Home] => {
                 match key.code {

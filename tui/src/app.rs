@@ -283,7 +283,7 @@ impl App {
     }
 
     fn route_key_event(&mut self, key: KeyEvent) -> Option<Action> {
-        logger::info!("route key: {:?}", key.code);
+        logger::debug!("route key: {:?}", key.code);
         // 全局快捷键
         if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
             return Some(Action::Quit);
@@ -291,7 +291,7 @@ impl App {
 
         // 2. 根据 focus_path 末端分发
         let current_focus = self.model.focus_path.last().copied().unwrap();
-        logger::info!("current focus: {:?}", current_focus);
+        logger::debug!("current focus: {:?}", current_focus);
         match current_focus {
             FocusNode::Home
             | FocusNode::AccountList

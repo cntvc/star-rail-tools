@@ -1,12 +1,12 @@
+use std::io::{Result as IoResult, Write};
 use std::path::Path;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
 use regex::Regex;
 pub use tracing::Level;
 pub use tracing::{debug, error, info, trace, warn};
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::filter::EnvFilter;
-use tracing_subscriber::{fmt, prelude::*, reload};
+use tracing_subscriber::{filter::EnvFilter, fmt, fmt::MakeWriter, prelude::*, reload};
 
 use crate::Result;
 
@@ -20,6 +20,75 @@ type ReloadHandle = reload::Handle<EnvFilter, tracing_subscriber::Registry>;
 
 static LOG_LEVEL_HANDLE: OnceLock<ReloadHandle> = OnceLock::new();
 static LOG_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
+
+/// 使用词边界 \b 避免误匹配含这些词的普通参数名（如 gacha_type）。
+fn make_redact_regex() -> Regex {
+    Regex::new(r"(?i)\b(authkey|token)=([^&\s]+)").expect("invalid redaction regex")
+}
+
+#[derive(Clone)]
+struct Redactor {
+    regex: Arc<Regex>,
+}
+
+impl Redactor {
+    fn new() -> Self {
+        Self {
+            regex: Arc::new(make_redact_regex()),
+        }
+    }
+
+    fn redact<'a>(&self, input: &'a str) -> std::borrow::Cow<'a, str> {
+        self.regex.replace_all(input, "${1}=***")
+    }
+}
+
+struct RedactWriter<W> {
+    inner: W,
+    redactor: Redactor,
+}
+
+impl<W: Write> Write for RedactWriter<W> {
+    fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
+        let text = String::from_utf8_lossy(buf);
+        let redacted = self.redactor.redact(&text);
+        self.inner.write(redacted.as_bytes())?;
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> IoResult<()> {
+        self.inner.flush()
+    }
+}
+
+#[derive(Clone)]
+struct RedactMakeWriter<M> {
+    inner: M,
+    redactor: Redactor,
+}
+
+impl<M> RedactMakeWriter<M> {
+    fn new(inner: M) -> Self {
+        Self {
+            inner,
+            redactor: Redactor::new(),
+        }
+    }
+}
+
+impl<'a, M> MakeWriter<'a> for RedactMakeWriter<M>
+where
+    M: MakeWriter<'a> + Clone,
+{
+    type Writer = RedactWriter<M::Writer>;
+
+    fn make_writer(&'a self) -> Self::Writer {
+        RedactWriter {
+            inner: self.inner.make_writer(),
+            redactor: self.redactor.clone(),
+        }
+    }
+}
 
 pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
     clean_logs(path)?;
@@ -36,7 +105,8 @@ pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
     let (non_blocking_writer, guard) = tracing_appender::non_blocking(file_appender);
 
     let format_layer = fmt::layer()
-        .with_writer(non_blocking_writer)
+        // 在 non_blocking writer 外层包裹 RedactMakeWriter
+        .with_writer(RedactMakeWriter::new(non_blocking_writer))
         .with_timer(FormatTime)
         .with_thread_ids(true)
         .with_level(true)
@@ -129,44 +199,4 @@ fn clean_logs(log_dir: &Path) -> Result<()> {
         std::fs::remove_file(entry.path())?;
     }
     Ok(())
-}
-
-pub struct Sensitive<T>(T);
-
-impl<T> Sensitive<T> {
-    pub fn new(value: T) -> Self {
-        Self(value)
-    }
-
-    pub fn into_inner(self) -> T {
-        self.0
-    }
-}
-
-impl std::fmt::Display for Sensitive<String> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "***")
-    }
-}
-
-impl std::fmt::Debug for Sensitive<String> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Sensitive(***)")
-    }
-}
-
-impl std::fmt::Display for Sensitive<&url::Url> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut url = self.0.clone();
-        url.query_pairs_mut()
-            .clear()
-            .extend_pairs(self.0.query_pairs().map(|(k, v)| {
-                if k == "authkey" {
-                    (k, "***".into())
-                } else {
-                    (k, v)
-                }
-            }));
-        write!(f, "{}", url)
-    }
 }

@@ -11,7 +11,7 @@ use ratatui::{
 use unicode_width::UnicodeWidthStr;
 
 use i18n::I18nKey;
-use srt::{core::Uid, logger};
+use srt::core::Uid;
 
 use crate::action::{AccountAction, Action, RouteRequest};
 use crate::app::{AppModel, FocusNode};
@@ -42,7 +42,6 @@ impl AccountListWidget {
     }
 
     pub fn handle_key_event(&mut self, key: KeyEvent, focus_path: &[FocusNode]) -> Option<Action> {
-        logger::info!("account menu handle_key_event: {:?}", focus_path);
         match focus_path {
             [FocusNode::AccountList] => UidListWidget::handle_key_event(key),
             [FocusNode::AccountList, FocusNode::AddAccount] => {
@@ -93,7 +92,6 @@ impl UidListWidget {
     }
 
     pub fn handle_key_event(key: KeyEvent) -> Option<Action> {
-        logger::info!("account list handle_key_event: {:?}", key.code);
         match key.code {
             KeyCode::Down => Some(Action::Account(AccountAction::SelectNext)),
             KeyCode::Up => Some(Action::Account(AccountAction::SelectPrev)),
@@ -210,7 +208,6 @@ impl AddAccountWidget {
     }
 
     pub fn handle_key_event(&mut self, key: KeyEvent) -> Option<Action> {
-        logger::info!("add account handle_key_event: {:?}", key.code);
         match key.code {
             KeyCode::Esc => {
                 self.input_value.clear();

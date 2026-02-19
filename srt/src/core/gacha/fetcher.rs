@@ -63,7 +63,7 @@ impl Fetcher {
             .append_pair("gacha_type", gacha_type.as_str())
             .append_pair("end_id", end_id.to_string().as_str());
 
-        logger::info!("[GET]: {}", logger::Sensitive::new(&url));
+        logger::info!("[GET]: {}", url);
 
         let resp = self
             .http_client

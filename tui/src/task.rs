@@ -115,7 +115,7 @@ impl TaskManager {
 
         // 检查任务是否已存在
         if self.tasks.contains_key(&task_id) {
-            logger::warn!(
+            logger::debug!(
                 "task already exists, name: {} group: {:?}",
                 task_name,
                 group
