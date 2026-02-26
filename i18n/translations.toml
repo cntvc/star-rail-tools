@@ -41,8 +41,8 @@ zh_cn = "抽卡记录为空"
 en_us = "Gacha record is empty"
 
 [GachaUidMismatch]
-zh_cn = "游戏中的 UID 与当前账户不匹配，请切换账户后重试"
-en_us = "UID in game does not match the current account. Please switch accounts and try again"
+zh_cn = "游戏账户与当前账户不匹配，请切换账户后重试"
+en_us = "Game account does not match the current account. Please switch accounts and try again"
 
 [InvalidUIGFFormat]
 zh_cn = "文件数据格式无效"
@@ -60,32 +60,32 @@ en_us = "URL is missing required parameters"
 
 # 米哈游API相关错误
 [MihoyoApiUnknownError]
-zh_cn = "米哈游 API 错误: 未知错误"
-en_us = "miHoYo API error: Unknown error"
+zh_cn = "未知 API 错误"
+en_us = "Unknown API error"
 
 [MihoyoApiDataIsNone]
-zh_cn = "米哈游 API 错误: 服务器返回空数据"
-en_us = "miHoYo API error: Server returned no data"
+zh_cn = "服务器返回空数据"
+en_us = "Server returned no data"
 
 [MihoyoApiAuthkeyExpired]
-zh_cn = "米哈游 API 错误: 访问密钥已过期，请重新在游戏中打开抽卡历史页面"
-en_us = "miHoYo API error: Access key has expired. Please reopen the gacha history page in the game"
+zh_cn = "链接已过期，请重新在游戏中打开抽卡历史页面后重试"
+en_us = "URL has expired. Please reopen the gacha history page in the game and try again"
 
 [MihoyoApiInvalidLanguage]
-zh_cn = "米哈游 API 错误: 语言参数无效"
-en_us = "miHoYo API error: Invalid language parameter"
+zh_cn = "链接语言参数无效"
+en_us = "Invalid URL language parameter"
 
 [MihoyoApiRequestTooFrequent]
-zh_cn = "米哈游 API 错误: 请求过于频繁，请稍后再试"
-en_us = "miHoYo API error: Requests are too frequent. Please try again later"
+zh_cn = "请求过于频繁，请稍后再试"
+en_us = "Too many requests. Please try again later"
 
 [MihoyoApiInvalidGameBiz]
-zh_cn = "米哈游 API 错误: 游戏区服参数无效"
-en_us = "miHoYo API error: Invalid game region parameter"
+zh_cn = "链接游戏区服参数无效"
+en_us = "Invalid URL game region parameter"
 
 [MihoyoApiInvalidAuthkey]
-zh_cn = "米哈游 API 错误: 访问密钥无效，请重新在游戏中打开抽卡历史页面"
-en_us = "miHoYo API error: Invalid access key. Please reopen the gacha history page in the game"
+zh_cn = "链接无效，请重新在游戏中打开抽卡历史页面后重试"
+en_us = "URL is invalid. Please reopen the gacha history page in the game and try again"
 
 # 其他错误
 [CheckUpdateFailed]
@@ -97,8 +97,8 @@ zh_cn = "元数据不可用"
 en_us = "Metadata is not available"
 
 [MetadataItemNotFound]
-zh_cn = "元数据中未找到物品 ID"
-en_us = "Item ID not found in metadata"
+zh_cn = "元数据中未找到该物品"
+en_us = "Item not found in metadata"
 
 # 第三方库错误
 [TaskExecutionFailed]
@@ -110,7 +110,7 @@ zh_cn = "数据库错误"
 en_us = "Database error"
 
 [IoError]
-zh_cn = "系统IO错误"
+zh_cn = "系统 IO 错误"
 en_us = "System IO error"
 
 [FileNotFound]
@@ -130,7 +130,7 @@ zh_cn = "环境变量错误"
 en_us = "Environment variable error"
 
 [UrlParseError]
-zh_cn = "URL解析失败"
+zh_cn = "URL 解析失败"
 en_us = "URL parsing failed"
 
 [NetworkRequestFailed]
@@ -320,12 +320,12 @@ en_us = "Please place UIGF/SRGF format JSON files into the Import directory, the
 
 # TUI - Home Component
 [TuiHomeWelcomeDesc]
-zh_cn = "一个星穹铁道抽卡统计工具"
-en_us = "A Honkai: Star Rail Gacha Statistics Tool"
+zh_cn = "崩坏·星穹铁道抽卡记录分析工具"
+en_us = "Honkai: Star Rail Gacha Record Analysis Tool"
 
 [TuiHomeWelcomeAddAccount]
-zh_cn = "按 [a] 添加账户"
-en_us = "Press [a] to add account"
+zh_cn = "按 [a] 添加账户开始"
+en_us = "Press [a] to add account to get started"
 
 [TuiHomeWelcomeHelp]
 zh_cn = "按 [?] 查看帮助"
@@ -437,7 +437,7 @@ en_us = "No new data"
 
 [NotifyExportSuccess]
 zh_cn = "导出成功，文件位于 {0} 目录"
-en_us = "Export successful, files located in {0} directory"
+en_us = "Export successful, file saved to the {0} directory"
 
 [NotifyNewVersionAvailable]
 zh_cn = "检测到新版本: {0}"
@@ -476,7 +476,7 @@ zh_cn = """
 • 不收集任何个人信息或隐私数据\n
 • 开源透明，代码可审计"""
 en_us = """
-• Green software, all data is stored completely locally\n
+• Portable software, all data is stored completely locally\n
 • No personal information or privacy data is collected\n
 • Open source and transparent, code is auditable"""
 
