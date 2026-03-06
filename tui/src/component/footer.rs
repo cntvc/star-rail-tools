@@ -10,7 +10,7 @@ use unicode_width::UnicodeWidthStr;
 use crate::app::{self, AppModel, FocusNode};
 use i18n::I18nKey;
 
-pub const SPINNERS: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+pub const SPINNERS: [&str; 4] = ["▖", "▘", "▝", "▗"];
 
 pub struct Footer;
 
