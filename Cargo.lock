@@ -2525,6 +2525,7 @@ dependencies = [
  "ratatui",
  "serde",
  "srt",
+ "time",
  "tokio",
  "tokio-util",
  "unicode-width",

@@ -3,59 +3,58 @@ use crate::database::AppStatusRepo;
 use crate::logger;
 
 #[derive(Debug)]
-enum AppStateItem {
+pub enum AppStateItem {
     DefaultAccount,
+    LatestMetadataSyncTime,
 }
 
 impl From<AppStateItem> for &'static str {
     fn from(item: AppStateItem) -> Self {
         match item {
             AppStateItem::DefaultAccount => "DEFAULT_ACCOUNT",
+            AppStateItem::LatestMetadataSyncTime => "LATEST_METADATA_SYNC_TIME",
         }
+    }
+}
+
+pub trait FromAppStateValue: Sized {
+    fn from_state_value(value: String) -> crate::Result<Self>;
+}
+
+impl FromAppStateValue for String {
+    fn from_state_value(value: String) -> crate::Result<Self> {
+        Ok(value)
+    }
+}
+
+impl FromAppStateValue for i64 {
+    fn from_state_value(value: String) -> crate::Result<Self> {
+        value.parse::<i64>().map_err(|e| {
+            crate::error::AppError::new(
+                i18n::I18nKey::DatabaseError,
+                vec![format!("Failed to parse i64: {}", e)],
+            )
+        })
     }
 }
 
 pub struct AppStateService;
 
 impl AppStateService {
-    async fn get(item: AppStateItem) -> Result<Option<String>> {
+    pub async fn get<T>(item: AppStateItem) -> Result<Option<T>>
+    where
+        T: FromAppStateValue + Send + 'static,
+    {
         logger::info!("get app status: {:?}", item);
-        tokio::task::spawn_blocking(move || AppStatusRepo::select(item.into())).await?
-    }
-
-    async fn set(item: AppStateItem, value: &str) -> Result<bool> {
-        logger::info!("set app status: {:?} = {}", item, value);
-        tokio::task::spawn_blocking({
-            let val = value.to_string();
-            move || AppStatusRepo::update(item.into(), &val)
-        })
-        .await?
-    }
-
-    async fn clear(item: AppStateItem) -> Result<bool> {
-        logger::info!("set null: {:?}", item);
-        tokio::task::spawn_blocking(move || AppStatusRepo::update_to_null(item.into())).await?
-    }
-
-    pub async fn get_default_uid() -> Result<Option<String>> {
-        let default_uid = match AppStateService::get(AppStateItem::DefaultAccount).await? {
-            Some(uid) => Ok(Some(uid)),
+        match tokio::task::spawn_blocking(move || AppStatusRepo::select(item.into())).await?? {
+            Some(v) => Ok(Some(v)),
             None => Ok(None),
-        };
-        logger::info!("get default uid: {:?}", default_uid);
-        default_uid
+        }
     }
 
-    pub async fn set_default_uid(uid: &str) -> Result<()> {
-        logger::info!("set default uid: {}", uid);
-
-        AppStateService::set(AppStateItem::DefaultAccount, uid).await?;
-        Ok(())
-    }
-
-    pub async fn clear_default_uid() -> Result<()> {
-        logger::info!("reset default uid");
-        AppStateService::clear(AppStateItem::DefaultAccount).await?;
-        Ok(())
+    pub async fn set<T: ToString>(item: AppStateItem, value: T) -> Result<bool> {
+        let val = value.to_string();
+        logger::info!("set app status: {:?} = {}", item, val);
+        tokio::task::spawn_blocking(move || AppStatusRepo::update(item.into(), &val)).await?
     }
 }

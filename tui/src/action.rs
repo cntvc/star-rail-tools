@@ -73,9 +73,11 @@ pub enum TaskAction {
     Failed(TaskId, AppError),
 }
 
+#[allow(clippy::enum_variant_names)]
 pub enum MetadataAction {
     SyncSuccess,
     ReloadSuccess(Metadata),
+    UpdateSyncTimeSuccess(i64),
 }
 
 pub enum SettingAction {

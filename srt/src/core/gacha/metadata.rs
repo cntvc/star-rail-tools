@@ -6,6 +6,7 @@ use serde_with::{DisplayFromStr, serde_as};
 use super::entity::Metadata;
 use super::entity::{GachaMetadataEntity, MihoyoApiResponse};
 use super::types::GachaItemType;
+use crate::core::app_status::{AppStateItem, AppStateService};
 use crate::database::MetadataRepo;
 use crate::{Result, logger};
 
@@ -173,6 +174,15 @@ impl MetadataApiClient {
 pub struct MetadataService;
 
 impl MetadataService {
+    pub async fn get_latest_sync_time() -> Result<Option<i64>> {
+        AppStateService::get(AppStateItem::LatestMetadataSyncTime).await
+    }
+
+    pub async fn update_sync_metadata_time(utc_time: i64) -> Result<()> {
+        AppStateService::set(AppStateItem::LatestMetadataSyncTime, utc_time).await?;
+        Ok(())
+    }
+
     /// 加载全量 metadata（包含所有语言）
     pub async fn load_metadata() -> Result<Metadata> {
         logger::info!("Loading full metadata");

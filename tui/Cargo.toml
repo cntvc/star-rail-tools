@@ -21,6 +21,7 @@ tokio = { workspace = true, features = [
 ] }
 tokio-util = "0.7.18"
 unicode-width = "0.2.2"
+time = { workspace = true }
 srt = { path = "../srt" }
 i18n = { path = "../i18n" }
 

@@ -1,7 +1,8 @@
 use std::collections::VecDeque;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
+use tokio::sync::Mutex;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
@@ -14,7 +15,7 @@ use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use srt::{
     APP_PATH, AppConfig, ConfigItem, Result,
     core::{
-        AccountService, AppStateService, GachaAnalysisResult, GachaService, Metadata,
+        AccountService, AppStateItem, AppStateService, GachaAnalysisResult, GachaService, Metadata,
         MetadataService,
     },
     logger::{self, Level},
@@ -29,6 +30,8 @@ use crate::component::{Footer, HelpWidget, HomeWidget, SPINNERS, SettingWidget};
 use crate::events::{Event, EventListener};
 use crate::notification::{Notification, NotificationManager, NotificationType};
 use crate::task::{TaskGroupId, TaskId, TaskManager, TaskStatus};
+
+const METADATA_SYNC_INTERVAL: i64 = 60 * 60 * 24 * 14;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FocusNode {
@@ -104,7 +107,7 @@ pub struct AppModel {
     pub import_file_list_index: ListState,
 
     pub metadata: Arc<Metadata>,
-    pub metadata_is_updated: bool,
+    pub latest_metadata_sync_utc_time: Option<i64>,
 
     pub config: AppConfig,
     pub temporary_config: AppConfig,
@@ -162,13 +165,15 @@ impl App {
     }
 
     pub async fn init(&mut self) -> Result<()> {
-        let uid = AppStateService::get_default_uid().await?;
+        let uid = AppStateService::get::<String>(AppStateItem::DefaultAccount).await?;
         self.model.uid = uid.clone();
         self.model.uid_list = AccountService::get_all_uid_list().await?;
         if !self.model.uid_list.is_empty() {
             self.model.uid_list_index.select(Some(0));
         }
         self.model.metadata = Arc::new(MetadataService::load_metadata().await?);
+
+        self.model.latest_metadata_sync_utc_time = MetadataService::get_latest_sync_time().await?;
 
         let config = AppConfig::load_config().await?;
         self.apply_config(config)?;
@@ -181,6 +186,15 @@ impl App {
         } else {
             self.model.home_mode = HomeMode::Data;
         }
+
+        logger::info!(
+            "App initialized\nUID: {:?}\nUID count: {}\nMetadata items: {}\nconfig: {:?}",
+            self.model.uid,
+            self.model.uid_list.len(),
+            self.model.metadata.len(),
+            self.model.config
+        );
+
         Ok(())
     }
 
@@ -195,13 +209,34 @@ impl App {
             );
         }
 
-        self.task_manager.start(
-            "sync_metadata",
-            TaskGroupId::Global,
-            true,
-            i18n::loc(i18n::I18nKey::TaskSyncMetadata),
-            sync_metadata(self.action_tx.clone()),
-        );
+        let need_sync_metadata = {
+            if let Some(last_sync_time) = self.model.latest_metadata_sync_utc_time {
+                let now_utc_timestamp = time::OffsetDateTime::now_utc().unix_timestamp();
+                let need_sync = now_utc_timestamp - last_sync_time > METADATA_SYNC_INTERVAL;
+                if need_sync {
+                    logger::info!("Metadata sync interval exceeded TTL, preparing to sync.");
+                } else {
+                    logger::info!("Metadata is up-to-date, skipping sync.");
+                }
+                need_sync
+            } else {
+                // 首次启动时，强制同步
+                logger::info!(
+                    "No previous metadata sync record found, preparing for initial sync."
+                );
+                true
+            }
+        };
+
+        if need_sync_metadata {
+            self.task_manager.start(
+                "sync_metadata",
+                TaskGroupId::Global,
+                true,
+                i18n::loc(i18n::I18nKey::TaskSyncMetadata),
+                sync_metadata(self.action_tx.clone()),
+            );
+        }
 
         Ok(())
     }
@@ -575,21 +610,18 @@ impl App {
                 Ok(())
             }
             GachaAction::Refresh(fetch_all) => {
-                if !self.model.metadata_is_updated {
-                    self.notify(
-                        i18n::loc(i18n::I18nKey::NotifyWaitForMetadataUpdate),
-                        NotificationType::Warning,
-                    );
-                    return Ok(());
-                }
-
                 if let Some(uid) = self.model.uid.clone() {
                     self.task_manager.start(
                         "refresh_gacha_records",
                         TaskGroupId::User,
                         true,
                         i18n::loc(i18n::I18nKey::TaskRefreshGachaRecords),
-                        refresh_gacha_records(self.action_tx.clone(), uid, fetch_all),
+                        refresh_gacha_records(
+                            self.action_tx.clone(),
+                            uid,
+                            fetch_all,
+                            Arc::clone(&self.model.metadata),
+                        ),
                     );
                 }
                 self.model.focus_path.pop();
@@ -659,14 +691,6 @@ impl App {
                 Ok(())
             }
             ImportAction::Import => {
-                if !self.model.metadata_is_updated {
-                    self.notify(
-                        i18n::loc(i18n::I18nKey::NotifyWaitForMetadataUpdate),
-                        NotificationType::Warning,
-                    );
-                    return Ok(());
-                }
-
                 if let Some(idx) = self.model.import_file_list_index.selected()
                     && let Some(file_path) = self.model.import_file_list.get(idx)
                 {
@@ -750,11 +774,21 @@ impl App {
                     "load_metadata",
                     reload_metadata(self.action_tx.clone()),
                 );
+                self.task_manager.start(
+                    "update_sync_metadata_time",
+                    TaskGroupId::Global,
+                    false,
+                    "",
+                    update_sync_metadata_time(self.action_tx.clone()),
+                );
+                Ok(())
+            }
+            MetadataAction::UpdateSyncTimeSuccess(t) => {
+                self.model.latest_metadata_sync_utc_time = Some(t);
                 Ok(())
             }
             MetadataAction::ReloadSuccess(metadata) => {
                 self.model.metadata = Arc::new(metadata);
-                self.model.metadata_is_updated = true;
                 Ok(())
             }
         }
@@ -895,6 +929,51 @@ async fn reload_metadata(tx: UnboundedSender<Action>) -> Result<()> {
     Ok(())
 }
 
+async fn update_sync_metadata_time(tx: UnboundedSender<Action>) -> Result<()> {
+    let now_utc_timestamp = time::OffsetDateTime::now_utc().unix_timestamp();
+    MetadataService::update_sync_metadata_time(now_utc_timestamp).await?;
+    let _ = tx.send(Action::Metadata(MetadataAction::UpdateSyncTimeSuccess(
+        now_utc_timestamp,
+    )));
+    Ok(())
+}
+
+static METADATA_SYNC_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+async fn _force_sync_metadata(tx: UnboundedSender<Action>) -> Result<Arc<Metadata>> {
+    logger::debug!("Waiting to acquire METADATA_SYNC_LOCK...");
+    let _lock = METADATA_SYNC_LOCK.lock().await;
+    logger::debug!("Acquired METADATA_SYNC_LOCK.");
+
+    let now_utc_timestamp = time::OffsetDateTime::now_utc().unix_timestamp();
+
+    // 防抖双重检查
+    if let Ok(Some(last_sync)) = MetadataService::get_latest_sync_time().await
+        && now_utc_timestamp - last_sync < 20
+    {
+        logger::info!("Metadata was recently synced by another task. Skipping.");
+        let metadata = MetadataService::load_metadata().await?;
+        return Ok(Arc::new(metadata));
+    }
+
+    logger::info!("Detected missing metadata during import, triggering sync...");
+
+    MetadataService::sync_metadata().await?;
+    MetadataService::update_sync_metadata_time(now_utc_timestamp).await?;
+
+    let metadata = MetadataService::load_metadata().await?;
+    let metadata_arc = Arc::new(metadata);
+
+    let _ = tx.send(Action::Metadata(MetadataAction::UpdateSyncTimeSuccess(
+        now_utc_timestamp,
+    )));
+    let _ = tx.send(Action::Metadata(MetadataAction::ReloadSuccess(
+        (*metadata_arc).clone(),
+    )));
+
+    Ok(metadata_arc)
+}
+
 async fn register_account(tx: UnboundedSender<Action>, uid: String) -> Result<()> {
     AccountService::register(&uid).await?;
     let _ = tx.send(Action::Account(AccountAction::AddSuccess(uid)));
@@ -908,7 +987,7 @@ async fn load_analysis(tx: UnboundedSender<Action>, uid: String) -> Result<()> {
 }
 
 async fn set_default_account(tx: UnboundedSender<Action>, uid: String) -> Result<()> {
-    AppStateService::set_default_uid(&uid).await?;
+    AppStateService::set(AppStateItem::DefaultAccount, &uid).await?;
     let _ = tx.send(Action::Account(AccountAction::LoginSuccess(uid)));
     Ok(())
 }
@@ -923,11 +1002,32 @@ async fn refresh_gacha_records(
     tx: UnboundedSender<Action>,
     uid: String,
     fetch_all: bool,
+    metadata: Arc<Metadata>,
 ) -> Result<()> {
     let count = GachaService::refresh_gacha_record(&uid, fetch_all).await?;
     let _ = tx.send(Action::Gacha(GachaAction::RefreshSuccess(count)));
+
     if count > 0 {
         let analysis = GachaService::update_analysis(&uid).await?;
+
+        let mut missing_metadata = false;
+        for (_, entity) in analysis.iter() {
+            for pull in &entity.rank5 {
+                if metadata.get(&pull.item_id).is_none() {
+                    logger::warn!("Cache miss for item_id: {} in analysis list", pull.item_id);
+                    missing_metadata = true;
+                    break;
+                }
+            }
+            if missing_metadata {
+                break;
+            }
+        }
+
+        if missing_metadata {
+            _force_sync_metadata(tx.clone()).await?;
+        }
+
         let _ = tx.send(Action::Gacha(GachaAction::AnalysisLoaded(analysis)));
     }
     Ok(())
@@ -967,7 +1067,25 @@ async fn import_gacha_record(
     file_path: PathBuf,
     metadata: Arc<Metadata>,
 ) -> Result<()> {
-    let count = GachaService::import_record(&uid, &file_path, metadata).await?;
+    let import_res = GachaService::import_record(&uid, &file_path, Arc::clone(&metadata)).await;
+
+    let count = match import_res {
+        Ok(c) => c,
+        Err(e) => {
+            if e.msg.key == i18n::I18nKey::MetadataItemNotFound
+                || e.msg.key == i18n::I18nKey::MetadataNotAvailable
+            {
+                logger::warn!("Import failed due to missing metadata: {:?}", e.msg.key);
+                let arc_metadata = _force_sync_metadata(tx.clone()).await?;
+
+                logger::info!("Retrying import record...");
+                GachaService::import_record(&uid, &file_path, arc_metadata).await?
+            } else {
+                return Err(e);
+            }
+        }
+    };
+
     let _ = tx.send(Action::Import(ImportAction::ImportSuccess(count)));
     if count > 0 {
         let analysis = GachaService::update_analysis(&uid).await?;
