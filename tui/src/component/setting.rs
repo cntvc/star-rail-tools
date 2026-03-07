@@ -23,7 +23,7 @@ impl SettingWidget {
         match focus_path {
             [FocusNode::Setting] => match key.code {
                 KeyCode::Up | KeyCode::BackTab => Some(Action::Setting(SettingAction::Select(-1))),
-                KeyCode::Down | KeyCode::Tab => Some(Action::Setting(SettingAction::Select(1))),
+                KeyCode::Down => Some(Action::Setting(SettingAction::Select(1))),
                 KeyCode::Left => Some(Action::Setting(SettingAction::Increment(-1))),
                 KeyCode::Right => Some(Action::Setting(SettingAction::Increment(1))),
                 KeyCode::Char('h') | KeyCode::Char('H') => {

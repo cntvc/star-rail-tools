@@ -212,7 +212,7 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
                 app::HomeMode::Welcome => shortcuts,
                 app::HomeMode::Data => {
                     shortcuts.extend(vec![
-                        Shortcut::new("←→/Tab", i18n::loc(I18nKey::TuiFooterShortcutSwitchTab)),
+                        Shortcut::new("←→", i18n::loc(I18nKey::TuiFooterShortcutSwitchTab)),
                         Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutScroll)),
                     ]);
                     shortcuts
@@ -257,7 +257,7 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
         }
         Some(app::FocusNode::Setting) => {
             vec![
-                Shortcut::new("Tab/↑↓", i18n::loc(I18nKey::TuiFooterShortcutSelect)),
+                Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutSelect)),
                 Shortcut::new("←→", i18n::loc(I18nKey::TuiFooterShortcutSwitchValue)),
                 Shortcut::new("Ctrl+S", i18n::loc(I18nKey::TuiFooterShortcutSave)),
             ]

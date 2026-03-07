@@ -161,7 +161,7 @@ impl GachaDataWidget {
                 self.prev_tab();
                 None
             }
-            KeyCode::Right | KeyCode::Tab => {
+            KeyCode::Right => {
                 self.next_tab();
                 None
             }
