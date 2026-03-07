@@ -79,7 +79,7 @@ impl Footer {
         let current_root = app_model.focus_path.root_path();
 
         let style = Style::default().fg(Color::White);
-        let highlight_style = Style::default().fg(Color::Rgb(255, 209, 102));
+        let highlight_style = Style::default().fg(Color::Rgb(255, 208, 76));
         let mut spans = Vec::new();
 
         let home_style = if current_root == Some(FocusNode::Home) {

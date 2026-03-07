@@ -3,7 +3,7 @@ use crate::database::{ConfigRepo, DatabaseService};
 use crate::logger::Level;
 use i18n::Lang;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ConfigItem {
     CheckUpdate,
     Language,
@@ -17,6 +17,13 @@ impl ConfigItem {
             ConfigItem::Language => "LANGUAGE",
             ConfigItem::LogLevel => "LOG_LEVEL",
         }
+    }
+    pub const fn as_array() -> [ConfigItem; 3] {
+        [
+            ConfigItem::Language,
+            ConfigItem::CheckUpdate,
+            ConfigItem::LogLevel,
+        ]
     }
 }
 

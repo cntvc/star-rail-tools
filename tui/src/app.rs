@@ -12,12 +12,13 @@ use ratatui::{
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use srt::{
-    APP_PATH, AppConfig, Result,
+    APP_PATH, AppConfig, ConfigItem, Result,
     core::{
         AccountService, AppStateService, GachaAnalysisResult, GachaService, Metadata,
         MetadataService,
     },
-    logger, updater,
+    logger::{self, Level},
+    updater,
 };
 
 use super::action::{
@@ -106,6 +107,8 @@ pub struct AppModel {
     pub metadata_is_updated: bool,
 
     pub config: AppConfig,
+    pub temporary_config: AppConfig,
+    pub config_item_index: usize,
 
     pub visible_tasks: VecDeque<VisibleTask>,
     pub spinner_index: usize,
@@ -126,7 +129,6 @@ pub struct App {
     model: AppModel,
     home_widget: HomeWidget,
     help_widget: HelpWidget,
-    setting_widget: SettingWidget,
 
     event_tx: UnboundedSender<Event>,
     event_rx: UnboundedReceiver<Event>,
@@ -149,7 +151,6 @@ impl App {
             model: AppModel::new(),
             home_widget: HomeWidget::new(),
             help_widget: HelpWidget::new(),
-            setting_widget: SettingWidget::new(),
             event_tx,
             event_rx,
             action_tx,
@@ -247,7 +248,7 @@ impl App {
         let root_path = self.model.focus_path.root_path().unwrap();
         match root_path {
             FocusNode::Home => self.home_widget.render(&mut self.model, main_area, frame),
-            FocusNode::Setting => self.setting_widget.render(&self.model, main_area, frame),
+            FocusNode::Setting => SettingWidget::render(&self.model, main_area, frame),
             FocusNode::Help => self.help_widget.render(&mut self.model, main_area, frame),
             _ => {}
         }
@@ -302,9 +303,9 @@ impl App {
             | FocusNode::ImportFileList => self
                 .home_widget
                 .handle_key_event(key, &self.model.focus_path),
-            FocusNode::Setting | FocusNode::SettingSaveConfirm => self
-                .setting_widget
-                .handle_key_event(key, &self.model.focus_path),
+            FocusNode::Setting | FocusNode::SettingSaveConfirm => {
+                SettingWidget::handle_key_event(key, &self.model.focus_path)
+            }
 
             FocusNode::Help => self
                 .help_widget
@@ -394,8 +395,8 @@ impl App {
                 self.go_to_root(FocusNode::Home);
             }
             RouteRequest::SwitchToSetting => {
+                self.model.temporary_config = self.model.config;
                 self.go_to_root(FocusNode::Setting);
-                self.setting_widget.load_config(&self.model.config);
             }
             RouteRequest::SwitchToHelp => {
                 self.go_to_root(FocusNode::Help);
@@ -761,14 +762,64 @@ impl App {
 
     fn handle_setting_action(&mut self, setting_action: SettingAction) -> Result<()> {
         match setting_action {
-            SettingAction::Save(config) => {
-                self.model.config = config;
+            SettingAction::Select(item_increment) => {
+                let config_array = ConfigItem::as_array();
+                let config_len = config_array.len();
+
+                if item_increment != 0 {
+                    let mut new_idx =
+                        self.model.config_item_index as isize + item_increment as isize;
+                    new_idx =
+                        (new_idx % config_len as isize + config_len as isize) % config_len as isize;
+                    self.model.config_item_index = new_idx as usize;
+                }
+                Ok(())
+            }
+            SettingAction::Increment(value_increment) => {
+                let config_array = ConfigItem::as_array();
+                let current_item = config_array[self.model.config_item_index];
+                match current_item {
+                    ConfigItem::Language => {
+                        self.model.temporary_config.language =
+                            match self.model.temporary_config.language {
+                                i18n::Lang::zh_cn => i18n::Lang::en_us,
+                                i18n::Lang::en_us => i18n::Lang::zh_cn,
+                            };
+                    }
+                    ConfigItem::CheckUpdate => {
+                        self.model.temporary_config.check_update =
+                            !self.model.temporary_config.check_update;
+                    }
+                    ConfigItem::LogLevel => {
+                        let level = self.model.temporary_config.log_level;
+                        self.model.temporary_config.log_level = if value_increment > 0 {
+                            match level {
+                                Level::DEBUG => Level::INFO,
+                                Level::INFO => Level::WARN,
+                                Level::WARN => Level::ERROR,
+                                Level::ERROR => Level::DEBUG,
+                                _ => Level::DEBUG,
+                            }
+                        } else {
+                            match level {
+                                Level::DEBUG => Level::ERROR,
+                                Level::INFO => Level::DEBUG,
+                                Level::WARN => Level::INFO,
+                                Level::ERROR => Level::WARN,
+                                _ => Level::ERROR,
+                            }
+                        };
+                    }
+                }
+                Ok(())
+            }
+            SettingAction::Save => {
                 self.task_manager.start(
                     "save_config",
                     TaskGroupId::Global,
                     false,
                     "save_config",
-                    save_config(self.action_tx.clone(), self.model.config),
+                    save_config(self.action_tx.clone(), self.model.temporary_config),
                 );
                 Ok(())
             }

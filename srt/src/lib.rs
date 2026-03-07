@@ -6,7 +6,7 @@ pub mod logger;
 pub mod updater;
 pub(crate) mod utils;
 
-pub use config::AppConfig;
+pub use config::{AppConfig, ConfigItem};
 pub use error::AppError;
 
 pub use database::DatabaseService;

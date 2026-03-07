@@ -79,8 +79,12 @@ pub enum MetadataAction {
 }
 
 pub enum SettingAction {
+    /// item
+    Select(i16),
+    /// value
+    Increment(i16),
     SaveSuccess(AppConfig),
-    Save(AppConfig),
+    Save,
 }
 
 pub enum ImportAction {
