@@ -4,6 +4,7 @@ mod component;
 mod events;
 mod notification;
 mod task;
+mod worker;
 
 use app::App;
 use srt::{APP_PATH, Result, logger};
