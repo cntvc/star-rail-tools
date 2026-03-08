@@ -819,23 +819,19 @@ impl App {
                     }
                     ConfigItem::LogLevel => {
                         let level = self.model.temporary_config.log_level;
-                        self.model.temporary_config.log_level = if value_increment > 0 {
-                            match level {
-                                Level::TRACE => Level::DEBUG,
-                                Level::DEBUG => Level::INFO,
-                                Level::INFO => Level::WARN,
-                                Level::WARN => Level::ERROR,
-                                Level::ERROR => Level::DEBUG,
-                            }
-                        } else {
-                            match level {
-                                Level::TRACE => Level::ERROR,
-                                Level::DEBUG => Level::TRACE,
-                                Level::INFO => Level::DEBUG,
-                                Level::WARN => Level::INFO,
-                                Level::ERROR => Level::WARN,
-                            }
-                        };
+                        const LOG_LEVELS: [Level; 5] = [
+                            Level::TRACE,
+                            Level::DEBUG,
+                            Level::INFO,
+                            Level::WARN,
+                            Level::ERROR,
+                        ];
+                        if let Some(current_idx) = LOG_LEVELS.iter().position(|&l| l == level) {
+                            let len = LOG_LEVELS.len() as isize;
+                            let increment = if value_increment > 0 { 1 } else { -1 };
+                            let new_idx = (current_idx as isize + increment + len) % len;
+                            self.model.temporary_config.log_level = LOG_LEVELS[new_idx as usize];
+                        }
                     }
                 }
                 Ok(())
