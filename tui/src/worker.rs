@@ -172,10 +172,10 @@ pub async fn import_gacha_record(
     let count = match import_res {
         Ok(c) => c,
         Err(e) => {
-            if e.msg.key == i18n::I18nKey::MetadataItemNotFound
-                || e.msg.key == i18n::I18nKey::MetadataNotAvailable
+            if e.kind == i18n::I18nKey::MetadataItemNotFound
+                || e.kind == i18n::I18nKey::MetadataNotAvailable
             {
-                logger::warn!("Import failed due to missing metadata: {:?}", e.msg.key);
+                logger::warn!("Import failed due to missing metadata: {:?}", e.kind);
                 let arc_metadata = force_sync_metadata(tx.clone()).await?;
 
                 logger::info!("Retrying import record...");

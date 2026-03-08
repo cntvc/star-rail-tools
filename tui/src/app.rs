@@ -862,21 +862,21 @@ impl App {
         match task_action {
             TaskAction::Failed(task_id, error) => {
                 logger::error!("\nTask failed. ID: {}\n{:#?}", task_id, error);
-                let notification_type = match error.msg.key {
+                let notification_type = match error.kind {
                     i18n::I18nKey::TaskExecutionFailed
                     | i18n::I18nKey::IoError
                     | i18n::I18nKey::TimeParseError
                     | i18n::I18nKey::DatabaseError => NotificationType::Error,
                     _ => NotificationType::Warning,
                 };
-                self.notify(i18n::loc(error.msg.key), notification_type);
+                self.notify(i18n::loc(error.kind), notification_type);
                 self.remove_visible_task(&task_id);
 
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Failed;
                 }
 
-                if error.msg.key == i18n::I18nKey::DatabaseError {
+                if error.kind == i18n::I18nKey::DatabaseError {
                     self.exit = true;
                 }
                 Ok(())

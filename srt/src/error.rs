@@ -2,53 +2,23 @@ use i18n::I18nKey;
 use std::panic::Location;
 
 #[derive(Debug)]
-pub struct ErrorContext {
-    pub key: I18nKey,
-    pub args: Vec<String>, // 用于替换 i18n 返回文本中的占位符
-}
-
-impl ErrorContext {
-    pub fn new(key: I18nKey, args: Vec<String>) -> Self {
-        Self { key, args }
-    }
-}
-
-impl std::fmt::Display for ErrorContext {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.key)?;
-
-        if self.args.is_empty() {
-            return Ok(());
-        }
-
-        write!(f, " (")?;
-        for (i, arg) in self.args.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            write!(f, "{}", arg)?;
-        }
-        write!(f, ")")
-    }
-}
-
-#[derive(Debug)]
 pub struct AppError {
     pub source: anyhow::Error,
     pub location: &'static Location<'static>,
-    pub msg: ErrorContext,
+    pub kind: I18nKey,
+    pub args: Vec<String>, // 用于替换 i18n 返回文本中的占位符
 }
 
 impl AppError {
     #[track_caller]
-    pub fn new(key: I18nKey, args: Vec<String>) -> Self {
+    pub fn new(kind: I18nKey, args: Vec<String>) -> Self {
         let location = Location::caller();
-        let ctx = ErrorContext::new(key, args);
 
         Self {
             source: anyhow::anyhow!("Logic Error"),
             location,
-            msg: ctx,
+            kind,
+            args,
         }
     }
 }
@@ -61,7 +31,18 @@ impl std::fmt::Display for AppError {
             self.location.file(),
             self.location.line()
         )?;
-        write!(f, "| {}", self.msg)?;
+        write!(f, "| {:?}", self.kind)?;
+
+        if !self.args.is_empty() {
+            write!(f, " (")?;
+            for (i, arg) in self.args.iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{}", arg)?;
+            }
+            write!(f, ")")?;
+        }
 
         write!(f, "\nCaused by:")?;
         for (i, cause) in self.source.chain().enumerate() {
@@ -110,7 +91,8 @@ where
                 let e = AppError {
                     source: source_err,
                     location,
-                    msg: ErrorContext { key, args },
+                    kind: key,
+                    args,
                 };
                 Err(e)
             }
@@ -134,10 +116,8 @@ macro_rules! impl_from_error {
                     AppError {
                         source: error.into(),
                         location,
-                        msg: ErrorContext {
-                            key: I18nKey::$i18n_key,
-                            args: vec![],
-                        },
+                        kind: I18nKey::$i18n_key,
+                        args: vec![],
                     }
                 }
             }
@@ -172,7 +152,8 @@ impl From<std::io::Error> for AppError {
         AppError {
             source: error.into(),
             location,
-            msg: ErrorContext { key, args: vec![] },
+            kind: key,
+            args: vec![],
         }
     }
 }
