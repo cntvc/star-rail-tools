@@ -184,16 +184,15 @@ impl MetadataService {
     }
 
     /// 加载全量 metadata（包含所有语言）
+    #[tracing::instrument(level = "debug", skip_all)]
     pub async fn load_metadata() -> Result<Metadata> {
-        logger::info!("Loading full metadata");
         let res = tokio::task::spawn_blocking(MetadataRepo::select_all).await??;
         let metadata_map: Metadata = res.into_iter().map(|i| (i.item_id, i)).collect();
         Ok(metadata_map)
     }
 
+    #[tracing::instrument(level = "debug", skip_all)]
     pub async fn sync_metadata() -> Result<()> {
-        logger::info!("Syncing metadata from remote API");
-
         let api_client = MetadataApiClient::new()?;
         let metadata = api_client.fetch_all_metadata().await?;
         let cnt = tokio::task::spawn_blocking(move || MetadataRepo::insert(metadata)).await??;

@@ -18,14 +18,8 @@ use i18n::{I18nKey, Lang};
 pub struct GachaService;
 
 impl GachaService {
-    #[instrument(level = "info", skip_all)]
+    #[instrument(level = "info")]
     pub async fn refresh_gacha_record(uid: &str, fetch_all: bool) -> Result<usize> {
-        logger::info!(
-            "Refreshing gacha record. uid: {}, fetch_all: {}",
-            uid,
-            fetch_all
-        );
-
         let url_raw = UrlLocator::extract_url_from_cache(uid)?;
         let url = url_raw.ok_or_else(|| crate::AppError::new(I18nKey::GachaUrlNotFound, vec![]))?;
 
@@ -77,10 +71,8 @@ impl GachaService {
         Ok(count)
     }
 
-    #[instrument(level = "debug", skip_all)]
+    #[instrument(level = "info")]
     async fn analyze_gacha_records(uid: &str) -> Result<GachaAnalysisResult> {
-        logger::info!("Analyzing gacha record for {}", uid);
-
         let calc_current_pity_task = tokio::task::spawn_blocking({
             let uid = uid.to_string();
             move || GachaRecordRepo::calc_current_pity(&uid)
@@ -120,9 +112,8 @@ impl GachaService {
         Ok(analysis_map)
     }
 
-    #[instrument(level = "debug", skip_all)]
+    #[instrument(level = "info")]
     pub async fn update_analysis(uid: &str) -> Result<GachaAnalysisResult> {
-        logger::info!("Refreshing gacha analysis for {}", uid);
         let analysis_result = Self::analyze_gacha_records(uid).await?;
 
         let analysis_result = tokio::task::spawn_blocking({
@@ -137,9 +128,8 @@ impl GachaService {
         Ok(analysis_result)
     }
 
-    #[instrument(level = "debug", skip_all)]
+    #[instrument(level = "info")]
     pub async fn load_analysis(uid: &str) -> Result<GachaAnalysisResult> {
-        logger::info!("Loading gacha analysis for {}", uid);
         let uid = uid.to_string();
         let analysis_result =
             tokio::task::spawn_blocking(move || GachaRecordRepo::select_analysis_result(&uid))
@@ -152,7 +142,7 @@ impl GachaService {
         ImportService::import_from_file(uid, path, metadata).await
     }
 
-    #[instrument(level = "info", skip_all)]
+    #[instrument(level = "debug", skip_all)]
     pub async fn get_json_file_list(path: &Path) -> Result<Vec<PathBuf>> {
         ImportService::get_json_file_list(path).await
     }

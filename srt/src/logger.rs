@@ -116,7 +116,7 @@ pub fn init(path: &Path, level: Option<Level>) -> Result<()> {
         .with_ansi(false)
         // 显示 span 关闭时的耗时
         // 由于异步任务机制，导致有过多 enter 日志，这里仅显示 close 日志
-        .with_span_events(fmt::format::FmtSpan::CLOSE);
+        .with_span_events(fmt::format::FmtSpan::CLOSE | fmt::format::FmtSpan::NEW);
 
     // 创建过滤器：默认显示所有 info 日志，但屏蔽常见的嘈杂第三方库
     let level = level.map_or("info".to_string(), |l| l.to_string());

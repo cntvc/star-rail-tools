@@ -1,8 +1,6 @@
 use i18n::I18nKey;
 use std::panic::Location;
 
-use crate::logger;
-
 #[derive(Debug)]
 pub struct ErrorContext {
     pub key: I18nKey,
@@ -47,15 +45,11 @@ impl AppError {
         let location = Location::caller();
         let ctx = ErrorContext::new(key, args);
 
-        let e = Self {
+        Self {
             source: anyhow::anyhow!("Logic Error"),
             location,
             msg: ctx,
-        };
-
-        logger::warn!("{:#}", e);
-
-        e
+        }
     }
 }
 
@@ -118,7 +112,6 @@ where
                     location,
                     msg: ErrorContext { key, args },
                 };
-                logger::warn!("{:#}", e);
                 Err(e)
             }
         }
@@ -138,16 +131,14 @@ macro_rules! impl_from_error {
                 fn from(error: $error_type) -> Self {
                     let location = Location::caller();
 
-                    let e = AppError {
+                    AppError {
                         source: error.into(),
                         location,
                         msg: ErrorContext {
                             key: I18nKey::$i18n_key,
                             args: vec![],
                         },
-                    };
-                    logger::warn!("{:#}", e);
-                    e
+                    }
                 }
             }
         )+
@@ -178,12 +169,10 @@ impl From<std::io::Error> for AppError {
 
         let location = Location::caller();
 
-        let e = AppError {
+        AppError {
             source: error.into(),
             location,
             msg: ErrorContext { key, args: vec![] },
-        };
-        logger::warn!("{:#}", e);
-        e
+        }
     }
 }

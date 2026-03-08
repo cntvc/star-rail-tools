@@ -13,6 +13,7 @@ use srt::{APP_PATH, Result, logger};
 async fn main() -> Result<()> {
     APP_PATH.init()?;
     logger::init(&APP_PATH.log_dir, Some(logger::Level::INFO))?;
+    // 数据库日志
     srt::DatabaseService::init()?;
     let mut app = App::new();
     app.init().await?;
@@ -21,5 +22,12 @@ async fn main() -> Result<()> {
     let result = app.run(&mut terminal).await;
 
     ratatui::restore();
+
+    if let Err(ref e) = result {
+        logger::error!("App run error: {:?}", e);
+
+        eprintln!("{}\n{:#?}", i18n::I18nKey::UnknownError, e);
+    }
+
     result
 }

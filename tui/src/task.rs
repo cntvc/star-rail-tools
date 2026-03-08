@@ -49,6 +49,7 @@ pub enum TaskStatus {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Task {
     pub id: TaskId,
     pub group: TaskGroupId,
@@ -115,7 +116,7 @@ impl TaskManager {
 
         // 检查任务是否已存在
         if self.tasks.contains_key(&task_id) {
-            logger::debug!(
+            logger::info!(
                 "task already exists, name: {} group: {:?}",
                 task_name,
                 group
@@ -132,7 +133,6 @@ impl TaskManager {
         );
         let cancel_token = task.cancel_token.clone();
         task.status = TaskStatus::Running;
-        logger::debug!("task start, id: {} name: {}", task.id, task.name);
 
         self.tasks.insert(task_id.clone(), task);
         let tx = self.action_tx.clone();

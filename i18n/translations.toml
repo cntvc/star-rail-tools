@@ -100,6 +100,10 @@ en_us = "Metadata is not available"
 zh_cn = "元数据中未找到该物品"
 en_us = "Item not found in metadata"
 
+[UnknownError]
+zh_cn = "捕获到错误，请前往 Github 反馈: https://github.com/cntvc/star-rail-tools/issues"
+en_us = "An error occurred. Please report it on GitHub: https://github.com/cntvc/star-rail-tools/issues"
+
 # 第三方库错误
 [TaskExecutionFailed]
 zh_cn = "后台任务执行失败"

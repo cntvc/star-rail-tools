@@ -1,11 +1,11 @@
 use rusqlite::{OptionalExtension, params};
 use tracing::instrument;
 
+use crate::Result;
 use crate::database::DatabaseService;
-use crate::{Result, logger};
 
+#[instrument(level = "debug")]
 pub fn insert(uid: &str) -> Result<()> {
-    logger::debug!("Adding account: {}", uid);
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare("INSERT INTO account (uid) VALUES (?1);")?;
     stmt.execute(params![uid])?;
@@ -13,7 +13,6 @@ pub fn insert(uid: &str) -> Result<()> {
 }
 
 pub fn select_one(uid: &str) -> Result<Option<String>> {
-    logger::debug!("Querying account: {}", uid);
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare("SELECT uid FROM account WHERE uid = ?1;")?;
     let res = stmt
@@ -23,7 +22,6 @@ pub fn select_one(uid: &str) -> Result<Option<String>> {
 }
 
 pub fn select_all() -> Result<Vec<String>> {
-    logger::debug!("Querying all accounts");
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare("SELECT uid FROM account ORDER BY uid;")?;
     let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
@@ -31,9 +29,8 @@ pub fn select_all() -> Result<Vec<String>> {
     Ok(res)
 }
 
-#[instrument(level = "debug", skip_all)]
+#[instrument(level = "debug")]
 pub fn delete_all_data(uid: &str) -> Result<()> {
-    logger::debug!("Deleting all data for account: {}", uid);
     let mut conn = DatabaseService::connection()?;
     let tx = conn.transaction()?;
     tx.execute(

@@ -2528,6 +2528,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-util",
+ "tracing",
  "unicode-width",
  "winresource",
 ]

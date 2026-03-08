@@ -1,10 +1,11 @@
 use rusqlite::{OptionalExtension, params};
 
+use tracing::instrument;
+
 use crate::config::ConfigItem;
-use crate::{AppConfig, DatabaseService, Result, logger};
+use crate::{AppConfig, DatabaseService, Result};
 
 pub fn select(conn: &rusqlite::Connection, key: &str) -> Result<Option<String>> {
-    logger::debug!("Getting setting: {}", key);
     let mut stmt = conn.prepare("SELECT value FROM setting WHERE key = ?;")?;
     let result = stmt
         .query_row(params![&key], |row| row.get::<_, Option<String>>(0))
@@ -12,8 +13,8 @@ pub fn select(conn: &rusqlite::Connection, key: &str) -> Result<Option<String>> 
     Ok(result.flatten())
 }
 
+#[instrument(level = "debug")]
 pub fn update_all(config: AppConfig) -> Result<bool> {
-    logger::debug!("Save config {:?}", config);
     let mut conn = DatabaseService::connection()?;
     let tx = conn.transaction()?;
     {

@@ -10,21 +10,13 @@ use crate::core::{
 use crate::database::DatabaseService;
 use crate::{Result, logger};
 
-#[instrument(level = "debug", skip_all)]
+#[instrument(level = "debug", skip(gacha_records), fields(record_len = gacha_records.len()))]
 pub fn insert_or_update_records(
     uid: &str,
     gacha_records: Vec<GachaRecordEntity>,
     source: &str,
     replace: bool,
 ) -> Result<usize> {
-    logger::debug!(
-        "Saving or updating {} records for user: {}, source: {}, replace: {}",
-        gacha_records.len(),
-        uid,
-        source,
-        replace
-    );
-
     if gacha_records.is_empty() {
         return Ok(0);
     }
@@ -78,9 +70,7 @@ pub fn insert_or_update_records(
     Ok(new_record_count)
 }
 
-#[instrument(level = "debug", skip_all)]
 pub fn select_latest_gacha_id(uid: &str) -> Result<Option<i64>> {
-    logger::debug!("Querying latest gacha id for user: {}", uid);
     let db = DatabaseService::connection()?;
     let mut stmt =
         db.prepare("SELECT id FROM gacha_record WHERE uid = ?1 ORDER BY id DESC LIMIT 1;")?;
@@ -91,9 +81,7 @@ pub fn select_latest_gacha_id(uid: &str) -> Result<Option<i64>> {
     Ok(result)
 }
 
-#[instrument(level = "debug", skip_all)]
 pub fn calc_current_pity(uid: &str) -> Result<Vec<(u8, u8)>> {
-    logger::debug!("Calculating current pity for user: {}", uid);
     let sql = "
         WITH RankedPulls AS (SELECT gacha_type,
                             rank_type,
@@ -116,9 +104,7 @@ pub fn calc_current_pity(uid: &str) -> Result<Vec<(u8, u8)>> {
     Ok(res)
 }
 
-#[instrument(level = "debug", skip_all)]
 pub fn calc_pull_history(uid: &str) -> Result<Vec<(u8, Vec<GachaPullInfoEntity>)>> {
-    logger::debug!("Calculating pull history for user: {}", uid);
     let sql = "
         WITH RankedPulls AS (SELECT id,
                             item_id,
@@ -156,10 +142,7 @@ pub fn calc_pull_history(uid: &str) -> Result<Vec<(u8, Vec<GachaPullInfoEntity>)
     Ok(results)
 }
 
-#[instrument(level = "debug", skip_all)]
 pub fn calc_total_count(uid: &str) -> Result<Vec<(u8, u32)>> {
-    logger::debug!("Calculating total count for user: {}", uid);
-
     let sql = "SELECT gacha_type, COUNT(*) AS count FROM gacha_record WHERE uid = ?1 GROUP BY gacha_type;";
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare(sql)?;
@@ -172,9 +155,8 @@ pub fn calc_total_count(uid: &str) -> Result<Vec<(u8, u32)>> {
     Ok(res)
 }
 
-#[instrument(level = "debug", skip_all)]
+#[instrument(level = "debug", skip(data))]
 pub fn insert_or_update_analysis_result(uid: &str, data: &GachaAnalysisResult) -> Result<()> {
-    logger::debug!("Saving or updating analysis result for user: {}", uid);
     let mut conn = DatabaseService::connection()?;
     let tx = conn.transaction()?;
     {
@@ -197,9 +179,7 @@ pub fn insert_or_update_analysis_result(uid: &str, data: &GachaAnalysisResult) -
     Ok(())
 }
 
-#[instrument(level = "debug", skip_all)]
 pub fn select_analysis_result(uid: &str) -> Result<GachaAnalysisResult> {
-    logger::debug!("Querying analysis result for user: {}", uid);
     let sql = "SELECT uid, gacha_type, pity_count, total_count, rank5 FROM gacha_analysis WHERE uid = ?1;";
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare(sql)?;
@@ -213,9 +193,7 @@ pub fn select_analysis_result(uid: &str) -> Result<GachaAnalysisResult> {
     Ok(GachaAnalysisResult::new(results))
 }
 
-#[instrument(level = "debug", skip_all)]
 pub fn select_all(uid: &str) -> Result<Vec<GachaRecordEntity>> {
-    logger::debug!("Querying all gacha records for user: {}", uid);
     let conn = DatabaseService::connection()?;
     let mut stmt = conn.prepare("SELECT id, batch_id, uid, gacha_id, gacha_type, item_id, time, rank_type FROM gacha_record WHERE uid = ?1 ORDER BY id;")?;
     let rows = stmt.query_map(params![uid], GachaRecordEntity::from_row)?;

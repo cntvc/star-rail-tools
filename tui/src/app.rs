@@ -10,6 +10,7 @@ use ratatui::{
     widgets::{ListState, Widget},
 };
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+use tracing::instrument;
 
 use srt::{
     APP_PATH, AppConfig, ConfigItem, Result,
@@ -163,6 +164,7 @@ impl App {
         }
     }
 
+    #[instrument(level = "info", skip_all)]
     pub async fn init(&mut self) -> Result<()> {
         let uid = AppStateService::get::<String>(AppStateItem::DefaultAccount).await?;
         self.model.uid = uid.clone();
@@ -187,7 +189,7 @@ impl App {
         }
 
         logger::info!(
-            "App initialized\nUID: {:?}\nUID count: {}\nMetadata items: {}\nconfig: {:?}",
+            "\nApp initialized\nUID: {:?}\nUID count: {}\nMetadata items: {}\nconfig: {:?}",
             self.model.uid,
             self.model.uid_list.len(),
             self.model.metadata.len(),
@@ -211,18 +213,9 @@ impl App {
         let need_sync_metadata = {
             if let Some(last_sync_time) = self.model.latest_metadata_sync_utc_time {
                 let now_utc_timestamp = time::OffsetDateTime::now_utc().unix_timestamp();
-                let need_sync = now_utc_timestamp - last_sync_time > METADATA_SYNC_INTERVAL;
-                if need_sync {
-                    logger::info!("Metadata sync interval exceeded TTL, preparing to sync.");
-                } else {
-                    logger::info!("Metadata is up-to-date, skipping sync.");
-                }
-                need_sync
+                now_utc_timestamp - last_sync_time > METADATA_SYNC_INTERVAL
             } else {
                 // 首次启动时，强制同步
-                logger::info!(
-                    "No previous metadata sync record found, preparing for initial sync."
-                );
                 true
             }
         };
@@ -318,7 +311,7 @@ impl App {
     }
 
     fn route_key_event(&mut self, key: KeyEvent) -> Option<Action> {
-        logger::debug!("route key: {:?}", key.code);
+        logger::trace!("route key: {:?}", key);
         // 全局快捷键
         if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {
             return Some(Action::Quit);
@@ -326,7 +319,7 @@ impl App {
 
         // 2. 根据 focus_path 末端分发
         let current_focus = self.model.focus_path.last().copied().unwrap();
-        logger::debug!("current focus: {:?}", current_focus);
+
         match current_focus {
             FocusNode::Home
             | FocusNode::AccountList
@@ -828,19 +821,19 @@ impl App {
                         let level = self.model.temporary_config.log_level;
                         self.model.temporary_config.log_level = if value_increment > 0 {
                             match level {
+                                Level::TRACE => Level::DEBUG,
                                 Level::DEBUG => Level::INFO,
                                 Level::INFO => Level::WARN,
                                 Level::WARN => Level::ERROR,
                                 Level::ERROR => Level::DEBUG,
-                                _ => Level::DEBUG,
                             }
                         } else {
                             match level {
-                                Level::DEBUG => Level::ERROR,
+                                Level::TRACE => Level::ERROR,
+                                Level::DEBUG => Level::TRACE,
                                 Level::INFO => Level::DEBUG,
                                 Level::WARN => Level::INFO,
                                 Level::ERROR => Level::WARN,
-                                _ => Level::ERROR,
                             }
                         };
                     }
@@ -868,6 +861,7 @@ impl App {
     fn handle_task_action(&mut self, task_action: TaskAction) -> Result<()> {
         match task_action {
             TaskAction::Failed(task_id, error) => {
+                logger::error!("\nTask failed. ID: {}\n{:#?}", task_id, error);
                 let notification_type = match error.msg.key {
                     i18n::I18nKey::TaskExecutionFailed
                     | i18n::I18nKey::IoError
@@ -888,6 +882,7 @@ impl App {
                 Ok(())
             }
             TaskAction::Cancelled(task_id) => {
+                logger::info!("Task cancelled. ID: {}", task_id);
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Cancelled;
                 }
@@ -895,6 +890,7 @@ impl App {
                 Ok(())
             }
             TaskAction::Started(task_id) => {
+                logger::info!("Task started. ID: {}", task_id);
                 if let Some(task) = self.task_manager.get_task(&task_id)
                     && task.visible
                 {
@@ -903,6 +899,7 @@ impl App {
                 Ok(())
             }
             TaskAction::Completed(task_id) => {
+                logger::info!("Task completed. ID: {}", task_id);
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Completed;
                 }

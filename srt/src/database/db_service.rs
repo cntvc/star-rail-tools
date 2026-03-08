@@ -1,22 +1,24 @@
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
-use crate::{APP_PATH, Result, logger};
+use tracing::instrument;
+
+use crate::{APP_PATH, Result};
 
 static DB_PATH: LazyLock<PathBuf> = LazyLock::new(|| APP_PATH.db_dir.join("star-rail-tools.db"));
 
 pub struct DatabaseService;
 
 impl DatabaseService {
+    #[instrument(level = "info")]
     pub fn init() -> Result<()> {
-        logger::info!("Initializing database");
         let mut conn = Self::connection()?;
         conn.pragma_update(None, "journal_mode", "WAL")?;
         Self::create_database(&mut conn)?;
-        logger::info!("Database initialized successfully");
         Ok(())
     }
 
+    #[instrument(level = "debug")]
     fn create_database(conn: &mut rusqlite::Connection) -> Result<()> {
         let tx = conn.transaction()?;
         for s in SQL_V0 {

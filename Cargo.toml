@@ -15,6 +15,7 @@ version = "3.0.2"
 serde = { version = "1.0.228" }
 tokio = { version = "1.49.0" }
 time = { version = "0.3.47" }
+tracing = { version = "0.1.44" }
 
 [profile.dev]
 incremental = false
