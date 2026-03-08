@@ -396,7 +396,7 @@ impl GachaDataWidget {
                     let name = metadata
                         .get_item_name(item.item_id, i18n::lang())
                         .map(|n| n.to_string())
-                        .unwrap_or_else(|| format!("{}", item.id));
+                        .unwrap_or_else(|| format!("{}", item.item_id));
 
                     self.render_card(*cell_area, seq, &name, item.pull_index, &mut virtual_buf);
                 }
