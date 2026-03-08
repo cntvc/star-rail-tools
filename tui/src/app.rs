@@ -690,8 +690,8 @@ impl App {
                     self.task_manager.start(
                         "import_gacha_record",
                         TaskGroupId::User,
-                        false,
-                        "import_gacha_record",
+                        true,
+                        i18n::loc(i18n::I18nKey::TaskImportGachaRecord),
                         import_gacha_record(
                             self.action_tx.clone(),
                             self.model.uid.clone().unwrap(), // 这里必定有值，在进入前已进行判断
@@ -734,8 +734,8 @@ impl App {
                 self.task_manager.start(
                     "export_gacha_record",
                     TaskGroupId::User,
-                    false,
-                    "export_gacha_record",
+                    true,
+                    i18n::loc(i18n::I18nKey::TaskExportGachaRecord),
                     export_gacha_record(
                         self.action_tx.clone(),
                         self.model.uid.clone().unwrap(),

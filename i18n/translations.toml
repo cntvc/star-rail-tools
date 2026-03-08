@@ -97,8 +97,8 @@ zh_cn = "元数据不可用"
 en_us = "Metadata is not available"
 
 [MetadataItemNotFound]
-zh_cn = "元数据中未找到该物品"
-en_us = "Item not found in metadata"
+zh_cn = "缺少部分物品数据"
+en_us = "Data information not found"
 
 [UnknownError]
 zh_cn = "捕获到错误，请前往 Github 反馈: https://github.com/cntvc/star-rail-tools/issues"
@@ -414,6 +414,14 @@ en_us = "Refreshing gacha records"
 zh_cn = "扫描导入文件"
 en_us = "Scanning import files"
 
+[TaskImportGachaRecord]
+zh_cn = "导入跃迁记录"
+en_us = "Import gacha records"
+
+[TaskExportGachaRecord]
+zh_cn = "导出跃迁记录"
+en_us = "Export gacha records"
+
 # App - Notifications
 [NotifyPleaseLoginFirst]
 zh_cn = "请先登录账号"
@@ -580,15 +588,15 @@ en_us = "Common Error Handling"
 
 [TuiHelpErrorMetadata]
 zh_cn = """
-• Metadata 更新失败，导致无法刷新或导入
-  解决方案：重启程序，软件会自动更新元数据\n
+• 提示"缺少部分物品数据"导致导入数据失败
+  解决方案：重试或附带日志前往 Github 反馈\n
 • 获取跃迁记录失败
   解决方案：请先在游戏中打开抽卡历史页面，然后重试\n
 • UID 不匹配错误
   解决方案：请确保游戏账号与软件当前账号 UID 一致"""
 en_us = """
-• Metadata update failed, unable to refresh or import
-  Solution: Restart the program, it will automatically update metadata\n
+• Import failed due to "Data information not found"
+  Solution: Retry or report it with logs on GitHub\n
 • Failed to fetch warp records
   Solution: Please open the gacha history page in the game first, then try again\n
 • UID mismatch error
