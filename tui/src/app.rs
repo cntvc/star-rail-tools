@@ -861,7 +861,6 @@ impl App {
     fn handle_task_action(&mut self, task_action: TaskAction) -> Result<()> {
         match task_action {
             TaskAction::Failed(task_id, error) => {
-                logger::error!("\nTask failed. ID: {}\n{:#?}", task_id, error);
                 let notification_type = match error.kind {
                     i18n::I18nKey::TaskExecutionFailed
                     | i18n::I18nKey::IoError
@@ -882,7 +881,6 @@ impl App {
                 Ok(())
             }
             TaskAction::Cancelled(task_id) => {
-                logger::info!("Task cancelled. ID: {}", task_id);
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Cancelled;
                 }
@@ -890,7 +888,6 @@ impl App {
                 Ok(())
             }
             TaskAction::Started(task_id) => {
-                logger::info!("Task started. ID: {}", task_id);
                 if let Some(task) = self.task_manager.get_task(&task_id)
                     && task.visible
                 {
@@ -899,7 +896,6 @@ impl App {
                 Ok(())
             }
             TaskAction::Completed(task_id) => {
-                logger::info!("Task completed. ID: {}", task_id);
                 if let Some(task) = self.task_manager.get_task(&task_id) {
                     task.status = TaskStatus::Completed;
                 }

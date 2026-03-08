@@ -136,6 +136,9 @@ impl TaskManager {
 
         self.tasks.insert(task_id.clone(), task);
         let tx = self.action_tx.clone();
+
+        // 防止由于消息队列导致的启动日志延迟
+        logger::info!("Task started. ID: {}", task_id);
         let _ = tx.send(Action::Task(TaskAction::Started(task_id.clone())));
 
         let task_id_for_spawn = task_id.clone();
@@ -144,14 +147,17 @@ impl TaskManager {
                 r = fut => {
                     match r {
                         Ok(()) => {
+                            logger::info!("Task completed. ID: {}", task_id_for_spawn);
                             let _ = tx.send(Action::Task(TaskAction::Completed(task_id_for_spawn)));
                         }
                         Err(e) => {
+                            logger::error!("\nTask failed. ID: {}\n{:#?}", task_id_for_spawn, e);
                             let _ = tx.send(Action::Task(TaskAction::Failed(task_id_for_spawn, e)));
                         }
                     }
                 },
                 _ = cancel_token.cancelled() => {
+                    logger::info!("Task cancelled. ID: {}", task_id_for_spawn);
                     let _ = tx.send(Action::Task(TaskAction::Cancelled(task_id_for_spawn)));
                 },
             };
