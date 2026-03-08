@@ -189,7 +189,9 @@ impl App {
         }
 
         logger::info!(
-            "\nApp initialized\nUID: {:?}\nUID count: {}\nMetadata items: {}\nconfig: {:?}",
+            "App initialized\nApp version: {}\nDefault UID: {:?}\
+            \nUser count: {}\nMetadata items: {}\nconfig: {:?}",
+            srt::APP_VERSION,
             self.model.uid,
             self.model.uid_list.len(),
             self.model.metadata.len(),

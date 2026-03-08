@@ -112,7 +112,7 @@ impl GachaService {
         Ok(analysis_map)
     }
 
-    #[instrument(level = "info")]
+    #[instrument(level = "debug")]
     pub async fn update_analysis(uid: &str) -> Result<GachaAnalysisResult> {
         let analysis_result = Self::analyze_gacha_records(uid).await?;
 
@@ -128,7 +128,7 @@ impl GachaService {
         Ok(analysis_result)
     }
 
-    #[instrument(level = "info")]
+    #[instrument(level = "debug")]
     pub async fn load_analysis(uid: &str) -> Result<GachaAnalysisResult> {
         let uid = uid.to_string();
         let analysis_result =
