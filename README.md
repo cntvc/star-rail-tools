@@ -53,6 +53,6 @@
 
 ## 鸣谢
 
-- 本项目早期开发参考了：[**genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
+- 本项目灵感来源：[**sunfkny/genshin-gacha-export**](https://github.com/sunfkny/genshin-gacha-export)
 
 [^1]: `SRGF/UIGFv4` 格式为 UIGF 组织制定的数据交换格式，详情请访问 [UIGF](https://uigf.org) 官网
