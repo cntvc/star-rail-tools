@@ -204,9 +204,9 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
     match app_model.focus_path.last() {
         Some(app::FocusNode::Home) => {
             let mut shortcuts = vec![
-                Shortcut::new("a", i18n::loc(I18nKey::TuiFooterShortcutAccount)),
-                Shortcut::new("u", i18n::loc(I18nKey::TuiFooterShortcutUpdate)),
-                Shortcut::new("d", i18n::loc(I18nKey::TuiFooterShortcutImportExport)),
+                Shortcut::new("A", i18n::loc(I18nKey::TuiFooterShortcutAccount)),
+                Shortcut::new("U", i18n::loc(I18nKey::TuiFooterShortcutUpdate)),
+                Shortcut::new("D", i18n::loc(I18nKey::TuiFooterShortcutImportExport)),
             ];
             match app_model.home_mode {
                 app::HomeMode::Welcome => shortcuts,
@@ -270,7 +270,7 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
         }
         Some(app::FocusNode::Help) => {
             vec![
-                Shortcut::new("a", i18n::loc(I18nKey::TuiFooterShortcutAbout)),
+                Shortcut::new("A", i18n::loc(I18nKey::TuiFooterShortcutAbout)),
                 Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutScroll)),
             ]
         }

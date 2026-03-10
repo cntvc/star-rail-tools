@@ -226,12 +226,12 @@ en_us = "Please enter UID:"
 
 # TUI - Footer Component
 [TuiFooterHomeMenu]
-zh_cn = "主页(h)"
-en_us = "Home(h)"
+zh_cn = "主页(H)"
+en_us = "Home(H)"
 
 [TuiFooterSettingMenu]
-zh_cn = "设置(s)"
-en_us = "Settings(s)"
+zh_cn = "设置(S)"
+en_us = "Settings(S)"
 
 [TuiFooterHelpMenu]
 zh_cn = "帮助(?)"
@@ -328,16 +328,16 @@ zh_cn = "崩坏·星穹铁道抽卡记录分析工具"
 en_us = "Honkai: Star Rail Gacha Record Analysis Tool"
 
 [TuiHomeWelcomeAddAccount]
-zh_cn = "按 [a] 添加账户开始"
-en_us = "Press [a] to add account to get started"
+zh_cn = "按 [A] 添加账户开始"
+en_us = "Press [A] to add account to get started"
 
 [TuiHomeWelcomeHelp]
 zh_cn = "按 [?] 查看帮助"
 en_us = "Press [?] for help"
 
 [TuiHomeWelcomeQuit]
-zh_cn = "按 [ctrl+q] 退出程序"
-en_us = "Press [ctrl+q] to quit"
+zh_cn = "按 [Ctrl+Q] 退出程序"
+en_us = "Press [Ctrl+Q] to quit"
 
 [TuiGachaTotalPulls]
 zh_cn = "总抽数"
@@ -561,8 +561,8 @@ en_us = "Keyboard Shortcuts"
 [TuiHelpShortcutsDesc]
 zh_cn = """本软件支持以下键盘快捷键，可在各页面快速操作：\n
 【页面导航】\n
-  • [h]         — 切换到主页
-  • [s]         — 切换到设置页
+  • [H]         — 切换到主页
+  • [S]         — 切换到设置页
   • [?]         — 切换到帮助页
 
 【通用操作】\n
@@ -572,8 +572,8 @@ zh_cn = """本软件支持以下键盘快捷键，可在各页面快速操作：
   • [←→/↑↓]     — 在列表或选项之间导航"""
 en_us = """The following keyboard shortcuts are available across all pages:\n
 [Page Navigation]\n
-  • [h]         — Switch to Home page
-  • [s]         — Switch to Settings page
+  • [H]         — Switch to Home page
+  • [S]         — Switch to Settings page
   • [?]         — Switch to Help page
 
 [General Operations]\n
