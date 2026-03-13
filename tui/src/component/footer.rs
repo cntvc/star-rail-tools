@@ -269,10 +269,10 @@ fn shortcuts_for_focus(app_model: &AppModel) -> Vec<Shortcut<'_>> {
             ]
         }
         Some(app::FocusNode::Help) => {
-            vec![
-                Shortcut::new("A", i18n::loc(I18nKey::TuiFooterShortcutAbout)),
-                Shortcut::new("↑↓", i18n::loc(I18nKey::TuiFooterShortcutScroll)),
-            ]
+            vec![Shortcut::new(
+                "↑↓",
+                i18n::loc(I18nKey::TuiFooterShortcutScroll),
+            )]
         }
         None => vec![],
     }

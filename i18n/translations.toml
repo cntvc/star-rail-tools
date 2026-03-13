@@ -289,10 +289,6 @@ en_us = "Switch Value"
 zh_cn = "保存"
 en_us = "Save"
 
-[TuiFooterShortcutAbout]
-zh_cn = "关于"
-en_us = "About"
-
 [TuiFooterShortcutScroll]
 zh_cn = "滚动"
 en_us = "Scroll"
